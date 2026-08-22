@@ -87,9 +87,9 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
   }
 
   return (
-    <Card className="max-w-xl">
-      <CardBody className="flex flex-col gap-5">
-        <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+    <Card className="mx-auto w-full max-w-[820px] border-(--color-border) bg-(--color-surface) shadow-(--shadow-card)">
+      <CardBody className="flex flex-col gap-5 p-5 sm:p-6 lg:p-7">
+        <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-(--color-text)">
               {t("admin.logoImageLabel")}

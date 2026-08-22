@@ -1,50 +1,49 @@
 import { Crown } from "lucide-react";
 import { getVipPlates } from "@/lib/queries";
 import { getServerTranslator } from "@/lib/i18n-server";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
-import { Card } from "@/components/ui/Card";
+import { VipPlateCard } from "@/components/plate/VipPlateCard";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
+import { LinkButton } from "@/components/ui/Button";
 
 export const revalidate = 0;
 
 export default async function VipPage() {
-  const [plates, { t, locale }] = await Promise.all([getVipPlates(50), getServerTranslator()]);
+  const [plates, { t }] = await Promise.all([getVipPlates(60), getServerTranslator()]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-      <div className="rounded-(--radius-lg) border border-(--color-vip-border) bg-(--color-vip-surface) shadow-(--shadow-gold-glow) px-6 sm:px-10 py-8 sm:py-10 mb-8 flex flex-col items-center text-center gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-(--color-vip-bg) border border-(--color-gold)/30 text-(--color-gold)">
-          <Crown className="h-6 w-6" aria-hidden="true" strokeWidth={2} />
-        </span>
-        <h1 className="text-3xl sm:text-4xl font-bold text-(--color-text) tracking-tight">{t("pages.vipTitle")}</h1>
-        <p className="text-(--color-text-muted) max-w-md">{t("pages.vipSubtitle")}</p>
+    <div className="mz-container py-10">
+      <PageHeader
+        premium
+        icon={Crown}
+        eyebrow={t("auction.vipBadge")}
+        title={t("pages.vipTitle")}
+        subtitle={t("pages.vipHeroTagline")}
+      >
         {plates.length > 0 && (
-          <span className="tnum text-sm font-semibold text-(--color-gold)">{t("home.vipCountLabel", { count: plates.length })}</span>
+          <span className="tnum rounded-full border border-(--color-gold)/30 bg-(--color-gold-tint) px-4 py-1.5 text-sm font-semibold text-(--color-gold)">
+            {t("home.vipCountLabel", { count: plates.length })}
+          </span>
         )}
-      </div>
+      </PageHeader>
 
       {plates.length > 0 ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,320px))] justify-center gap-5">
-          {plates.map((p) => (
-            <Card
-              key={p._id}
-              className="group flex flex-col items-center gap-4 border-(--color-vip-border) bg-(--color-vip-surface) shadow-(--shadow-gold-glow) p-6 transition-transform duration-(--duration-base) hover:-translate-y-1"
-            >
-              <PlateRenderer
-                type={p.type}
-                lettersAr={p.lettersAr}
-                lettersEn={p.lettersEn}
-                numbers={p.numbers}
-                logo={p.logo}
-                size="md"
-                locale={locale}
-                className="transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
-              />
-            </Card>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {plates.map((plate) => (
+            <VipPlateCard key={plate._id} plate={plate} />
           ))}
         </div>
       ) : (
-        <EmptyState icon={Crown} title={t("pages.noVipPlatesYet")} />
+        <EmptyState
+          icon={Crown}
+          title={t("pages.noVipPlatesYet")}
+          description={t("home.noVipPlatesHint")}
+          action={
+            <LinkButton href="/auctions" variant="secondary" size="md">
+              {t("home.browseAuctions")}
+            </LinkButton>
+          }
+        />
       )}
     </div>
   );

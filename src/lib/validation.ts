@@ -33,6 +33,7 @@ export const plateSchema = z.object({
   lettersAr: z.string().trim().min(1).max(10),
   lettersEn: z.string().trim().min(1).max(10),
   numbers: z.string().trim().regex(/^\d{1,4}$/, "الأرقام يجب أن تكون من 1 إلى 4 خانات"),
+  image: z.string().min(1).nullable().optional(),
   // Admin-managed logo reference — a real ObjectId string, or null/absent
   // for "no logo". Existence + isActive are checked in the route handler
   // (DB-dependent, not expressible in a pure schema).

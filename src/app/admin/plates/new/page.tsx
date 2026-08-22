@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
+import { ImagePlus } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
 import { PlateLogoSelect } from "@/components/plate/PlateLogoSelect";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
@@ -23,22 +24,40 @@ export default function AdminNewPlatePage() {
   const [lettersAr, setLettersAr] = useState("");
   const [lettersEn, setLettersEn] = useState("");
   const [numbers, setNumbers] = useState("");
+  const [file, setFile] = useState<File | null>(null);
   const [logoId, setLogoId] = useState<string | null>(null);
   const [isVip, setIsVip] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const previewLogo = logoId ? (logos ?? []).find((l) => l._id === logoId) ?? null : null;
+  const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setLoading(true);
     try {
+      let imageUrl: string | null = null;
+      if (file) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("subdir", "plates");
+        const uploadRes = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "same-origin" });
+        const uploadBody = await uploadRes.json();
+        if (!uploadRes.ok || !uploadBody.ok) {
+          throw new ApiClientError(uploadBody.code ?? "upload_failed", uploadBody.message ?? "تعذر رفع صورة اللوحة");
+        }
+        imageUrl = uploadBody.data.url;
+      }
       await apiFetch("/api/plates", {
         method: "POST",
-        body: JSON.stringify({ type, lettersAr, lettersEn, numbers, logo: logoId, isVip, isFeatured }),
+        body: JSON.stringify({ type, lettersAr, lettersEn, numbers, image: imageUrl, logo: logoId, isVip, isFeatured }),
       });
       push(t("admin.plateCreated"), "success");
       router.push("/admin/plates");
@@ -51,20 +70,34 @@ export default function AdminNewPlatePage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-(--color-text) mb-6">{t("admin.newPlateTitle")}</h1>
-      <Card>
-        <CardBody className="flex flex-col gap-6">
-          <div className="flex items-center justify-center rounded-(--radius-md) bg-(--color-bg-elevated) p-8">
-            <PlateRenderer
-              type={type}
-              lettersAr={lettersAr || "أ ب ج"}
-              lettersEn={lettersEn || "ABC"}
-              numbers={numbers || "1234"}
-              logo={previewLogo}
-              size="md"
-              locale={locale}
-            />
+    <div className="mx-auto w-full max-w-[920px]">
+      <h1 className="mb-6 text-2xl font-bold text-(--color-text)">{t("admin.newPlateTitle")}</h1>
+      <Card className="border-(--color-border) bg-(--color-surface) shadow-(--shadow-card)">
+        <CardBody className="flex flex-col gap-6 p-5 sm:p-6 lg:p-7">
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-(--color-text)">صورة اللوحة</span>
+            <label
+              htmlFor="plate-image-input"
+              className="relative flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-(--radius-md) border border-dashed border-(--color-border-strong) bg-(--color-bg-elevated) transition-colors hover:border-(--color-gold)/50"
+            >
+              {previewUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={previewUrl} alt="معاينة صورة اللوحة" className="absolute inset-0 h-full w-full object-contain bg-white p-3" />
+              ) : (
+                <>
+                  <ImagePlus className="h-7 w-7 text-(--color-gold)" aria-hidden="true" />
+                  <span className="text-sm text-(--color-text-muted)">اضغط لاختيار صورة اللوحة</span>
+                  <span className="text-xs text-(--color-text-faint)">PNG أو JPG أو WebP</span>
+                </>
+              )}
+              <input
+                id="plate-image-input"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className="sr-only"
+              />
+            </label>
           </div>
 
           <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>

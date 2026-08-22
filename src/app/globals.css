@@ -1,61 +1,80 @@
 @import "tailwindcss";
 
 :root {
-  /* Base surfaces */
-  --color-bg: #0b0e14;
-  --color-bg-elevated: #12161f;
-  --color-surface: #171c27;
-  --color-surface-hover: #1e2432;
-  --color-border: #262d3d;
-  --color-border-strong: #333c52;
+  /* ── Surfaces ─────────────────────────────────────────────────────────
+     A four-step dark ramp. Every surface in the product picks one of
+     these; nothing invents its own hex. */
+  --color-bg: #080d14;
+  --color-bg-elevated: #0d131d;
+  --color-surface: #111822;
+  --color-surface-hover: #151d28;
 
-  /* Text */
-  --color-text: #f2f4f8;
-  --color-text-muted: #9aa3b8;
-  /* Lightened from the original #616b82 to clear WCAG AA (4.5:1) for
-     small text (timestamps, metadata) against both --color-bg and
-     --color-bg-elevated — the original only met the 3:1 large-text
-     threshold. */
-  --color-text-faint: #78829c;
+  /* Borders lean on white transparency rather than a solid gray so a card
+     reads as "lit from within" against any of the four surfaces. */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
 
-  /* Brand: deep Saudi green + warm gold (premium auction accent) */
+  /* ── Text ─────────────────────────────────────────────────────────── */
+  --color-text: #ffffff;
+  --color-text-muted: #b3b8c5;
+  /* 4.7:1 against --color-bg — clears WCAG AA for small metadata text. */
+  --color-text-faint: #747d8c;
+
+  /* ── Brand ────────────────────────────────────────────────────────────
+     Gold is the accent, never a background for large areas. The deep Saudi
+     green stays as the secondary/system brand so gold keeps its scarcity. */
+  --color-gold: #ecbd33;
+  --color-gold-hover: #f4cd5a;
+  --color-gold-dark: #a8871f;
+  --color-gold-foreground: #0b0f16;
+
   --color-brand: #0f6b4f;
   --color-brand-hover: #14805f;
   --color-brand-foreground: #ffffff;
 
-  --color-gold: #d4af37;
-  --color-gold-hover: #e0bf4f;
-  --color-gold-foreground: #14161c;
-
-  /* Semantic */
+  /* ── Semantic ─────────────────────────────────────────────────────── */
   --color-success: #22c55e;
   --color-danger: #ef4444;
   --color-warning: #f59e0b;
   --color-info: #3b82f6;
 
-  /* Auction-specific states */
+  /* ── Auction states ───────────────────────────────────────────────── */
   --color-live: #ef4444;
   --color-live-bg: rgba(239, 68, 68, 0.12);
   --color-scheduled: #3b82f6;
   --color-scheduled-bg: rgba(59, 130, 246, 0.12);
   --color-sold: #22c55e;
   --color-sold-bg: rgba(34, 197, 94, 0.12);
-  --color-unsold-bg: rgba(154, 163, 184, 0.1);
-  --color-vip-bg: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.04));
-  --color-vip-surface: #1a1710;
-  --color-vip-border: rgba(212, 175, 55, 0.35);
+  --color-unsold-bg: rgba(255, 255, 255, 0.06);
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
+  --color-vip-bg: linear-gradient(135deg, rgba(236, 189, 51, 0.16), rgba(236, 189, 51, 0.03));
+  --color-vip-surface: #14110a;
+  --color-vip-border: rgba(236, 189, 51, 0.35);
+  --color-gold-tint: rgba(236, 189, 51, 0.1);
+
+  /* ── Radius ───────────────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
   --radius-lg: 16px;
+  --radius-xl: 22px;
 
-  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
-  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 40px -12px rgba(0, 0, 0, 0.6);
-  --shadow-gold-glow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(212, 175, 55, 0.15), 0 12px 32px -10px rgba(212, 175, 55, 0.25);
+  /* ── Elevation ────────────────────────────────────────────────────────
+     Dark UI reads depth from a lit top edge plus a deep drop shadow, not
+     from a heavier border. */
+  --shadow-card: 0 1px 0 0 rgba(255, 255, 255, 0.04) inset, 0 8px 24px -10px rgba(0, 0, 0, 0.7);
+  --shadow-elevated: 0 1px 0 0 rgba(255, 255, 255, 0.05) inset, 0 24px 48px -16px rgba(0, 0, 0, 0.8);
+  --shadow-gold-glow: 0 1px 0 0 rgba(236, 189, 51, 0.12) inset, 0 0 0 1px rgba(236, 189, 51, 0.14),
+    0 18px 40px -18px rgba(236, 189, 51, 0.3);
+  --shadow-plate: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px -12px rgba(0, 0, 0, 0.85);
 
+  /* ── Motion ───────────────────────────────────────────────────────── */
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --duration-fast: 150ms;
   --duration-base: 220ms;
+  --duration-slow: 420ms;
+
+  /* Desktop content width. */
+  --container-max: 1360px;
 }
 
 @theme inline {
@@ -85,37 +104,178 @@ body {
   font-feature-settings: "tnum" 1;
 }
 
-/* Tabular numerals for prices/countdowns so digits don't shift width during live updates */
+/* ── Page shell ────────────────────────────────────────────────────────
+   One container rule instead of `mx-auto max-w-7xl px-4 sm:px-6` repeated
+   on every page, so the gutter and max width change in one place. */
+.mz-container {
+  width: 100%;
+  max-width: var(--container-max);
+  margin-inline: auto;
+  padding-inline: 1rem;
+}
+@media (min-width: 640px) {
+  .mz-container {
+    padding-inline: 1.5rem;
+  }
+}
+@media (min-width: 1024px) {
+  .mz-container {
+    padding-inline: 2rem;
+  }
+}
+
+/* Tabular numerals for prices/countdowns so digits do not shift width
+   during live updates. */
 .tnum {
   font-variant-numeric: tabular-nums;
   font-feature-settings: "tnum" 1;
 }
 
-/* Price/value emphasis flash — one authored moment for realtime updates
-   (new bid accepted, price changed). Uses the gold accent, not a generic
-   flash, so the emphasis reads as "this is the money figure," not noise. */
+/* ── Atmosphere ────────────────────────────────────────────────────────
+   Gold light is expensive; these are the only places it is allowed to
+   spill outside a border, and all are decorative-only (aria-hidden). */
+.mz-glow-gold {
+  background: radial-gradient(circle at 50% 50%, rgba(236, 189, 51, 0.18), transparent 70%);
+}
+
+/* Thin illuminated top edge — hero card and section bands. */
+.mz-edge-gold::before {
+  content: "";
+  position: absolute;
+  inset-inline: 15%;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(236, 189, 51, 0.6), transparent);
+  pointer-events: none;
+}
+
+/* Elegant gold line pattern behind the statistics band. */
+.mz-pattern-lines {
+  background-image: repeating-linear-gradient(
+    115deg,
+    rgba(236, 189, 51, 0.07) 0px,
+    rgba(236, 189, 51, 0.07) 1px,
+    transparent 1px,
+    transparent 22px
+  );
+}
+
+/* ── Micro-interactions ───────────────────────────────────────────────── */
 @keyframes value-pulse {
-  0% { background-color: rgba(212, 175, 55, 0.22); }
-  100% { background-color: transparent; }
+  0% {
+    background-color: rgba(236, 189, 51, 0.22);
+  }
+  100% {
+    background-color: transparent;
+  }
 }
 .animate-value-pulse {
   animation: value-pulse 900ms var(--ease-out-expo);
 }
 
 @keyframes rise-in {
-  from { opacity: 0; transform: translateY(6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 .animate-rise-in {
   animation: rise-in var(--duration-base) var(--ease-out-expo) both;
 }
 
+/* Section reveal — scroll-driven, zero JavaScript. Browsers without
+   `animation-timeline` render the content in its final state, so nothing
+   is ever hidden behind an unsupported feature. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes mz-reveal {
+      from {
+        opacity: 0;
+        transform: translateY(14px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .mz-reveal {
+      animation: mz-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 18%;
+    }
+  }
+}
+
+/* VIP ticker — a slow, continuous drift. The track is rendered twice so
+   translating by exactly -50% loops seamlessly. */
+@keyframes mz-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.mz-marquee {
+  animation: mz-marquee var(--marquee-duration, 60s) linear infinite;
+}
+[dir="rtl"] .mz-marquee {
+  animation-direction: reverse;
+}
+.mz-marquee-viewport:hover .mz-marquee,
+.mz-marquee-viewport:focus-within .mz-marquee {
+  animation-play-state: paused;
+}
+
+/* Skeleton shimmer. */
+@keyframes mz-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+.mz-skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface-hover);
+}
+.mz-skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+  animation: mz-shimmer 1.6s infinite;
+}
+
+/* Horizontal carousels: snap so a partially-visible next card always
+   settles cleanly, and hide the scrollbar without disabling scrolling. */
+.mz-scroller {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+.mz-scroller::-webkit-scrollbar {
+  display: none;
+}
+.mz-snap {
+  scroll-snap-align: start;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+  .mz-marquee {
+    animation: none !important;
   }
 }
 
@@ -124,7 +284,6 @@ body {
   color: var(--color-gold-foreground);
 }
 
-/* Scrollbar (webkit) — subtle, matches dark surface */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
