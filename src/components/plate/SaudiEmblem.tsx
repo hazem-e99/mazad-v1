@@ -1,17 +1,18 @@
 /**
  * The Saudi national emblem — two crossed swords beneath a date palm —
  * drawn as inline SVG so it stays crisp at every plate size, costs no
- * network request, and inherits `currentColor` from the plate chrome.
+ * network request, and inherits `currentColor` from whatever renders it.
  *
- * This is the *fallback* emblem: a plate whose record points at an
- * admin-managed PlateLogo renders that uploaded artwork instead (see
- * PlateLogoIcon). Plates with no logo selected previously showed an empty
- * gap where the country mark belongs, which is the one piece of chrome a
- * real Saudi plate never omits.
+ * The path group is exported separately from the `<svg>` wrapper because
+ * the Vision variant nests the same mark inside its mosaic roundel (see
+ * plateEmblems.tsx); the shapes are drawn once and reused rather than
+ * traced a second time at a different scale.
  */
-export function SaudiEmblem({ className }: { className?: string }) {
+
+/** Bare paths on a 0 0 48 48 canvas — nest inside an existing `<svg>`. */
+export function SaudiEmblemPaths() {
   return (
-    <svg viewBox="0 0 48 48" className={className} fill="none" aria-hidden="true" focusable="false">
+    <>
       {/* Crossed swords */}
       <g fill="currentColor">
         <path d="M6.2 34.4 30.6 24.9l1.1 2.7-24.4 9.5z" />
@@ -32,6 +33,14 @@ export function SaudiEmblem({ className }: { className?: string }) {
         <path d="M13.2 12.4c-1.9 1.2-3.4 3-4.2 5.2 2-1.9 4.7-3.3 7.9-4-1.4-.5-2.6-.9-3.7-1.2z" />
         <path d="M34.8 12.4c1.9 1.2 3.4 3 4.2 5.2-2-1.9-4.7-3.3-7.9-4 1.4-.5 2.6-.9 3.7-1.2z" />
       </g>
+    </>
+  );
+}
+
+export function SaudiEmblem({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 48 48" className={className} fill="none" aria-hidden="true" focusable="false">
+      <SaudiEmblemPaths />
     </svg>
   );
 }

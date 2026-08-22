@@ -33,24 +33,24 @@ interface SaudiPlateProps {
    104px navbar chip and as a 420px hero plate — no duplicated markup per
    size, and no size-specific magic numbers to keep in sync. */
 const sizeWidth: Record<PlateSize, string> = {
-  xs: "w-26",
-  sm: "w-42",
+  xs: "w-24",
+  sm: "w-40",
   md: "w-56",
-  lg: "w-76",
-  xl: "w-full max-w-[26rem]",
+  lg: "w-72",
+  xl: "w-full max-w-[28rem]",
 };
 
 /* Real Saudi plate stock comes in a few physical formats; the aspect ratio
    is what visually distinguishes them, so it is driven by the plate's own
    type rather than by the render size. */
 const typeAspect: Record<PlateType, string> = {
-  private: "aspect-[2.3/1]",
-  individual: "aspect-[2.3/1]",
-  transfer: "aspect-[2.3/1]",
-  sport: "aspect-[2.3/1]",
-  wide: "aspect-[3.1/1]",
-  small_square: "aspect-[1.55/1]",
-  small_sport: "aspect-[1.8/1]",
+  private: "aspect-[5/1]",
+  individual: "aspect-[5/1]",
+  transfer: "aspect-[5/1]",
+  sport: "aspect-[4.8/1]",
+  wide: "aspect-[5.6/1]",
+  small_square: "aspect-[2.2/1]",
+  small_sport: "aspect-[2.5/1]",
 };
 
 const PLATE_WORD: Record<Locale, string> = { ar: "لوحة", en: "Plate" };
@@ -89,103 +89,62 @@ export function SaudiPlate({
   return (
     <div className={cn("@container shrink-0", sizeWidth[size], className)}>
       <div
-        // Always LTR: a physical Saudi plate reads [KSA strip][numbers]
-        // [letters] left-to-right no matter which language the surrounding
-        // page is in, so this subtree opts out of the document direction.
         dir="ltr"
         role="img"
         aria-label={label}
         className={cn(
-          "relative flex w-full select-none overflow-hidden text-[7.4cqi] leading-none",
-          "rounded-[0.34em] border-[0.055em] border-black/75",
-          "bg-[linear-gradient(180deg,#ffffff_0%,#f6f7f9_46%,#e6e9ee_100%)] text-[#101418]",
-          "shadow-(--shadow-plate)",
+          "saudi-plate relative grid w-full select-none overflow-hidden rounded-[0.32em] border-[0.065em] border-black bg-[#f4f4f4] text-[#121212] shadow-(--shadow-plate)",
+          "grid-cols-[minmax(0,1.25fr)_minmax(70px,0.82fr)_minmax(0,1.25fr)_2.5rem]",
           "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
           typeAspect[type],
           vip && "ring-[0.05em] ring-(--color-gold)/70",
           selected && "ring-[0.08em] ring-(--color-gold)"
         )}
       >
-        {/* Pressed-metal lighting: a bright top bevel and a soft floor
-            shadow, applied as one inset rather than a border so the plate
-            edge stays a hairline at every size. */}
         <span
           aria-hidden="true"
-          className="pointer-events-none absolute inset-0 rounded-[0.3em] shadow-[inset_0_0.06em_0_rgba(255,255,255,.95),inset_0_-0.09em_0.14em_rgba(0,0,0,.22)]"
+          className="pointer-events-none absolute inset-0 rounded-[0.3em] shadow-[inset_0_0.06em_0_rgba(255,255,255,.95),inset_0_-0.09em_0.18em_rgba(0,0,0,.2)]"
         />
 
-        {/* ── KSA identity strip ─────────────────────────────────────── */}
-        <div className="relative flex w-[0.98em] shrink-0 flex-col items-center justify-center gap-[0.1em] border-e-[0.03em] border-black/25 py-[0.14em]">
-          {logo ? (
-            <PlateLogoIcon logo={logo} locale={locale} className="h-[0.62em] w-[0.62em] object-contain" />
-          ) : (
-            <SaudiEmblem className="h-[0.62em] w-[0.62em] text-[#12694f]" />
-          )}
-          <span
-            aria-hidden="true"
-            className="flex flex-col items-center text-[0.24em] font-bold leading-[1.15] tracking-[0.04em] text-black/80"
-          >
-            <span>K</span>
-            <span>S</span>
-            <span>A</span>
+        <div className="saudi-plate__numbers relative z-10 flex min-w-0 flex-col items-center justify-center border-e border-black/35 px-[0.2em] py-[0.1em] text-center">
+          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.8rem,2.1cqi,3rem)] text-black">
+            {toArabicIndic(numbers)}
+          </span>
+          <span className="mt-[0.08em] block font-mono text-[clamp(0.44rem,1.1cqi,1.7rem)] font-black leading-none tracking-[0.08em] text-black/85">
+            {numbers}
           </span>
         </div>
 
-        {/* ── Main face ──────────────────────────────────────────────── */}
-        <div className="relative flex min-w-0 flex-1 flex-col justify-center px-[0.22em]">
-          {/* Country line — dropped below ~150px where it would be sub-pixel. */}
-          <span
-            aria-hidden="true"
-            className="hidden @min-[150px]:block truncate pb-[0.06em] text-center text-[0.2em] font-semibold tracking-[0.02em] text-black/65"
-          >
-            المملكة العربية السعودية
+        <div className="saudi-plate__emblem relative z-10 flex items-center justify-center border-e border-black/35 py-[0.12em]">
+          {logo ? (
+            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(1.2rem,2.5cqi,2.8rem)] w-[clamp(1.2rem,2.5cqi,2.8rem)] object-contain text-[#0d5d4a]" />
+          ) : (
+            <SaudiEmblem className="h-[clamp(1.4rem,2.9cqi,3.2rem)] w-[clamp(1.4rem,2.9cqi,3.2rem)] text-[#1a6a59]" />
+          )}
+        </div>
+
+        <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
+          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.9rem,2.2cqi,3.1rem)] text-black">
+            {spaced(lettersAr)}
           </span>
+          <span className="mt-[0.08em] block font-mono text-[clamp(0.48rem,1.15cqi,1.8rem)] font-black leading-none tracking-[0.1em] text-black/85">
+            {spaced(lettersEn)}
+          </span>
+        </div>
 
-          <div className="flex flex-1 items-center justify-center gap-[0.16em] pb-[0.04em]">
-            <PlateGroup
-              arabic={toArabicIndic(numbers)}
-              latin={numbers}
-              // Digits stay unspaced: they are read as one number, and
-              // tracking them apart makes "1 1 2" scan as three values.
-              tracking="tracking-[0.02em]"
-            />
-
-            <span aria-hidden="true" className="h-[0.72em] w-[0.028em] shrink-0 self-center bg-black/35" />
-
-            <PlateGroup arabic={spaced(lettersAr)} latin={spaced(lettersEn)} tracking="tracking-[0.04em]" />
+        <div className="saudi-plate__ksa relative z-10 flex flex-col items-center justify-center gap-[0.04em] border-s border-black/35 bg-[#f3f3f3] py-[0.08em] text-center">
+          <div className="flex h-[clamp(0.9rem,1.7cqi,1.8rem)] w-[clamp(0.9rem,1.7cqi,1.8rem)] items-center justify-center text-[#1a6a59]">
+            {logo ? (
+              <PlateLogoIcon logo={logo} locale={locale} className="h-full w-full object-contain" />
+            ) : (
+              <SaudiEmblem className="h-full w-full" />
+            )}
           </div>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">K</span>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">S</span>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">A</span>
         </div>
       </div>
     </div>
-  );
-}
-
-/** One character group (numbers or letters): the Arabic form on top, its
- * Latin counterpart beneath — the layout every Saudi plate uses. */
-function PlateGroup({ arabic, latin, tracking }: { arabic: string; latin: string; tracking: string }) {
-  return (
-    <span className="flex min-w-0 flex-col items-center justify-center">
-      <span
-        aria-hidden="true"
-        className={cn(
-          "truncate font-bold leading-none text-[0.5em]",
-          // Engraved-on-metal: a single bright edge under the glyph. Kept
-          // to one shadow so the type stays crisp, not embossed-plastic.
-          "[text-shadow:0_0.02em_0_rgba(255,255,255,.9)]",
-          tracking
-        )}
-      >
-        {arabic}
-      </span>
-      <span
-        aria-hidden="true"
-        className={cn(
-          "hidden @min-[118px]:block truncate pt-[0.03em] font-mono text-[0.26em] font-bold leading-none text-black/80",
-          tracking
-        )}
-      >
-        {latin}
-      </span>
-    </span>
   );
 }
