@@ -111,6 +111,7 @@ export interface LeanPlate {
   lettersAr: string;
   lettersEn: string;
   numbers: string;
+  image?: string | null;
   // Populated (LeanPlateLogo) when the query does `.populate("logo")`,
   // a raw ObjectId when it doesn't, or null/undefined for "no logo".
   logo?: LeanPlateLogo | ObjectIdLike | null;
@@ -131,6 +132,7 @@ export function toPlateDTO(plate: LeanPlate): PlateDTO {
     lettersAr: plate.lettersAr,
     lettersEn: plate.lettersEn,
     numbers: plate.numbers,
+    image: plate.image ?? null,
     logo: plate.logo != null && isPopulated<LeanPlateLogo>(plate.logo as LeanPlateLogo) ? toPlateLogoDTO(plate.logo as LeanPlateLogo) : null,
     isVip: plate.isVip,
     isFeatured: plate.isFeatured,

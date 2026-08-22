@@ -46,6 +46,7 @@ export interface PlateDTO {
   lettersAr: string;
   lettersEn: string;
   numbers: string;
+  image: string | null;
   logo: PlateLogoDTO | null;
   isVip: boolean;
   isFeatured: boolean;

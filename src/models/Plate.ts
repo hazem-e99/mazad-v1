@@ -7,6 +7,7 @@ const plateSchema = new Schema(
     lettersAr: { type: String, required: true, trim: true, maxlength: 10 },
     lettersEn: { type: String, required: true, trim: true, uppercase: true, maxlength: 10 },
     numbers: { type: String, required: true, trim: true, maxlength: 4 },
+    image: { type: String, default: null },
     // Admin-managed, dynamic — see the PlateLogo model. `null` means "no
     // logo" (a real, permanent option, not a placeholder for "not yet
     // migrated"), so it's never required and never falls back to a magic
