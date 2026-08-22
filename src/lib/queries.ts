@@ -13,7 +13,6 @@ export async function getMarketplaceListings(limit = 8) {
     .sort({ isFeatured: -1, createdAt: -1 })
     .limit(limit)
     .populate("logo")
-    .populate("category")
     .lean<LeanPlate[]>();
   return toPlateDTOList(plates);
 }
