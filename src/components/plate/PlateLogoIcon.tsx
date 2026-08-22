@@ -17,9 +17,9 @@ export function PlateLogoIcon({ logo, className, locale = "ar" }: PlateLogoIconP
 
   const name = locale === "en" ? logo.nameEn : logo.nameAr;
 
-  // eslint-disable-next-line @next/next/no-img-element -- plate chrome is
-  // rendered at small, fixed sizes inline with text; next/image's
-  // responsive-loader overhead isn't worth it here (matches the plate's
-  // other hand-drawn chrome, which is also plain markup, not next/image).
+  // Plate chrome is rendered at small, fixed sizes inline with text;
+  // next/image's responsive-loader overhead isn't worth it here (matches
+  // the plate's other hand-drawn chrome, which is also plain markup).
+  // eslint-disable-next-line @next/next/no-img-element
   return <img src={logo.image} alt={name} className={className} />;
 }

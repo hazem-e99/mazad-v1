@@ -1,7 +1,8 @@
-import { Gavel, Crown, CalendarClock, Trophy } from "lucide-react";
-import { getHomeAuctions, getVipPlates, getPlatformStats } from "@/lib/queries";
+import { Gavel, Crown, CalendarClock, Trophy, Store } from "lucide-react";
+import { getHomeAuctions, getVipPlates, getPlatformStats, getMarketplaceListings } from "@/lib/queries";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { AuctionCard } from "@/components/auction/AuctionCard";
+import { ListingCard } from "@/components/plate/ListingCard";
 import { VipPlateCard } from "@/components/plate/VipPlateCard";
 import { Hero } from "@/components/home/Hero";
 import { TrustBar } from "@/components/home/TrustBar";
@@ -15,8 +16,6 @@ import { PromotionalBanner } from "@/components/home/PromotionalBanner";
 
 export const revalidate = 0;
 
-/* Carousel items reveal ~1.15 cards on the narrowest phone so the
-   horizontal affordance is visible without a scroll hint (§49). */
 const CAROUSEL_ITEM = "mz-snap w-[min(19rem,78vw)] shrink-0";
 
 function expandShowcase<T>(items: T[], target: number): T[] {
@@ -31,9 +30,10 @@ function expandShowcase<T>(items: T[], target: number): T[] {
 }
 
 export default async function HomePage() {
-  const [{ live, upcoming, recentlyCompleted }, vipPlates, stats, { t, locale }] = await Promise.all([
+  const [{ live, upcoming, recentlyCompleted }, vipPlates, marketplaceListings, stats, { t }] = await Promise.all([
     getHomeAuctions(),
     getVipPlates(10),
+    getMarketplaceListings(6),
     getPlatformStats(),
     getServerTranslator(),
   ]);
@@ -50,7 +50,6 @@ export default async function HomePage() {
       <div className="mz-container flex flex-col gap-20 py-14 sm:gap-24 sm:py-16">
         <TrustBar />
 
-        {/* ── Live now ─────────────────────────────────────────────── */}
         <section className="mz-reveal">
           {live.length > 0 ? (
             <LiveAuctionSpotlight auctions={live} />
@@ -68,14 +67,8 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* ── VIP ──────────────────────────────────────────────────── */}
         <section className="mz-reveal">
-          <SectionHeader
-            icon={Crown}
-            title={t("home.vipPlates")}
-            subtitle={t("home.vipPlatesSubtitle")}
-            href="/vip"
-          />
+          <SectionHeader icon={Crown} title={t("home.vipPlates")} subtitle={t("home.vipPlatesSubtitle")} href="/vip" />
           {vipShowcase.length > 0 ? (
             <Carousel label={t("home.vipPlates")} autoplay loop delay={4500}>
               {vipShowcase.map((plate, index) => (
@@ -95,6 +88,32 @@ export default async function HomePage() {
         {/* ── Upcoming ─────────────────────────────────────────────── */}
         <section className="mz-reveal">
           <SectionHeader
+            icon={Store}
+            title={t("home.marketplaceListings")}
+            subtitle={t("home.marketplaceListingsSubtitle")}
+            href="/listings"
+          />
+          {marketplaceListings.length > 0 ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {marketplaceListings.map((listing) => (
+                <ListingCard key={listing._id} listing={listing} />
+              ))}
+            </div>
+          ) : (
+            <EmptyState
+              icon={Store}
+              title={t("pages.noMatchingListings")}
+              action={
+                <LinkButton href="/plates/new" variant="secondary" size="md">
+                  {t("home.listYourPlate")}
+                </LinkButton>
+              }
+            />
+          )}
+        </section>
+
+        <section className="mz-reveal">
+          <SectionHeader
             icon={CalendarClock}
             title={t("home.upcomingAuctions")}
             subtitle={t("home.upcomingAuctionsSubtitle")}
@@ -111,7 +130,6 @@ export default async function HomePage() {
           )}
         </section>
 
-        {/* ── Results ──────────────────────────────────────────────── */}
         <section className="mz-reveal">
           <SectionHeader
             icon={Trophy}

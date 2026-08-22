@@ -4,7 +4,9 @@ import type {
   UserRefDTO,
   UserContactRefDTO,
   PlateLogoDTO,
+  PlateCategoryDTO,
   PlateDTO,
+  PlateListingDTO,
   AuctionDTO,
   BidDTO,
   PurchaseDTO,
@@ -13,7 +15,19 @@ import type {
   ChatMessageDTO,
   AuditLogDTO,
 } from "@/types/dto";
-import type { PlateType, UserRole, Permission, AuctionCategory, AuctionStatus } from "@/lib/constants";
+import type {
+  PlateType,
+  UserRole,
+  Permission,
+  AuctionCategory,
+  AuctionStatus,
+  PlateClassification,
+  UsageType,
+  PlateShape,
+  PlateSize,
+  SubmissionType,
+  ModerationStatus,
+} from "@/lib/constants";
 
 /**
  * Mapper functions that convert `.lean()` query results (which still
@@ -103,6 +117,34 @@ export function toPlateLogoDTOList(logos: LeanPlateLogo[]): PlateLogoDTO[] {
   return logos.map(toPlateLogoDTO);
 }
 
+// ---- PlateCategory --------------------------------------------------------------
+
+export interface LeanPlateCategory {
+  _id: ObjectIdLike;
+  nameAr: string;
+  nameEn: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export function toPlateCategoryDTO(category: LeanPlateCategory): PlateCategoryDTO {
+  return {
+    _id: idToString(category._id),
+    nameAr: category.nameAr,
+    nameEn: category.nameEn,
+    isActive: category.isActive,
+    sortOrder: category.sortOrder,
+    createdAt: dateToISOString(category.createdAt),
+    updatedAt: dateToISOString(category.updatedAt),
+  };
+}
+
+export function toPlateCategoryDTOList(categories: LeanPlateCategory[]): PlateCategoryDTO[] {
+  return categories.map(toPlateCategoryDTO);
+}
+
 // ---- Plate --------------------------------------------------------------
 
 export interface LeanPlate {
@@ -111,7 +153,6 @@ export interface LeanPlate {
   lettersAr: string;
   lettersEn: string;
   numbers: string;
-  image?: string | null;
   // Populated (LeanPlateLogo) when the query does `.populate("logo")`,
   // a raw ObjectId when it doesn't, or null/undefined for "no logo".
   logo?: LeanPlateLogo | ObjectIdLike | null;
@@ -121,6 +162,26 @@ export interface LeanPlate {
   ownerUser?: ObjectIdLike | null;
   createdBy: ObjectIdLike;
   notes?: string | null;
+  classification?: PlateClassification | null;
+  usageType?: UsageType | null;
+  shape?: PlateShape | null;
+  size?: PlateSize | null;
+  category?: LeanPlateCategory | ObjectIdLike | null;
+  title?: string | null;
+  description?: string | null;
+  price?: number | null;
+  image?: string | null;
+  contactPhone?: string | null;
+  contactEmail?: string | null;
+  instagram?: string | null;
+  tiktok?: string | null;
+  snapchat?: string | null;
+  submissionType?: SubmissionType | null;
+  moderationStatus?: ModerationStatus | null;
+  rejectionReason?: string | null;
+  // Only present when the query explicitly `.select("+ownershipDocument")`
+  // — deliberately excluded from PlateDTO; see toPlateListingDTO below.
+  ownershipDocument?: string | null;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -140,9 +201,43 @@ export function toPlateDTO(plate: LeanPlate): PlateDTO {
     ownerUser: plate.ownerUser ? idToString(plate.ownerUser) : null,
     createdBy: idToString(plate.createdBy),
     notes: plate.notes ?? null,
+    classification: plate.classification ?? null,
+    usageType: plate.usageType ?? null,
+    shape: plate.shape ?? null,
+    size: plate.size ?? null,
+    category:
+      plate.category != null && isPopulated<LeanPlateCategory>(plate.category as LeanPlateCategory)
+        ? toPlateCategoryDTO(plate.category as LeanPlateCategory)
+        : null,
+    title: plate.title ?? null,
+    description: plate.description ?? null,
+    price: plate.price ?? null,
+    contactPhone: plate.contactPhone ?? null,
+    contactEmail: plate.contactEmail ?? null,
+    instagram: plate.instagram ?? null,
+    tiktok: plate.tiktok ?? null,
+    snapchat: plate.snapchat ?? null,
+    submissionType: plate.submissionType ?? null,
+    moderationStatus: plate.moderationStatus ?? null,
+    rejectionReason: plate.rejectionReason ?? null,
     createdAt: dateToISOString(plate.createdAt),
     updatedAt: dateToISOString(plate.updatedAt),
   };
+}
+
+export function toPlateDTOList(plates: LeanPlate[]): PlateDTO[] {
+  return plates.map(toPlateDTO);
+}
+
+/** Owner/admin view — adds ownership-document *presence* only. Requires the
+ * source query to `.select("+ownershipDocument")` (it's `select: false` on
+ * the schema by default); never spreads the raw path into the DTO. */
+export function toPlateListingDTO(plate: LeanPlate): PlateListingDTO {
+  return { ...toPlateDTO(plate), hasOwnershipDocument: Boolean(plate.ownershipDocument) };
+}
+
+export function toPlateListingDTOList(plates: LeanPlate[]): PlateListingDTO[] {
+  return plates.map(toPlateListingDTO);
 }
 
 // ---- Auction --------------------------------------------------------------

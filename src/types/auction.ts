@@ -9,7 +9,7 @@ import type { PlateDTO, AuctionDTO } from "@/types/dto";
  */
 export type PlateSummary = Pick<
   PlateDTO,
-  "_id" | "type" | "lettersAr" | "lettersEn" | "numbers" | "logo" | "isVip"
+  "_id" | "type" | "lettersAr" | "lettersEn" | "numbers" | "logo" | "isVip" | "image" | "title"
 >;
 
 export type AuctionSummary = Omit<AuctionDTO, "plate"> & { plate: PlateSummary };

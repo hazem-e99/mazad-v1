@@ -37,6 +37,94 @@ export function plateTypeLabel(type: PlateType, locale: "ar" | "en" = "ar"): str
 // The admin manages the list dynamically; a plate's `logo` is either an
 // ObjectId reference to one of those records, or null for "no logo".
 
+// Plate classification — an independent dimension from usage/shape/size.
+// Legacy `type` conflated these; `individual` in PLATE_TYPES maps to
+// "single" here during migration (see server/migratePlateListingFields.ts).
+export const PLATE_CLASSIFICATIONS = ["single", "double", "triple", "quadruple"] as const;
+export type PlateClassification = (typeof PLATE_CLASSIFICATIONS)[number];
+
+export const PLATE_CLASSIFICATION_LABELS_AR: Record<PlateClassification, string> = {
+  single: "فردي",
+  double: "ثنائي",
+  triple: "ثلاثي",
+  quadruple: "رباعي",
+};
+export const PLATE_CLASSIFICATION_LABELS_EN: Record<PlateClassification, string> = {
+  single: "Single",
+  double: "Double",
+  triple: "Triple",
+  quadruple: "Quadruple",
+};
+export function plateClassificationLabel(value: PlateClassification, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? PLATE_CLASSIFICATION_LABELS_EN[value] : PLATE_CLASSIFICATION_LABELS_AR[value];
+}
+
+// Usage type — independent from classification/size/shape.
+export const USAGE_TYPES = ["private", "transport", "private_transport", "sport"] as const;
+export type UsageType = (typeof USAGE_TYPES)[number];
+
+export const USAGE_TYPE_LABELS_AR: Record<UsageType, string> = {
+  private: "خصوصي",
+  transport: "نقل",
+  private_transport: "نقل خاص",
+  sport: "رياضية",
+};
+export const USAGE_TYPE_LABELS_EN: Record<UsageType, string> = {
+  private: "Private",
+  transport: "Transport",
+  private_transport: "Private Transport",
+  sport: "Sport",
+};
+export function usageTypeLabel(value: UsageType, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? USAGE_TYPE_LABELS_EN[value] : USAGE_TYPE_LABELS_AR[value];
+}
+
+// Plate shape — physical form factor, metadata only (never used to
+// generate plate artwork).
+export const PLATE_SHAPES = ["wide", "small_square", "small_sport"] as const;
+export type PlateShape = (typeof PLATE_SHAPES)[number];
+
+export const PLATE_SHAPE_LABELS_AR: Record<PlateShape, string> = {
+  wide: "عريضة",
+  small_square: "مربعة صغيرة",
+  small_sport: "رياضية صغيرة",
+};
+export const PLATE_SHAPE_LABELS_EN: Record<PlateShape, string> = {
+  wide: "Wide",
+  small_square: "Small Square",
+  small_sport: "Small Sport",
+};
+export function plateShapeLabel(value: PlateShape, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? PLATE_SHAPE_LABELS_EN[value] : PLATE_SHAPE_LABELS_AR[value];
+}
+
+// Plate size — physical dimensions, independent of shape (a real Saudi
+// traffic-authority distinction: لوحة كبيرة / لوحة صغيرة).
+export const PLATE_SIZES = ["large", "small"] as const;
+export type PlateSize = (typeof PLATE_SIZES)[number];
+
+export const PLATE_SIZE_LABELS_AR: Record<PlateSize, string> = { large: "كبيرة", small: "صغيرة" };
+export const PLATE_SIZE_LABELS_EN: Record<PlateSize, string> = { large: "Large", small: "Small" };
+export function plateSizeLabel(value: PlateSize, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? PLATE_SIZE_LABELS_EN[value] : PLATE_SIZE_LABELS_AR[value];
+}
+
+// How a submitted plate should be handled — set explicitly by the user at
+// submission time, never inferred from URL/status/auction presence.
+export const SUBMISSION_TYPES = ["marketplace", "auction_request"] as const;
+export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
+
+// Content-moderation workflow for a submitted listing — distinct from
+// Plate.isVisible (a display toggle) and Auction.status (auction lifecycle).
+export const MODERATION_STATUSES = ["pending", "approved", "rejected"] as const;
+export type ModerationStatus = (typeof MODERATION_STATUSES)[number];
+
+export const MODERATION_TRANSITIONS: Record<ModerationStatus, ModerationStatus[]> = {
+  pending: ["approved", "rejected"],
+  approved: ["rejected"],
+  rejected: ["pending"],
+};
+
 export const AUCTION_CATEGORIES = ["regular", "exclusive"] as const;
 export type AuctionCategory = (typeof AUCTION_CATEGORIES)[number];
 
@@ -80,6 +168,9 @@ export const PERMISSIONS = [
   "auction:buy", // صلاحية الشراء
   "plate:manage",
   "plate_logo:manage", // إدارة شعارات اللوحات
+  "category:manage", // إدارة تصنيفات اللوحات
+  "listing:moderate", // مراجعة اللوحات المعروضة (قبول/رفض)
+  "ownership_document:view", // الاطلاع على مستند إثبات الملكية
   "auction:manage",
   "user:manage",
   "vip:manage",

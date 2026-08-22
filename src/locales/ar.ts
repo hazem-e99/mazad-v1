@@ -4,6 +4,7 @@ export interface MessageCatalog {
     ads: string;
     vip: string;
     auctions: string;
+    marketplace: string;
     exclusive: string;
     chat: string;
     login: string;
@@ -55,6 +56,9 @@ export interface MessageCatalog {
     completedResultsSubtitle: string;
     browseAuctions: string;
     vipPlates: string;
+    listYourPlate: string;
+    marketplaceListings: string;
+    marketplaceListingsSubtitle: string;
     liveAuctions: string;
     liveAuctionsSubtitle: string;
     noLiveAuctions: string;
@@ -303,6 +307,65 @@ export interface MessageCatalog {
     lettersEnLabel: string;
     numbersLabel: string;
     pleaseSelectImage: string;
+
+    // Marketplace / auction-request listing submission flow
+    howToListQuestion: string;
+    chooseSubmissionTypeFirst: string;
+    submissionTypeMarketplace: string;
+    submissionTypeMarketplaceHint: string;
+    submissionTypeAuctionRequest: string;
+    submissionTypeAuctionRequestHint: string;
+    classificationLabel: string;
+    usageTypeLabel: string;
+    shapeLabel: string;
+    sizeLabel: string;
+    categoryLabel: string;
+    notSpecified: string;
+    listingDetailsHeader: string;
+    titleLabel: string;
+    descriptionLabel: string;
+    askingPriceLabel: string;
+    plateImageHeader: string;
+    plateImageRequired: string;
+    uploadPlatePhotoHint: string;
+    ownershipDocumentLabel: string;
+    ownershipDocumentHint: string;
+    contactInfoHeader: string;
+    contactPhoneLabel: string;
+    contactEmailLabel: string;
+    instagramLabel: string;
+    tiktokLabel: string;
+    snapchatLabel: string;
+
+    // My Listings / edit / resubmit
+    myListingsTitle: string;
+    myListingsSubtitle: string;
+    myPurchasesTitle: string;
+    myPurchasesSubtitle: string;
+    noPurchasesYet: string;
+    noPurchasesYetHint: string;
+    noListingsYet: string;
+    rejectionReasonLabel: string;
+    resubmitAction: string;
+    editListingTitle: string;
+    editListingSubtitle: string;
+    listingResubmitted: string;
+    moderationStatus_pending: string;
+    moderationStatus_approved: string;
+    moderationStatus_rejected: string;
+
+    // Public marketplace browse + detail
+    marketplaceTitle: string;
+    marketplaceSubtitle: string;
+    searchListingsPlaceholder: string;
+    noMatchingListings: string;
+    forSaleBadge: string;
+    noImage: string;
+    contactViaWhatsApp: string;
+    contactSellerLabel: string;
+    contactWinnerLabel: string;
+
+    // Guided plate form / public list controls
     stepPlateInfo: string;
     stepPlateInfoHint: string;
     stepAppearance: string;
@@ -545,6 +608,42 @@ export interface MessageCatalog {
     colAction: string;
     colEntity: string;
     colId: string;
+
+    navListingsModeration: string;
+    navPlateCategories: string;
+
+    listingsModerationTitle: string;
+    listingsModerationSubtitle: string;
+    noMatchingListings: string;
+    approveAction: string;
+    rejectAction: string;
+    confirmRejectAction: string;
+    rejectionReasonPlaceholder: string;
+    listingApproved: string;
+    listingRejected: string;
+    createAuctionFromRequest: string;
+
+    plateCategoriesTitle: string;
+    plateCategoriesSubtitle: string;
+    addCategoryButton: string;
+    noMatchingCategories: string;
+    newCategoryTitle: string;
+    editCategoryTitle: string;
+    saveCategoryButton: string;
+    categoryCreated: string;
+    categoryCreateFailed: string;
+    categoryUpdated: string;
+    categoryUpdateFailed: string;
+    categoryDeleted: string;
+    categoryDeleteFailed: string;
+    categoryActivated: string;
+    categoryDeactivated: string;
+    categoryInUseCannotDelete: string;
+    confirmDeleteCategory: string;
+
+    permCategoryManage: string;
+    permListingModerate: string;
+    permOwnershipDocumentView: string;
   };
 }
 
@@ -554,6 +653,7 @@ const ar: MessageCatalog = {
     ads: "الإعلانات",
     vip: "VIP",
     auctions: "المزادات",
+    marketplace: "السوق",
     exclusive: "مزاد حصري",
     chat: "الدردشة",
     login: "دخول",
@@ -605,6 +705,9 @@ const ar: MessageCatalog = {
     completedResultsSubtitle: "نتائج المزادات الأخيرة",
     browseAuctions: "تصفح المزادات",
     vipPlates: "لوحات VIP",
+    listYourPlate: "اعرض لوحتك",
+    marketplaceListings: "لوحات معروضة للبيع",
+    marketplaceListingsSubtitle: "لوحات مطروحة للبيع المباشر خارج المزاد",
     liveAuctions: "مزادات مباشرة الآن",
     liveAuctionsSubtitle: "شارك بالمزايدة قبل انتهاء الوقت",
     noLiveAuctions: "لا توجد مزادات مباشرة حاليًا",
@@ -853,6 +956,60 @@ const ar: MessageCatalog = {
     lettersEnLabel: "الأحرف (إنجليزي)",
     numbersLabel: "الأرقام",
     pleaseSelectImage: "الرجاء اختيار صورة",
+
+    howToListQuestion: "كيف ترغب بعرض اللوحة؟",
+    chooseSubmissionTypeFirst: "الرجاء اختيار طريقة عرض اللوحة أولاً",
+    submissionTypeMarketplace: "عرض اللوحة في المنصة",
+    submissionTypeMarketplaceHint: "تُعرض لوحتك في السوق مباشرة بعد موافقة الإدارة، ويتواصل معك المشترون مباشرة.",
+    submissionTypeAuctionRequest: "تقديم اللوحة للمزاد",
+    submissionTypeAuctionRequestHint: "تُرسل لوحتك للإدارة لمراجعتها وجدولتها كمزاد مباشر.",
+    classificationLabel: "التصنيف",
+    usageTypeLabel: "نوع الاستخدام",
+    shapeLabel: "الشكل",
+    sizeLabel: "الحجم",
+    categoryLabel: "الفئة",
+    notSpecified: "غير محدد",
+    listingDetailsHeader: "تفاصيل العرض",
+    titleLabel: "العنوان",
+    descriptionLabel: "الوصف",
+    askingPriceLabel: "السعر المطلوب",
+    plateImageHeader: "صورة اللوحة",
+    plateImageRequired: "صورة اللوحة الفعلية مطلوبة",
+    uploadPlatePhotoHint: "ارفع صورة حقيقية للوحة",
+    ownershipDocumentLabel: "مستند إثبات الملكية",
+    ownershipDocumentHint: "اختياري — صورة أو ملف PDF لإثبات ملكية اللوحة، يبقى خاصًا ولا يظهر للعامة",
+    contactInfoHeader: "بيانات التواصل",
+    contactPhoneLabel: "رقم التواصل",
+    contactEmailLabel: "البريد الإلكتروني",
+    instagramLabel: "إنستغرام",
+    tiktokLabel: "تيك توك",
+    snapchatLabel: "سناب شات",
+
+    myListingsTitle: "لوحاتي",
+    myListingsSubtitle: "متابعة حالة اللوحات التي عرضتها",
+    myPurchasesTitle: "مزاداتي الرابحة ومشترياتي",
+    myPurchasesSubtitle: "متابعة اللوحات التي فزت بها أو اشتريتها مباشرة",
+    noPurchasesYet: "لم تفز أو تشتر أي لوحة بعد",
+    noPurchasesYetHint: "شارك في المزادات المباشرة أو استخدم الشراء المباشر عند توفره.",
+    noListingsYet: "لم تقم بعرض أي لوحة بعد",
+    rejectionReasonLabel: "سبب الرفض",
+    resubmitAction: "إعادة الإرسال",
+    editListingTitle: "تعديل العرض",
+    editListingSubtitle: "عدّل بيانات لوحتك وأعد إرسالها للمراجعة",
+    listingResubmitted: "تم إرسال التعديلات للمراجعة",
+    moderationStatus_pending: "قيد المراجعة",
+    moderationStatus_approved: "مقبول",
+    moderationStatus_rejected: "مرفوض",
+
+    marketplaceTitle: "سوق اللوحات",
+    marketplaceSubtitle: "لوحات معروضة للبيع المباشر من أصحابها",
+    searchListingsPlaceholder: "ابحث بالعنوان أو الأحرف أو الأرقام",
+    noMatchingListings: "لا توجد لوحات مطابقة",
+    forSaleBadge: "معروضة للبيع",
+    noImage: "لا توجد صورة",
+    contactViaWhatsApp: "تواصل عبر واتساب",
+    contactSellerLabel: "تواصل مع البائع",
+    contactWinnerLabel: "تواصل مع الفائز",
     stepPlateInfo: "بيانات اللوحة",
     stepPlateInfoHint: "أدخل الأحرف والأرقام كما تظهر على اللوحة",
     stepAppearance: "شكل اللوحة",
@@ -1095,6 +1252,42 @@ const ar: MessageCatalog = {
     colAction: "الإجراء",
     colEntity: "الكيان",
     colId: "المعرّف",
+
+    navListingsModeration: "مراجعة العروض",
+    navPlateCategories: "فئات اللوحات",
+
+    listingsModerationTitle: "مراجعة العروض",
+    listingsModerationSubtitle: "مراجعة طلبات عرض اللوحات في السوق أو المزاد",
+    noMatchingListings: "لا توجد عروض مطابقة",
+    approveAction: "قبول",
+    rejectAction: "رفض",
+    confirmRejectAction: "تأكيد الرفض",
+    rejectionReasonPlaceholder: "اكتب سبب الرفض ليظهر للمستخدم",
+    listingApproved: "تم قبول العرض",
+    listingRejected: "تم رفض العرض",
+    createAuctionFromRequest: "إنشاء مزاد من هذه اللوحة",
+
+    plateCategoriesTitle: "فئات اللوحات",
+    plateCategoriesSubtitle: "إدارة الفئات المتاحة عند إضافة لوحة",
+    addCategoryButton: "إضافة فئة",
+    noMatchingCategories: "لا توجد فئات مطابقة",
+    newCategoryTitle: "إضافة فئة جديدة",
+    editCategoryTitle: "تعديل الفئة",
+    saveCategoryButton: "حفظ الفئة",
+    categoryCreated: "تم إنشاء الفئة",
+    categoryCreateFailed: "تعذر إنشاء الفئة",
+    categoryUpdated: "تم تحديث الفئة",
+    categoryUpdateFailed: "تعذر تحديث الفئة",
+    categoryDeleted: "تم حذف الفئة",
+    categoryDeleteFailed: "تعذر حذف الفئة",
+    categoryActivated: "تم تفعيل الفئة",
+    categoryDeactivated: "تم تعطيل الفئة",
+    categoryInUseCannotDelete: "لا يمكن حذف فئة مستخدمة حاليًا — يمكنك تعطيلها بدلاً من ذلك",
+    confirmDeleteCategory: "هل تريد حذف هذه الفئة؟",
+
+    permCategoryManage: "إدارة فئات اللوحات",
+    permListingModerate: "مراجعة العروض",
+    permOwnershipDocumentView: "الاطلاع على مستندات إثبات الملكية",
   },
 };
 

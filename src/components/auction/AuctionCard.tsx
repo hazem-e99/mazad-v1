@@ -14,12 +14,6 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { cn } from "@/lib/cn";
 import type { AuctionSummary } from "@/types/auction";
 
-/**
- * The single auction card used by every listing — home, all-auctions,
- * exclusive, VIP, search. Its three states (live / scheduled / finished)
- * differ only in what the footer says, so a grid of mixed statuses still
- * reads as one family.
- */
 export function AuctionCard({ auction, className }: { auction: AuctionSummary; className?: string }) {
   const { t, locale } = useTranslations();
   const Arrow = locale === "ar" ? ArrowLeft : ArrowRight;
@@ -40,23 +34,13 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
         className
       )}
     >
-      {/* Status is legible before any text is read. */}
-      <span
-        className={cn("absolute inset-x-0 top-0 h-[3px]", statusAccent[auction.status] ?? "bg-(--color-border-strong)")}
-        aria-hidden="true"
-      />
+      <span className={cn("absolute inset-x-0 top-0 h-[3px]", statusAccent[auction.status] ?? "bg-(--color-border-strong)")} aria-hidden="true" />
 
       <Link
         href={`/auctions/${auction._id}`}
         className="flex flex-1 flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--color-gold)"
       >
-        {/* Plate stage */}
-        <div
-          className={cn(
-            "relative flex flex-col gap-4 p-5 pt-5",
-            isVip ? "bg-transparent" : "bg-(--color-bg-elevated)"
-          )}
-        >
+        <div className={cn("relative flex flex-col gap-4 p-5 pt-5", isVip ? "bg-transparent" : "bg-(--color-bg-elevated)")}>
           {isVip && <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-0 opacity-80" />}
 
           <div className="relative flex flex-wrap items-center justify-between gap-1.5">
@@ -67,22 +51,30 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
             <AuctionStatusBadge status={auction.status} />
           </div>
 
-          <div className="relative flex items-center justify-center py-1">
-            <SaudiPlate
-              type={auction.plate.type}
-              lettersAr={auction.plate.lettersAr}
-              lettersEn={auction.plate.lettersEn}
-              numbers={auction.plate.numbers}
-              logo={auction.plate.logo}
-              size="md"
-              vip={isVip}
-              locale={locale}
-              className="transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.015]"
-            />
+          <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-(--radius-md) bg-(--color-bg)">
+            {auction.plate.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={auction.plate.image}
+                alt={auction.plate.title ?? `${auction.plate.lettersAr} ${auction.plate.numbers}`}
+                className="h-full w-full object-cover transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.02]"
+              />
+            ) : (
+              <SaudiPlate
+                type={auction.plate.type}
+                lettersAr={auction.plate.lettersAr}
+                lettersEn={auction.plate.lettersEn}
+                numbers={auction.plate.numbers}
+                logo={auction.plate.logo}
+                size="md"
+                vip={isVip}
+                locale={locale}
+                className="transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.015]"
+              />
+            )}
           </div>
         </div>
 
-        {/* Facts */}
         <div className="flex flex-1 flex-col gap-3 p-5">
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="truncate text-(--color-text-muted)">{plateTypeLabel(auction.plate.type, locale)}</span>
@@ -103,7 +95,6 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
         </div>
       </Link>
 
-      {/* Footer — the one row that changes per state. */}
       <div className="flex items-center justify-between gap-3 border-t border-(--color-border) bg-black/20 px-5 py-3.5 text-xs">
         {isLive ? (
           <>
@@ -128,10 +119,7 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
             <span className="tnum truncate text-(--color-text-faint)">
               {formatDateTime(auction.finalizedAt ?? auction.endAt, locale)}
             </span>
-            <Link
-              href={`/auctions/${auction._id}`}
-              className="flex shrink-0 items-center gap-1 text-sm font-medium text-(--color-gold) transition-colors hover:text-(--color-gold-hover)"
-            >
+            <Link href={`/auctions/${auction._id}`} className="flex shrink-0 items-center gap-1 text-sm font-medium text-(--color-gold) transition-colors hover:text-(--color-gold-hover)">
               {t("auction.viewDetails")}
               <Arrow className="h-3.5 w-3.5" aria-hidden="true" />
             </Link>

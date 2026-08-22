@@ -10,7 +10,13 @@ const plateLogoSchema = new Schema(
     // Set only by the one-time legacy-enum migration script, to make it
     // idempotent (re-running it must not create duplicate records for the
     // same legacy value). Never set by the admin CRUD flow.
-    legacySlug: { type: String, default: null, index: true, unique: true, sparse: true },
+    //
+    // No `default` here deliberately: a sparse unique index only excludes
+    // documents where the field is truly absent. Mongoose applying a
+    // `default: null` would make every admin-created logo carry an
+    // explicit `legacySlug: null`, which a sparse index still indexes —
+    // colliding on the unique constraint after the very first one.
+    legacySlug: { type: String, index: true, unique: true, sparse: true },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", default: null },
   },
   { timestamps: true }

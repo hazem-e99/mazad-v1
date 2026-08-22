@@ -18,6 +18,7 @@ import {
   LogOut,
   TrendingUp,
   ChevronDown,
+  Store,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -62,8 +63,9 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
   const navItems = [
     { href: "/", label: t("nav.home"), icon: Home },
     { href: "/auctions", label: t("nav.auctions"), icon: Gavel },
-    { href: "/vip", label: t("nav.vip"), icon: Crown },
+    { href: "/listings", label: t("nav.marketplace"), icon: Store },
     { href: "/auctions/exclusive", label: t("nav.exclusive"), icon: Sparkles },
+    { href: "/vip", label: t("nav.vip"), icon: Crown },
     ...(viewer ? [{ href: "/account/plates", label: t("nav.myPlates"), icon: IdCard }] : []),
     { href: "/ads", label: t("nav.ads"), icon: Megaphone },
     { href: "/chat", label: t("nav.chat"), icon: MessageCircle },

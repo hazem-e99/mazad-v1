@@ -17,7 +17,11 @@ export async function GET(req: NextRequest) {
     const isVip = searchParams.get("isVip");
     const search = searchParams.get("search");
 
-    const filter: Record<string, unknown> = { isVisible: true };
+    // Excludes pending/rejected marketplace or auction-request submissions
+    // — those are only ever surfaced through /api/listings (with its own
+    // staff-only moderation-queue view), never leaked through this general
+    // plates endpoint regardless of caller.
+    const filter: Record<string, unknown> = { isVisible: true, moderationStatus: { $nin: ["pending", "rejected"] } };
     if (type) filter.type = type;
     if (isVip === "true") filter.isVip = true;
     if (search) {

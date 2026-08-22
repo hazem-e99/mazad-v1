@@ -1,5 +1,32 @@
 # Mazad — Implementation Progress Matrix
 
+# Codex Handoff Audit
+
+| Requirement | Existing Implementation | Verified | Remaining Work | Status |
+| ----------- | ----------------------- | -------- | -------------- | ------ |
+| Preserve existing auction/auth/RBAC core | Existing custom auth, RBAC, auction service, scheduler, Socket.IO, direct purchase and API tests are present. | Source review only in this handoff pass; prior docs claim tests passed. | Re-run typecheck, lint, tests, and build after marketplace continuation. | NEEDS VERIFICATION |
+| Plate/listing source of truth | `Plate` now carries listing fields (`title`, `price`, `image`, contact/social fields, `submissionType`, `moderationStatus`) and auctions still reference the same `Plate`. | Source review of model/DTO/routes. | Verify create-auction-from-request keeps the same plate ID through API/browser. | PARTIAL |
+| Submission type | `submissionType: "marketplace" | "auction_request"` exists in constants/model/validation, add-plate UX, admin filters, and tests. | Source review and API test file review. | Run tests and browser flow. | NEEDS VERIFICATION |
+| Classification and usage type | Independent constants/model fields/labels/filter controls exist. | Source review. | Verify seed/migration and public filters with real data. | NEEDS VERIFICATION |
+| Category / size / shape | Separate model/fields/routes/admin category UI exist. | Source review. | Verify create/edit flows and filter coverage for size/shape/category. | PARTIAL |
+| Dynamic plate logos | `PlateLogo` model, admin routes/pages, active public loading, and migration exist. | Source review and dedicated test file present. | Run tests; verify delete-unused behavior and upload handling. | NEEDS VERIFICATION |
+| Actual uploaded plate image rule | Listing/public/detail/home components use `listing.image` with `PlateRenderer` fallback for legacy records. | Source review. | Verify no new flow generates plate artwork instead of using uploads. | NEEDS VERIFICATION |
+| Ownership proof privacy | Private storage helper, private upload endpoint, protected ownership-document route, select-false schema field, and tests exist. | Source review and test file review. | Run tests; verify admin UI can open proof securely. | NEEDS VERIFICATION |
+| Moderation | Listing moderation API/actions/admin page exist with approve/reject/resubmit behavior. | Source review and API test file review. | Verify admin edit/detail completeness and audit logging. | PARTIAL |
+| Marketplace visibility | Public listing API/page/detail query require `submissionType=marketplace`, `moderationStatus=approved`, `isVisible=true`; legacy `/api/plates` excludes pending/rejected. | Source review and tests present. | Run tests and browser/curl checks. | NEEDS VERIFICATION |
+| Auction request flow | Admin listing action links to `/admin/auctions/new?plate=...`; auction form prefill code exists. | Source review. | Verify approval gating, same plate reuse, and no duplicate plate creation end-to-end. | PARTIAL |
+| WhatsApp marketplace contact | WhatsApp normalization/helper/button and listing detail CTA exist. | Source review and unit tests present. | Verify localized message content and invalid-phone behavior in UI. | NEEDS VERIFICATION |
+| Live auction privacy / post-auction WhatsApp | Auction detail has conditional contact reveal logic. | Source review. | Verify seller/winner/admin authorization and unsold/no-buyer cases with tests. | PARTIAL |
+| My Listings | `/my-listings` page exists with status/type/image/rejection/action display. | Source review. | Verify edit/resubmit behavior and current-auction linking. | PARTIAL |
+| My Purchases / Won Auctions | No dedicated route found during handoff scan. | Source scan. | Add account area for won auctions/direct purchases if absent after deeper verification. | MISSING |
+| Homepage marketplace sections | Home imports marketplace listings and renders a marketplace section. | Source review. | Add/verify classification and usage sections, section limits, and no excessive duplication. | PARTIAL |
+| Marketplace browsing filters | `/listings` supports URL-backed filters for classification, usage, category, VIP, price, and search. | Source review. | Verify size/shape/logo filters; add if absent. | PARTIAL |
+| Admin dashboard metrics | Existing admin stats/dashboard present; new listing/request metrics need verification. | Source review only. | Confirm real DB-backed marketplace/request counters. | NEEDS VERIFICATION |
+| RBAC naming coverage | New permissions include `listing:moderate`, `plate_logo:manage`, `category:manage`, `ownership_document:view`; legacy names differ from latest scope. | Source review. | Verify effective backend protection for all requested actions. | PARTIAL |
+| Audit log coverage | Audit model exists and new routes log some actions. | Source review. | Verify all new listing/category/logo/auction-request events are logged without sensitive contents. | PARTIAL |
+| I18N | New AR/EN keys added for marketplace/listings/logos/categories in catalog files. | Source review. | Run typecheck/parity; verify UI in both locales. | NEEDS VERIFICATION |
+| Tests | New listing, plate-logo, WhatsApp tests exist alongside prior auction/RBAC/API tests. | File scan. | Run `npm run typecheck`, `npm run lint`, `npm test`, `npm run build`; add missing coverage as fixes require. | NEEDS VERIFICATION |
+
 Status values: COMPLETE / PARTIAL / MISSING / N/A. A row is COMPLETE only when the full user-facing flow works end-to-end against the real database — verified by direct testing (curl, automated tests, or manual browser/production-server checks), not assumed from file existence.
 
 This is the final status after three passes: initial build, gap-closure pass, and this final completion pass.
