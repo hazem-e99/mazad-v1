@@ -55,7 +55,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
           href="/auctions?status=live"
           className="inline-flex items-center gap-2 text-base font-semibold text-(--color-gold) transition-colors hover:text-(--color-gold-hover)"
         >
-          <span>{locale === "ar" ? "عرض الكل" : "View all"}</span>
+          <span>{t("home.viewAll")}</span>
           <span aria-hidden="true">{locale === "ar" ? "←" : "→"}</span>
         </Link>
       </div>
@@ -68,7 +68,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                 <div className="text-sm font-medium text-(--color-text-muted)">{t("auction.currentPrice")}</div>
                 <div className="text-3xl font-black leading-none text-(--color-gold) sm:text-4xl">
                   {currentPrice}
-                  <span className="mr-1 text-base font-medium text-(--color-gold)">{locale === "ar" ? "ريال" : "SAR"}</span>
+                  <span className="mr-1 text-base font-medium text-(--color-gold)">{t("common.riyal")}</span>
                 </div>
               </div>
 
@@ -80,7 +80,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                 <span className="text-(--color-border-strong)" aria-hidden="true">|</span>
                 <div className="flex items-center gap-2 rounded-full border border-(--color-border) bg-[#0b1727]/70 px-2.5 py-1.5">
                   <Gavel className="h-4 w-4 text-(--color-text-faint)" strokeWidth={2} />
-                  <span className="tnum font-medium">{auction.bidCount} مزايدة</span>
+                  <span className="tnum font-medium">{t("auction.bidsCount", { count: auction.bidCount })}</span>
                 </div>
               </div>
 
@@ -89,7 +89,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                   href={`/auctions/${auction._id}`}
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-(--color-border-strong) bg-[#0d1827]/80 px-4 text-sm font-semibold text-(--color-text) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold)"
                 >
-                  <span>{locale === "ar" ? "تفاصيل المزاد" : "Auction details"}</span>
+                  <span>{t("auction.auctionDetails")}</span>
                 </Link>
 
                 <Link
@@ -97,7 +97,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                   className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-linear-to-b from-(--color-gold-hover) to-(--color-gold) px-4 text-sm font-black text-(--color-gold-foreground) shadow-[inset_0_1px_0_rgba(255,255,255,.35),0_8px_18px_-8px_rgba(236,189,51,.72)] transition-transform hover:brightness-105 active:translate-y-px"
                 >
                   <Gavel className="h-4 w-4" strokeWidth={2.2} />
-                  <span>{locale === "ar" ? "زايد الآن" : "Bid now"}</span>
+                  <span>{t("auction.bidNow")}</span>
                 </Link>
               </div>
             </div>
@@ -141,7 +141,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
 
             <div className="flex flex-col justify-between border-t border-(--color-border) bg-[#050d18]/80 p-6 text-center lg:border-t-0 lg:border-r lg:border-(--color-border)">
               <div className="space-y-3">
-                <div className="text-sm font-medium text-(--color-text-muted)">{locale === "ar" ? "ينتهي خلال" : "Ends in"}</div>
+                <div className="text-sm font-medium text-(--color-text-muted)">{t("auction.endsIn")}</div>
                 <div className="flex items-center justify-center gap-2">
                   <CountdownTimer endAt={auction.endAt} variant="blocks" size="md" urgency className="justify-center" />
                 </div>
@@ -152,7 +152,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                 className="mt-5 inline-flex items-center justify-center gap-2 rounded-xl border border-(--color-border-strong) bg-[#0d1827]/80 px-4 py-3 text-sm font-semibold text-(--color-text) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold)"
               >
                 <Bell className="h-4 w-4" strokeWidth={2} />
-                <span>{locale === "ar" ? "تنبيه انتهاء المزاد" : "Auction end alert"}</span>
+                <span>{t("auction.endAlert")}</span>
               </button>
             </div>
           </div>

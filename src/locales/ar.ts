@@ -119,6 +119,7 @@ export interface MessageCatalog {
     currentPrice: string;
     startsIn: string;
     endsIn: string;
+    endAlert: string;
     highestBidder: string;
     timeRemaining: string;
     minNextBid: string;
@@ -668,6 +669,7 @@ const ar: MessageCatalog = {
     currentPrice: "السعر الحالي",
     startsIn: "يبدأ قريبًا",
     endsIn: "ينتهي خلال",
+    endAlert: "تنبيه انتهاء المزاد",
     highestBidder: "أعلى مزايد",
     timeRemaining: "الوقت المتبقي",
     minNextBid: "الحد الأدنى للمزايدة التالية",

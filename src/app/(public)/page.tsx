@@ -11,6 +11,7 @@ import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { Carousel } from "@/components/ui/Carousel";
 import { LinkButton } from "@/components/ui/Button";
+import { PromotionalBanner } from "@/components/home/PromotionalBanner";
 
 export const revalidate = 0;
 
@@ -86,6 +87,11 @@ export default async function HomePage() {
           )}
         </section>
 
+      </div>
+
+        <PromotionalBanner />
+
+      <div className="mz-container flex flex-col gap-20 pb-14 sm:gap-24 sm:pb-16">
         {/* ── Upcoming ─────────────────────────────────────────────── */}
         <section className="mz-reveal">
           <SectionHeader

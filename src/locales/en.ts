@@ -121,6 +121,7 @@ const en: MessageCatalog = {
     currentPrice: "Current price",
     startsIn: "Starting soon",
     endsIn: "Ends in",
+    endAlert: "Auction end alert",
     highestBidder: "Highest bidder",
     timeRemaining: "Time remaining",
     minNextBid: "Minimum next bid",
