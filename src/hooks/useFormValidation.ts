@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { RefObject } from "react";
 import type { ZodType } from "zod";
 import { useToastStore } from "@/hooks/useToast";
@@ -39,11 +39,10 @@ export function useFormValidation(formRef?: RefObject<HTMLFormElement | null>) {
 
   // Rebuilt only when the locale changes; buildSchemas is cheap but there
   // is no reason to recreate every schema on each render.
-  const schemaCache = useRef<{ locale: string; schemas: Schemas } | null>(null);
-  if (!schemaCache.current || schemaCache.current.locale !== locale) {
-    schemaCache.current = { locale, schemas: buildSchemas(translatorFor(locale)) };
-  }
-  const schemas = schemaCache.current.schemas;
+  const schemas = useMemo<Schemas>(
+    () => buildSchemas(translatorFor(locale)),
+    [locale]
+  );
 
   const translate = useCallback<Translate>((key, params) => t(key, params), [t]);
 
