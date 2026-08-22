@@ -51,13 +51,6 @@ export default async function HomePage() {
 
         {/* ── Live now ─────────────────────────────────────────────── */}
         <section className="mz-reveal">
-          <SectionHeader
-            eyebrow={t("auction.live")}
-            eyebrowTone="live"
-            title={t("home.liveAuctions")}
-            subtitle={t("home.liveAuctionsSubtitle")}
-            href="/auctions?status=live"
-          />
           {live.length > 0 ? (
             <LiveAuctionSpotlight auctions={live} />
           ) : (

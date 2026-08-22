@@ -53,20 +53,51 @@ export function CountdownTimer({
   size = "md",
 }: CountdownTimerProps) {
   const { t } = useTranslations();
-  const [now, setNow] = useState(() => Date.now() + serverNowOffsetMs);
+  const [now, setNow] = useState<number | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
+    setNow(Date.now() + serverNowOffsetMs);
     const id = setInterval(() => setNow(Date.now() + serverNowOffsetMs), 1000);
     return () => clearInterval(id);
   }, [serverNowOffsetMs]);
 
-  const remainingMs = new Date(endAt).getTime() - now;
+  useEffect(() => {
+    if (now !== null && onExpire && formatRemaining(new Date(endAt).getTime() - now).expired) {
+      onExpire();
+    }
+  }, [endAt, now, onExpire]);
+
+  const renderPlaceholder = !isMounted || now === null;
+  const safeNow = now ?? Date.now() + serverNowOffsetMs;
+  const remainingMs = new Date(endAt).getTime() - safeNow;
   const { d, h, m, s, expired } = formatRemaining(remainingMs);
 
-  useEffect(() => {
-    if (expired) onExpire?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [expired]);
+  if (renderPlaceholder) {
+    if (variant === "blocks") {
+      return (
+        <div className={cn("flex items-start gap-1.5", className)} role="timer" aria-live="off" suppressHydrationWarning>
+          <Segment value="00" label={t("auction.unitHours")} sz={blockSize[size]} critical={false} urgent={false} />
+          <Separator sz={blockSize[size]} />
+          <Segment value="00" label={t("auction.unitMinutes")} sz={blockSize[size]} critical={false} urgent={false} />
+          <Separator sz={blockSize[size]} />
+          <Segment value="00" label={t("auction.unitSeconds")} sz={blockSize[size]} critical={false} urgent={false} />
+        </div>
+      );
+    }
+
+    return (
+      <div className={cn(className)} role="timer" aria-live="off" suppressHydrationWarning>
+        <span className="sr-only" suppressHydrationWarning>
+          {t("auction.timeRemainingSr", { days: 0, hours: 0, minutes: 0, seconds: 0 })}
+        </span>
+        <span className="tnum font-mono" aria-hidden="true" suppressHydrationWarning>
+          00:00:00
+        </span>
+      </div>
+    );
+  }
 
   const isCritical = urgency && !expired && remainingMs <= 60_000;
   const isUrgent = urgency && !expired && !isCritical && remainingMs <= 5 * 60_000;
