@@ -48,12 +48,8 @@ export default function AdminNewPlatePage() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("subdir", "plates");
-        const uploadRes = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "same-origin" });
-        const uploadBody = await uploadRes.json();
-        if (!uploadRes.ok || !uploadBody.ok) {
-          throw new ApiClientError(uploadBody.code ?? "upload_failed", uploadBody.message ?? "تعذر رفع صورة اللوحة");
-        }
-        imageUrl = uploadBody.data.url;
+        const uploadData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: formData });
+        imageUrl = uploadData.url;
       }
       await apiFetch("/api/plates", {
         method: "POST",

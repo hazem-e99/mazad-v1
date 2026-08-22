@@ -42,15 +42,11 @@ export function AuctionBackgroundUploader({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("subdir", "auction-backgrounds");
-      const uploadRes = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "same-origin" });
-      const uploadBody = await uploadRes.json();
-      if (!uploadRes.ok || !uploadBody.ok) {
-        throw new ApiClientError(uploadBody.code ?? "upload_failed", uploadBody.message ?? t("admin.backgroundUploadFailed"));
-      }
+      const uploadData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: formData });
 
       await apiFetch(`/api/auctions/${auctionId}`, {
         method: "PATCH",
-        body: JSON.stringify({ backgroundImage: uploadBody.data.url }),
+        body: JSON.stringify({ backgroundImage: uploadData.url }),
       });
 
       push(t("admin.backgroundSaved"), "success");

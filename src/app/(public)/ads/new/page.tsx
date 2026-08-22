@@ -43,11 +43,7 @@ export default function NewAdPage() {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("subdir", "ads");
-      const uploadRes = await fetch("/api/uploads", { method: "POST", body: formData, credentials: "same-origin" });
-      const uploadBody = await uploadRes.json();
-      if (!uploadRes.ok || !uploadBody.ok) {
-        throw new ApiClientError(uploadBody.code ?? "upload_failed", uploadBody.message ?? t("common.error"));
-      }
+      const uploadData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: formData });
 
       await apiFetch("/api/ads", {
         method: "POST",
@@ -56,7 +52,7 @@ export default function NewAdPage() {
           description: description || undefined,
           price: price ? Number(price) : undefined,
           contactPhone,
-          image: uploadBody.data.url,
+          image: uploadData.url,
         }),
       });
 
