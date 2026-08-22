@@ -86,10 +86,10 @@ export default function AdminNewAuctionPage() {
   }
 
   return (
-    <div className="max-w-2xl">
-      <h1 className="text-2xl font-bold text-(--color-text) mb-6">{t("admin.newAuctionTitle")}</h1>
-      <Card>
-        <CardBody className="flex flex-col gap-6">
+    <div className="mx-auto w-full max-w-[920px]">
+      <h1 className="mb-6 text-2xl font-bold text-(--color-text)">{t("admin.newAuctionTitle")}</h1>
+      <Card className="border-(--color-border) bg-(--color-surface) shadow-(--shadow-card)">
+        <CardBody className="flex flex-col gap-6 p-5 sm:p-6 lg:p-7">
           {selectedPlate && (
             <div className="flex items-center justify-center rounded-(--radius-md) bg-(--color-bg-elevated) p-8">
               <PlateRenderer

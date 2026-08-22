@@ -73,13 +73,13 @@ export function AdminNavList({ onNavigate, className }: { onNavigate?: () => voi
   const groups = useAdminNavGroups();
 
   return (
-    <div className={cn("flex flex-col gap-6", className)}>
+    <div className={cn("flex flex-col gap-5", className)}>
       {groups.map((group) => (
-        <div key={group.title}>
-          <h3 className="px-2.5 text-[11px] font-semibold uppercase tracking-wider text-(--color-text-faint) mb-2">
+        <div key={group.title} className="space-y-2">
+          <h3 className="px-2.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-(--color-text-faint)">
             {group.title}
           </h3>
-          <div className="flex flex-col gap-0.5">
+          <div className="flex flex-col gap-1">
             {group.items.map((item) => {
               const active = pathname === item.href;
               const Icon = item.icon;
@@ -90,14 +90,15 @@ export function AdminNavList({ onNavigate, className }: { onNavigate?: () => voi
                   onClick={onNavigate}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-(--radius-sm) px-2.5 py-2 text-sm font-medium transition-colors duration-(--duration-fast)",
+                    "group relative flex items-center gap-3 rounded-(--radius-md) border px-2.5 py-2.5 text-sm font-medium transition-all duration-(--duration-fast)",
                     active
-                      ? "bg-(--color-gold)/12 text-(--color-gold)"
-                      : "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-text)"
+                      ? "border-(--color-gold)/20 bg-[rgba(236,189,51,0.08)] text-(--color-gold) shadow-[inset_0_0_0_1px_rgba(236,189,51,0.08)]"
+                      : "border-transparent text-(--color-text-muted) hover:border-(--color-border) hover:bg-(--color-surface) hover:text-(--color-text)"
                   )}
                 >
-                  <Icon className="h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={2} />
-                  {item.label}
+                  {active && <span className="absolute inset-y-1 start-1 w-0.5 rounded-full bg-(--color-gold)" aria-hidden="true" />}
+                  <Icon className="relative z-10 h-4 w-4 shrink-0" aria-hidden="true" strokeWidth={2} />
+                  <span className="relative z-10">{item.label}</span>
                 </Link>
               );
             })}
@@ -112,11 +113,18 @@ export function AdminSidebar() {
   const { t } = useTranslations();
 
   return (
-    <nav
-      className="w-64 shrink-0 border-e border-(--color-border) bg-(--color-bg-elevated) p-4 hidden lg:block"
+    <aside
+      className="hidden w-[260px] shrink-0 overflow-hidden rounded-[1.5rem] border border-(--color-border) bg-[linear-gradient(180deg,rgba(17,24,34,0.96),rgba(10,16,22,0.96))] p-4 shadow-(--shadow-elevated) lg:block"
       aria-label={t("admin.navLabel")}
     >
+      <div className="mb-5 flex items-center gap-3 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg)/60 p-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) bg-(--color-gold) text-lg font-black text-(--color-gold-foreground)">م</div>
+        <div className="min-w-0">
+          <div className="text-sm font-bold text-(--color-text)">{t("admin.navLabel")}</div>
+          <div className="text-[11px] text-(--color-text-faint)">مركز التحكم</div>
+        </div>
+      </div>
       <AdminNavList />
-    </nav>
+    </aside>
   );
 }
