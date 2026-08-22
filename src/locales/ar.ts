@@ -1,0 +1,843 @@
+export interface MessageCatalog {
+  nav: {
+    home: string;
+    ads: string;
+    vip: string;
+    auctions: string;
+    exclusive: string;
+    chat: string;
+    login: string;
+    addPlate: string;
+    addAd: string;
+    openMenu: string;
+    closeMenu: string;
+    mainNav: string;
+    mobileNav: string;
+  };
+  footer: {
+    tagline: string;
+    quickLinks: string;
+    contact: string;
+    contactHint: string;
+    rights: string;
+  };
+  home: {
+    badge: string;
+    title: string;
+    subtitle: string;
+    browseAuctions: string;
+    vipPlates: string;
+    liveAuctions: string;
+    liveAuctionsSubtitle: string;
+    noLiveAuctions: string;
+    noLiveAuctionsHint: string;
+    vipPlatesSubtitle: string;
+    noVipPlates: string;
+    upcomingAuctions: string;
+    upcomingAuctionsSubtitle: string;
+    noUpcomingAuctions: string;
+    completedResults: string;
+    noResults: string;
+    viewAll: string;
+    liveCountLabel: string;
+    vipCountLabel: string;
+    featuredNow: string;
+    nextAuction: string;
+    exploreVip: string;
+  };
+  auth: {
+    loginTitle: string;
+    loginSubtitle: string;
+    registerTitle: string;
+    registerSubtitle: string;
+    phone: string;
+    password: string;
+    passwordHint: string;
+    fullName: string;
+    login: string;
+    register: string;
+    noAccount: string;
+    createAccount: string;
+    haveAccount: string;
+    signIn: string;
+    loginSuccess: string;
+    registerSuccess: string;
+  };
+  auction: {
+    live: string;
+    liveNow: string;
+    scheduled: string;
+    notStartedYet: string;
+    sold: string;
+    unsold: string;
+    purchased: string;
+    purchasedDirect: string;
+    ended: string;
+    cancelled: string;
+    currentPrice: string;
+    startsIn: string;
+    endsIn: string;
+    highestBidder: string;
+    timeRemaining: string;
+    minNextBid: string;
+    placeBid: string;
+    buyNow: string;
+    directPurchase: string;
+    recentBids: string;
+    noBidsYet: string;
+    mustLoginToBid: string;
+    connected: string;
+    disconnected: string;
+    winner: string;
+    endedNoBids: string;
+    bidAccepted: string;
+    bidReceived: string;
+    auctionSoldEnded: string;
+    auctionUnsoldEnded: string;
+    purchaseCompleted: string;
+    purchaseSuccess: string;
+    exclusiveBadge: string;
+    increaseBidAmount: string;
+    decreaseBidAmount: string;
+    finalPrice: string;
+    startingPrice: string;
+    bidsCount: string;
+    viewDetails: string;
+    startingSoon: string;
+    vipBadge: string;
+    reconnecting: string;
+    liveActivity: string;
+    auctionInfo: string;
+    category: string;
+    plateSpecs: string;
+    listedOn: string;
+    backToAuctions: string;
+    outbid: string;
+    youLabel: string;
+  };
+  common: {
+    loading: string;
+    error: string;
+    cancel: string;
+    save: string;
+    edit: string;
+    delete: string;
+    remove: string;
+    previous: string;
+    next: string;
+    search: string;
+    riyal: string;
+    active: string;
+    suspended: string;
+    status: string;
+    accepted: string;
+    rejected: string;
+    plate: string;
+    actionFailed: string;
+    resultsCount: string;
+    pageIndicator: string;
+    updating: string;
+    yes: string;
+    no: string;
+    close: string;
+  };
+  pages: {
+    auctionsTitle: string;
+    auctionsSubtitle: string;
+    noMatchingAuctions: string;
+    noMatchingAuctionsHint: string;
+    filterStatus: string;
+    filterCategory: string;
+    filterPlateType: string;
+    statusAll: string;
+    statusCompleted: string;
+    vipOnlyFilter: string;
+    exclusiveOnlyFilter: string;
+    clearFilters: string;
+    exclusiveTitle: string;
+    exclusiveSubtitle: string;
+    noExclusiveAuctions: string;
+    vipTitle: string;
+    vipSubtitle: string;
+    noVipPlatesYet: string;
+    vipStripLabel: string;
+    vipPlateAriaLabel: string;
+    adsTitle: string;
+    adsSubtitle: string;
+    addAd: string;
+    noAds: string;
+    noAdsHint: string;
+    chatTitle: string;
+    noMessagesYet: string;
+    typeMessage: string;
+    send: string;
+    addPlateTitle: string;
+    previewLabel: string;
+    addPlateSubtitle: string;
+    submitPlate: string;
+    plateSubmitted: string;
+    addAdTitle: string;
+    addAdSubtitle: string;
+    adTitle: string;
+    adDescription: string;
+    adPrice: string;
+    adPriceOptional: string;
+    contactPhone: string;
+    adImage: string;
+    publishAd: string;
+    adPublished: string;
+    plateTypeLabel: string;
+    plateLogoLabel: string;
+    noLogoOption: string;
+    plateLogosLoadError: string;
+    lettersArLabel: string;
+    lettersEnLabel: string;
+    numbersLabel: string;
+    pleaseSelectImage: string;
+  };
+  admin: {
+    navOverview: string;
+    navStats: string;
+    navAudit: string;
+    navAuctionsGroup: string;
+    navAuctionsList: string;
+    navAuctionCreate: string;
+    navBids: string;
+    navPlatesGroup: string;
+    navPlatesList: string;
+    navVip: string;
+    navPlateLogos: string;
+    navManagementGroup: string;
+    navUsers: string;
+    navAds: string;
+    navLabel: string;
+    navMobileLabel: string;
+    viewSite: string;
+    logoutAction: string;
+    logoutSuccess: string;
+
+    dashboardTitle: string;
+    dashboardSubtitle: string;
+    statTotalPlates: string;
+    statVipPlates: string;
+    statUsers: string;
+    statActiveAuctions: string;
+    statScheduledAuctions: string;
+    statCompletedAuctions: string;
+    statSold: string;
+    statUnsold: string;
+    statTotalBids: string;
+    statDirectPurchases: string;
+    recentActivity: string;
+    noActivityYet: string;
+
+    statsTitle: string;
+    statsSubtitle: string;
+
+    platesTitle: string;
+    platesSubtitle: string;
+    addPlateButton: string;
+    searchPlatesPlaceholder: string;
+    filterType: string;
+    filterVipOnly: string;
+    noMatchingPlates: string;
+    colPlate: string;
+    colType: string;
+    colVip: string;
+    colVisible: string;
+    colDateAdded: string;
+    visible: string;
+    hidden: string;
+    plateCreated: string;
+    plateCreateFailed: string;
+    newPlateTitle: string;
+    plateVipCheckbox: string;
+    plateFeaturedCheckbox: string;
+    createPlateButton: string;
+    vipRemoved: string;
+    vipMarked: string;
+
+    plateLogosTitle: string;
+    plateLogosSubtitle: string;
+    addLogoButton: string;
+    colLogoImage: string;
+    colNameAr: string;
+    colNameEn: string;
+    colSortOrder: string;
+    colUsageCount: string;
+    noMatchingLogos: string;
+    editLogoAction: string;
+    activateLogoAction: string;
+    deactivateLogoAction: string;
+    deleteLogoAction: string;
+    logoInUseCannotDelete: string;
+    logoDeleted: string;
+    logoDeleteFailed: string;
+    logoActivated: string;
+    logoDeactivated: string;
+    confirmDeleteLogo: string;
+    newLogoTitle: string;
+    editLogoTitle: string;
+    logoImageLabel: string;
+    logoActiveLabel: string;
+    logoSortOrderLabel: string;
+    logoImageRequired: string;
+    logoCreated: string;
+    logoCreateFailed: string;
+    logoUpdated: string;
+    logoUpdateFailed: string;
+    saveLogoButton: string;
+    uploadImageAction: string;
+    replaceImageAction: string;
+    showAction: string;
+    hideAction: string;
+    vipAction: string;
+    unvipAction: string;
+
+    auctionsTitle: string;
+    auctionsSubtitle: string;
+    createAuctionButton: string;
+    filterStatus: string;
+    filterCategory: string;
+    categoryExclusive: string;
+    categoryRegular: string;
+    noMatchingAuctions: string;
+    colCurrentPrice: string;
+    colStart: string;
+    colEnd: string;
+    manageAction: string;
+    selectPlateRequired: string;
+    auctionCreated: string;
+    auctionCreateFailed: string;
+    newAuctionTitle: string;
+    sectionPricing: string;
+    sectionTiming: string;
+    sectionPurchase: string;
+    fieldPlate: string;
+    choosePlate: string;
+    fieldCategory: string;
+    fieldStartingPrice: string;
+    fieldMinIncrement: string;
+    fieldStartTime: string;
+    fieldEndTime: string;
+    enableDirectPurchase: string;
+    fieldDirectPurchasePrice: string;
+    createAuctionSubmit: string;
+
+    auctionDetailTitle: string;
+    auctionDetailSubtitle: string;
+    auctionInfoHeader: string;
+    bidCountLabel: string;
+    statusManagementHeader: string;
+    backgroundHeader: string;
+    recentBidsHeader: string;
+    noBidsOnAuction: string;
+    finalStateNotice: string;
+    currentStatusLabel: string;
+    finalizeNowButton: string;
+    cancelAuctionButton: string;
+    auctionCancelled: string;
+    auctionCancelFailed: string;
+    auctionFinalized: string;
+    auctionFinalizeFailed: string;
+    backgroundUploadFailed: string;
+    backgroundSaved: string;
+    backgroundRemoved: string;
+    backgroundRemoveFailed: string;
+    backgroundAlt: string;
+    replaceBackground: string;
+    chooseBackground: string;
+    uploadAndSave: string;
+    removeCurrentBackground: string;
+
+    usersTitle: string;
+    usersSubtitle: string;
+    searchUsersPlaceholder: string;
+    filterRole: string;
+    noMatchingUsers: string;
+    colName: string;
+    colPhone: string;
+    colRole: string;
+    colManage: string;
+    roleAdmin: string;
+    roleSupervisor: string;
+    roleUser: string;
+    editUserButton: string;
+    editPermissionsTitle: string;
+    additionalPermissions: string;
+    accountActive: string;
+    userUpdated: string;
+    userUpdateFailed: string;
+    permCreateFeatured: string;
+    permAuctionCreate: string;
+    permAuctionSell: string;
+    permAuctionBuy: string;
+    permPlateManage: string;
+    permPlateLogoManage: string;
+    permAuctionManage: string;
+    permUserManage: string;
+    permVipManage: string;
+    permAdManage: string;
+    permUploadManage: string;
+    permStatsView: string;
+    permAuditView: string;
+
+    bidsTitle: string;
+    bidsSubtitle: string;
+    noMatchingBids: string;
+    rejectionReasonOutbid: string;
+    viewAuction: string;
+    colUser: string;
+    colAmount: string;
+    colDate: string;
+
+    vipTitle: string;
+    vipSubtitle: string;
+    noVipPlatesYet: string;
+    noVipPlatesHint: string;
+
+    adsTitle: string;
+    adsSubtitle: string;
+    searchAdsPlaceholder: string;
+    noMatchingAds: string;
+    colTitle: string;
+    colPrice: string;
+    colContact: string;
+    adSuspended: string;
+    adActivated: string;
+    suspendAction: string;
+    activateAction: string;
+
+    auditTitle: string;
+    auditSubtitle: string;
+    searchAuditPlaceholder: string;
+    filterEntity: string;
+    noMatchingActivity: string;
+    colAction: string;
+    colEntity: string;
+    colId: string;
+  };
+}
+
+const ar: MessageCatalog = {
+  nav: {
+    home: "الرئيسية",
+    ads: "الإعلانات",
+    vip: "VIP",
+    auctions: "المزادات",
+    exclusive: "مزاد حصري",
+    chat: "الدردشة",
+    login: "دخول",
+    addPlate: "أضف لوحتك",
+    addAd: "أضف رقمك",
+    openMenu: "فتح القائمة",
+    closeMenu: "إغلاق القائمة",
+    mainNav: "التنقل الرئيسي",
+    mobileNav: "قائمة التنقل للجوال",
+  },
+  footer: {
+    tagline: "منصة رائدة لمزادات لوحات السيارات المميزة في المملكة العربية السعودية.",
+    quickLinks: "روابط سريعة",
+    contact: "تواصل معنا",
+    contactHint: "للدعم والاستفسارات تواصل عبر الدردشة المباشرة.",
+    rights: "جميع الحقوق محفوظة.",
+  },
+  home: {
+    badge: "منصة مزادات لوحات السيارات الأولى",
+    title: "امتلك لوحة مميزة عبر مزاد مباشر وآمن",
+    subtitle: "تصفح آلاف اللوحات المميزة، وشارك في المزادات المباشرة، أو استخدم الشراء الفوري لامتلاك لوحتك الآن.",
+    browseAuctions: "تصفح المزادات",
+    vipPlates: "لوحات VIP",
+    liveAuctions: "مزادات مباشرة الآن",
+    liveAuctionsSubtitle: "شارك بالمزايدة قبل انتهاء الوقت",
+    noLiveAuctions: "لا توجد مزادات مباشرة حاليًا",
+    noLiveAuctionsHint: "تابع القسم القادم لمعرفة المزادات القادمة",
+    vipPlatesSubtitle: "أرقام مميزة بعناية خاصة",
+    noVipPlates: "لا توجد لوحات VIP بعد",
+    upcomingAuctions: "مزادات قادمة",
+    upcomingAuctionsSubtitle: "جهّز نفسك للمزايدة",
+    noUpcomingAuctions: "لا توجد مزادات مجدولة حاليًا",
+    completedResults: "نتائج مزادات مكتملة",
+    noResults: "لا توجد نتائج بعد",
+    viewAll: "عرض الكل",
+    liveCountLabel: "{count} مزاد مباشر الآن",
+    vipCountLabel: "{count} لوحة VIP متاحة",
+    featuredNow: "مباشر الآن",
+    nextAuction: "المزاد القادم",
+    exploreVip: "استكشف لوحات VIP",
+  },
+  auth: {
+    loginTitle: "تسجيل الدخول",
+    loginSubtitle: "مرحبًا بعودتك إلى مزاد",
+    registerTitle: "إنشاء حساب جديد",
+    registerSubtitle: "انضم إلى منصة مزاد وابدأ المزايدة",
+    phone: "رقم الجوال",
+    password: "كلمة المرور",
+    passwordHint: "8 أحرف على الأقل",
+    fullName: "الاسم الكامل",
+    login: "دخول",
+    register: "إنشاء الحساب",
+    noAccount: "ليس لديك حساب؟",
+    createAccount: "أنشئ حسابًا",
+    haveAccount: "لديك حساب بالفعل؟",
+    signIn: "سجل الدخول",
+    loginSuccess: "تم تسجيل الدخول بنجاح",
+    registerSuccess: "تم إنشاء الحساب بنجاح",
+  },
+  auction: {
+    live: "مباشر",
+    liveNow: "مباشر الآن",
+    scheduled: "قادم",
+    notStartedYet: "لم يبدأ بعد",
+    sold: "مباع",
+    unsold: "بدون بيع",
+    purchased: "تم الشراء",
+    purchasedDirect: "تم الشراء المباشر",
+    ended: "انتهى",
+    cancelled: "ملغى",
+    currentPrice: "السعر الحالي",
+    startsIn: "يبدأ قريبًا",
+    endsIn: "ينتهي خلال",
+    highestBidder: "أعلى مزايد",
+    timeRemaining: "الوقت المتبقي",
+    minNextBid: "الحد الأدنى للمزايدة التالية",
+    placeBid: "قدّم مزايدتك",
+    buyNow: "شراء الآن",
+    directPurchase: "شراء مباشر",
+    recentBids: "آخر المزايدات",
+    noBidsYet: "لا توجد مزايدات بعد — كن أول من يزايد",
+    mustLoginToBid: "يجب تسجيل الدخول للمزايدة",
+    connected: "متصل مباشرة",
+    disconnected: "غير متصل — يتم إعادة الاتصال",
+    winner: "الفائز",
+    endedNoBids: "انتهى المزاد دون تسجيل أي مزايدة",
+    bidAccepted: "تم قبول مزايدتك",
+    bidReceived: "تم استلام مزايدة جديدة",
+    auctionSoldEnded: "انتهى المزاد: تم البيع",
+    auctionUnsoldEnded: "انتهى المزاد بدون بيع",
+    purchaseCompleted: "تم شراء اللوحة مباشرة",
+    purchaseSuccess: "تم إتمام عملية الشراء المباشر بنجاح",
+    exclusiveBadge: "مزاد حصري",
+    increaseBidAmount: "زيادة قيمة المزايدة",
+    decreaseBidAmount: "تقليل قيمة المزايدة",
+    finalPrice: "السعر النهائي",
+    startingPrice: "سعر البداية",
+    bidsCount: "{count} مزايدة",
+    viewDetails: "عرض التفاصيل",
+    startingSoon: "يبدأ قريبًا",
+    vipBadge: "VIP",
+    reconnecting: "إعادة الاتصال...",
+    liveActivity: "النشاط المباشر",
+    auctionInfo: "معلومات المزاد",
+    category: "الفئة",
+    plateSpecs: "مواصفات اللوحة",
+    listedOn: "تاريخ الإدراج",
+    backToAuctions: "العودة إلى المزادات",
+    outbid: "تم تجاوز مزايدتك — قدّم مزايدة أعلى للبقاء في المنافسة",
+    youLabel: "أنت",
+  },
+  common: {
+    loading: "جارٍ التحميل...",
+    error: "حدث خطأ غير متوقع",
+    cancel: "إلغاء",
+    save: "حفظ",
+    edit: "تعديل",
+    delete: "حذف",
+    remove: "إزالة",
+    previous: "السابق",
+    next: "التالي",
+    search: "بحث...",
+    riyal: "ريال",
+    active: "نشط",
+    suspended: "موقوف",
+    status: "الحالة",
+    accepted: "مقبولة",
+    rejected: "مرفوضة",
+    plate: "اللوحة",
+    actionFailed: "تعذر تنفيذ الإجراء",
+    resultsCount: "نتيجة",
+    pageIndicator: "صفحة {page} من {pages}",
+    updating: "جارٍ التحديث...",
+    yes: "نعم",
+    no: "لا",
+    close: "إغلاق",
+  },
+  pages: {
+    auctionsTitle: "المزادات",
+    auctionsSubtitle: "تصفح جميع المزادات المتاحة",
+    noMatchingAuctions: "لا توجد مزادات مطابقة",
+    noMatchingAuctionsHint: "جرّب تغيير الفلاتر أو عد لاحقًا",
+    filterStatus: "الحالة",
+    filterCategory: "الفئة",
+    filterPlateType: "نوع اللوحة",
+    statusAll: "الكل",
+    statusCompleted: "مكتمل",
+    vipOnlyFilter: "VIP فقط",
+    exclusiveOnlyFilter: "حصري فقط",
+    clearFilters: "مسح الفلاتر",
+    exclusiveTitle: "مزاد حصري",
+    exclusiveSubtitle: "مزادات مخصصة بشروط ومزايا خاصة",
+    noExclusiveAuctions: "لا توجد مزادات حصرية حاليًا",
+    vipTitle: "لوحات VIP",
+    vipSubtitle: "مجموعة مختارة من أرقام مميزة بعناية خاصة",
+    noVipPlatesYet: "لا توجد لوحات VIP بعد",
+    vipStripLabel: "لوحات VIP مميزة",
+    vipPlateAriaLabel: "لوحة VIP {letters} {numbers}",
+    adsTitle: "الإعلانات",
+    adsSubtitle: "إعلانات لوحات معروضة من المستخدمين",
+    addAd: "أضف رقمك",
+    noAds: "لا توجد إعلانات حاليًا",
+    noAdsHint: "كن أول من يضيف إعلانًا",
+    chatTitle: "الدردشة العامة",
+    noMessagesYet: "لا توجد رسائل بعد",
+    typeMessage: "اكتب رسالتك...",
+    send: "إرسال",
+    addPlateTitle: "أضف لوحتك",
+    previewLabel: "معاينة",
+    addPlateSubtitle: "أدخل بيانات لوحتك لعرضها ضمن قائمة اللوحات",
+    submitPlate: "إرسال اللوحة",
+    plateSubmitted: "تم إرسال لوحتك بنجاح",
+    addAdTitle: "أضف رقمك",
+    addAdSubtitle: "أنشئ إعلانًا لبيع رقمك المميز",
+    adTitle: "عنوان الإعلان",
+    adDescription: "الوصف",
+    adPrice: "السعر",
+    adPriceOptional: "السعر (اختياري)",
+    contactPhone: "رقم التواصل",
+    adImage: "صورة الإعلان",
+    publishAd: "نشر الإعلان",
+    adPublished: "تم إرسال إعلانك بنجاح",
+    plateTypeLabel: "نوع اللوحة",
+    plateLogoLabel: "الشعار",
+    noLogoOption: "بدون شعار",
+    plateLogosLoadError: "تعذر تحميل الشعارات",
+    lettersArLabel: "الأحرف (عربي)",
+    lettersEnLabel: "الأحرف (إنجليزي)",
+    numbersLabel: "الأرقام",
+    pleaseSelectImage: "الرجاء اختيار صورة",
+  },
+  admin: {
+    navOverview: "نظرة عامة",
+    navStats: "الإحصائيات",
+    navAudit: "سجل النشاطات",
+    navAuctionsGroup: "المزادات",
+    navAuctionsList: "المزادات",
+    navAuctionCreate: "إنشاء مزاد",
+    navBids: "المزايدات",
+    navPlatesGroup: "اللوحات",
+    navPlatesList: "اللوحات",
+    navVip: "لوحات VIP",
+    navPlateLogos: "شعارات اللوحات",
+    navManagementGroup: "الإدارة",
+    navUsers: "المستخدمون",
+    navAds: "الإعلانات",
+    navLabel: "لوحة التحكم",
+    navMobileLabel: "قائمة الإدارة",
+    viewSite: "عرض الموقع",
+    logoutAction: "تسجيل الخروج",
+    logoutSuccess: "تم تسجيل الخروج بنجاح",
+
+    dashboardTitle: "لوحة التحكم",
+    dashboardSubtitle: "نظرة عامة على أداء المنصة",
+    statTotalPlates: "إجمالي اللوحات",
+    statVipPlates: "لوحات VIP",
+    statUsers: "المستخدمون",
+    statActiveAuctions: "مزادات مباشرة",
+    statScheduledAuctions: "مزادات مجدولة",
+    statCompletedAuctions: "مزادات مكتملة",
+    statSold: "مباعة",
+    statUnsold: "بدون بيع",
+    statTotalBids: "إجمالي المزايدات",
+    statDirectPurchases: "عمليات شراء مباشر",
+    recentActivity: "آخر النشاطات",
+    noActivityYet: "لا توجد نشاطات مسجلة بعد",
+
+    statsTitle: "الإحصائيات",
+    statsSubtitle: "مؤشرات أداء المنصة",
+
+    platesTitle: "اللوحات",
+    platesSubtitle: "إدارة جميع اللوحات المسجلة",
+    addPlateButton: "+ إضافة لوحة",
+    searchPlatesPlaceholder: "بحث بالأحرف أو الأرقام...",
+    filterType: "النوع",
+    filterVipOnly: "VIP فقط",
+    noMatchingPlates: "لا توجد لوحات مطابقة",
+    colPlate: "اللوحة",
+    colType: "النوع",
+    colVip: "VIP",
+    colVisible: "ظاهرة",
+    colDateAdded: "تاريخ الإضافة",
+    visible: "ظاهرة",
+    hidden: "مخفية",
+    plateCreated: "تم إنشاء اللوحة بنجاح",
+    plateCreateFailed: "تعذر إنشاء اللوحة",
+    newPlateTitle: "إضافة لوحة جديدة",
+    plateVipCheckbox: "لوحة VIP",
+    plateFeaturedCheckbox: "لوحة مميزة (Featured)",
+    createPlateButton: "إنشاء اللوحة",
+    vipRemoved: "تمت إزالة VIP",
+    vipMarked: "تم تمييز اللوحة كـ VIP",
+
+    plateLogosTitle: "شعارات اللوحات",
+    plateLogosSubtitle: "إدارة الشعارات المتاحة عند إضافة لوحة",
+    addLogoButton: "إضافة شعار",
+    colLogoImage: "الصورة",
+    colNameAr: "الاسم بالعربي",
+    colNameEn: "الاسم بالإنجليزي",
+    colSortOrder: "الترتيب",
+    colUsageCount: "عدد الاستخدامات",
+    noMatchingLogos: "لا توجد شعارات بعد",
+    editLogoAction: "تعديل",
+    activateLogoAction: "تفعيل",
+    deactivateLogoAction: "تعطيل",
+    deleteLogoAction: "حذف",
+    logoInUseCannotDelete: "لا يمكن حذف شعار مستخدم حاليًا — يمكنك تعطيله بدلاً من ذلك",
+    logoDeleted: "تم حذف الشعار",
+    logoDeleteFailed: "تعذر حذف الشعار",
+    logoActivated: "تم تفعيل الشعار",
+    logoDeactivated: "تم تعطيل الشعار",
+    confirmDeleteLogo: "هل تريد حذف هذا الشعار؟ لا يمكن التراجع عن هذا الإجراء.",
+    newLogoTitle: "إضافة شعار جديد",
+    editLogoTitle: "تعديل الشعار",
+    logoImageLabel: "صورة الشعار",
+    logoActiveLabel: "مفعّل",
+    logoSortOrderLabel: "ترتيب الظهور",
+    logoImageRequired: "صورة الشعار مطلوبة",
+    logoCreated: "تم إنشاء الشعار بنجاح",
+    logoCreateFailed: "تعذر إنشاء الشعار",
+    logoUpdated: "تم تحديث الشعار",
+    logoUpdateFailed: "تعذر تحديث الشعار",
+    saveLogoButton: "حفظ الشعار",
+    uploadImageAction: "رفع صورة",
+    replaceImageAction: "استبدال الصورة",
+    showAction: "إظهار",
+    hideAction: "إخفاء",
+    vipAction: "تمييز VIP",
+    unvipAction: "إزالة VIP",
+
+    auctionsTitle: "المزادات",
+    auctionsSubtitle: "إدارة جميع المزادات",
+    createAuctionButton: "+ إنشاء مزاد",
+    filterStatus: "الحالة",
+    filterCategory: "التصنيف",
+    categoryExclusive: "حصري",
+    categoryRegular: "عادي",
+    noMatchingAuctions: "لا توجد مزادات مطابقة",
+    colCurrentPrice: "السعر الحالي",
+    colStart: "البداية",
+    colEnd: "النهاية",
+    manageAction: "إدارة",
+    selectPlateRequired: "الرجاء اختيار لوحة",
+    auctionCreated: "تم إنشاء المزاد بنجاح — يمكنك الآن رفع خلفية المزاد",
+    auctionCreateFailed: "تعذر إنشاء المزاد",
+    newAuctionTitle: "إنشاء مزاد جديد",
+    sectionPricing: "التسعير",
+    sectionTiming: "التوقيت",
+    sectionPurchase: "الشراء المباشر",
+    fieldPlate: "اللوحة",
+    choosePlate: "اختر لوحة",
+    fieldCategory: "تصنيف المزاد",
+    fieldStartingPrice: "السعر الابتدائي",
+    fieldMinIncrement: "الحد الأدنى للزيادة",
+    fieldStartTime: "وقت البداية",
+    fieldEndTime: "وقت النهاية",
+    enableDirectPurchase: "تفعيل الشراء المباشر",
+    fieldDirectPurchasePrice: "سعر الشراء المباشر",
+    createAuctionSubmit: "إنشاء المزاد",
+
+    auctionDetailTitle: "تفاصيل المزاد",
+    auctionDetailSubtitle: "إدارة حالة المزاد والخلفية والاطلاع على المزايدات",
+    auctionInfoHeader: "معلومات المزاد",
+    bidCountLabel: "عدد المزايدات",
+    statusManagementHeader: "إدارة الحالة",
+    backgroundHeader: "خلفية المزاد",
+    recentBidsHeader: "آخر المزايدات",
+    noBidsOnAuction: "لا توجد مزايدات على هذا المزاد",
+    finalStateNotice: "هذا المزاد في حالة نهائية ولا يمكن تغييرها.",
+    currentStatusLabel: "الحالة الحالية",
+    finalizeNowButton: "إنهاء المزاد الآن واحتساب النتيجة",
+    cancelAuctionButton: "إلغاء المزاد",
+    auctionCancelled: "تم إلغاء المزاد",
+    auctionCancelFailed: "تعذر إلغاء المزاد",
+    auctionFinalized: "تم إنهاء المزاد واحتساب النتيجة",
+    auctionFinalizeFailed: "تعذر إنهاء المزاد",
+    backgroundUploadFailed: "تعذر رفع الصورة",
+    backgroundSaved: "تم حفظ خلفية المزاد",
+    backgroundRemoved: "تمت إزالة الخلفية",
+    backgroundRemoveFailed: "تعذر إزالة الخلفية",
+    backgroundAlt: "خلفية المزاد",
+    replaceBackground: "استبدال الخلفية",
+    chooseBackground: "اختر صورة الخلفية",
+    uploadAndSave: "رفع وحفظ",
+    removeCurrentBackground: "إزالة الخلفية الحالية",
+
+    usersTitle: "المستخدمون",
+    usersSubtitle: "إدارة أدوار وصلاحيات المستخدمين",
+    searchUsersPlaceholder: "بحث بالاسم أو الجوال...",
+    filterRole: "الدور",
+    noMatchingUsers: "لا يوجد مستخدمون مطابقون",
+    colName: "الاسم",
+    colPhone: "الجوال",
+    colRole: "الدور",
+    colManage: "إدارة",
+    roleAdmin: "مدير",
+    roleSupervisor: "مشرف",
+    roleUser: "مستخدم",
+    editUserButton: "تعديل",
+    editPermissionsTitle: "تعديل صلاحيات المستخدم",
+    additionalPermissions: "الصلاحيات الإضافية",
+    accountActive: "الحساب نشط",
+    userUpdated: "تم تحديث بيانات المستخدم",
+    userUpdateFailed: "تعذر التحديث",
+    permCreateFeatured: "إضافة لوحة مميزة",
+    permAuctionCreate: "إضافة مزاد",
+    permAuctionSell: "صلاحية البيع",
+    permAuctionBuy: "صلاحية الشراء",
+    permPlateManage: "إدارة اللوحات",
+    permPlateLogoManage: "إدارة شعارات اللوحات",
+    permAuctionManage: "إدارة المزادات",
+    permUserManage: "إدارة المستخدمين",
+    permVipManage: "إدارة VIP",
+    permAdManage: "إدارة الإعلانات",
+    permUploadManage: "إدارة الرفع",
+    permStatsView: "عرض الإحصائيات",
+    permAuditView: "عرض سجل النشاطات",
+
+    bidsTitle: "المزايدات",
+    bidsSubtitle: "سجل كامل لجميع المزايدات المقدمة على المنصة",
+    noMatchingBids: "لا توجد مزايدات مطابقة",
+    rejectionReasonOutbid: "سبقتها مزايدة أخرى",
+    viewAuction: "عرض المزاد",
+    colUser: "المستخدم",
+    colAmount: "القيمة",
+    colDate: "التاريخ",
+
+    vipTitle: "لوحات VIP",
+    vipSubtitle: "إدارة اللوحات المميزة المعروضة للعامة",
+    noVipPlatesYet: "لا توجد لوحات VIP بعد",
+    noVipPlatesHint: "ميّز لوحة من صفحة اللوحات لتظهر هنا",
+
+    adsTitle: "الإعلانات",
+    adsSubtitle: "إدارة ومراجعة إعلانات المستخدمين",
+    searchAdsPlaceholder: "بحث بعنوان الإعلان...",
+    noMatchingAds: "لا توجد إعلانات مطابقة",
+    colTitle: "العنوان",
+    colPrice: "السعر",
+    colContact: "رقم التواصل",
+    adSuspended: "تم إيقاف الإعلان",
+    adActivated: "تم تفعيل الإعلان",
+    suspendAction: "إيقاف",
+    activateAction: "تفعيل",
+
+    auditTitle: "سجل النشاطات",
+    auditSubtitle: "سجل تدقيق كامل لإجراءات الإدارة",
+    searchAuditPlaceholder: "بحث بنوع الإجراء (مثال: auction.created)...",
+    filterEntity: "الكيان",
+    noMatchingActivity: "لا توجد نشاطات مطابقة",
+    colAction: "الإجراء",
+    colEntity: "الكيان",
+    colId: "المعرّف",
+  },
+};
+
+export default ar;

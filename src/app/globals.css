@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+:root {
+  /* Base surfaces */
+  --color-bg: #0b0e14;
+  --color-bg-elevated: #12161f;
+  --color-surface: #171c27;
+  --color-surface-hover: #1e2432;
+  --color-border: #262d3d;
+  --color-border-strong: #333c52;
+
+  /* Text */
+  --color-text: #f2f4f8;
+  --color-text-muted: #9aa3b8;
+  /* Lightened from the original #616b82 to clear WCAG AA (4.5:1) for
+     small text (timestamps, metadata) against both --color-bg and
+     --color-bg-elevated — the original only met the 3:1 large-text
+     threshold. */
+  --color-text-faint: #78829c;
+
+  /* Brand: deep Saudi green + warm gold (premium auction accent) */
+  --color-brand: #0f6b4f;
+  --color-brand-hover: #14805f;
+  --color-brand-foreground: #ffffff;
+
+  --color-gold: #d4af37;
+  --color-gold-hover: #e0bf4f;
+  --color-gold-foreground: #14161c;
+
+  /* Semantic */
+  --color-success: #22c55e;
+  --color-danger: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+
+  /* Auction-specific states */
+  --color-live: #ef4444;
+  --color-live-bg: rgba(239, 68, 68, 0.12);
+  --color-scheduled: #3b82f6;
+  --color-scheduled-bg: rgba(59, 130, 246, 0.12);
+  --color-sold: #22c55e;
+  --color-sold-bg: rgba(34, 197, 94, 0.12);
+  --color-unsold-bg: rgba(154, 163, 184, 0.1);
+  --color-vip-bg: linear-gradient(135deg, rgba(212, 175, 55, 0.16), rgba(212, 175, 55, 0.04));
+  --color-vip-surface: #1a1710;
+  --color-vip-border: rgba(212, 175, 55, 0.35);
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -8px rgba(0, 0, 0, 0.5);
+  --shadow-elevated: 0 2px 4px rgba(0, 0, 0, 0.35), 0 16px 40px -12px rgba(0, 0, 0, 0.6);
+  --shadow-gold-glow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(212, 175, 55, 0.15), 0 12px 32px -10px rgba(212, 175, 55, 0.25);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-fast: 150ms;
+  --duration-base: 220ms;
+}
+
+@theme inline {
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-text);
+
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-gold: var(--color-gold);
+  --color-gold-hover: var(--color-gold-hover);
+
+  --font-sans: var(--font-ibm-plex-arabic), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-feature-settings: "tnum" 1;
+}
+
+/* Tabular numerals for prices/countdowns so digits don't shift width during live updates */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Price/value emphasis flash — one authored moment for realtime updates
+   (new bid accepted, price changed). Uses the gold accent, not a generic
+   flash, so the emphasis reads as "this is the money figure," not noise. */
+@keyframes value-pulse {
+  0% { background-color: rgba(212, 175, 55, 0.22); }
+  100% { background-color: transparent; }
+}
+.animate-value-pulse {
+  animation: value-pulse 900ms var(--ease-out-expo);
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-rise-in {
+  animation: rise-in var(--duration-base) var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::selection {
+  background: var(--color-gold);
+  color: var(--color-gold-foreground);
+}
+
+/* Scrollbar (webkit) — subtle, matches dark surface */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-strong);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-faint);
+}
