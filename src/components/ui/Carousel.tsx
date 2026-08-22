@@ -15,6 +15,9 @@ interface CarouselProps {
   /** Rendered in place of the default overlay steppers — pass the result
    * of `useCarousel` controls into a SectionHeader instead. */
   hideControls?: boolean;
+  autoplay?: boolean;
+  loop?: boolean;
+  delay?: number;
 }
 
 /**
@@ -28,11 +31,20 @@ interface CarouselProps {
  * component reasons about *absolute* distance from the start edge and
  * lets the sign fall out of the direction.
  */
-export function Carousel({ children, label, className, hideControls }: CarouselProps) {
+export function Carousel({
+  children,
+  label,
+  className,
+  hideControls,
+  autoplay = false,
+  loop = true,
+  delay = 4000,
+}: CarouselProps) {
   const scrollerRef = useRef<HTMLDivElement>(null);
   const { t, locale } = useTranslations();
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   const sync = useCallback(() => {
     const el = scrollerRef.current;
@@ -56,14 +68,31 @@ export function Carousel({ children, label, className, hideControls }: CarouselP
     (direction: 1 | -1) => {
       const el = scrollerRef.current;
       if (!el) return;
-      // Advance by roughly one viewport of cards, less a card's overlap so
-      // the user keeps a visual anchor between pages.
-      const distance = Math.max(240, el.clientWidth * 0.8);
+      const distance = Math.max(260, el.clientWidth * 0.8);
       const sign = locale === "ar" ? -1 : 1;
+
+      if (loop && direction > 0 && atEnd) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+        return;
+      }
+
+      if (loop && direction < 0 && atStart) {
+        el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
+        return;
+      }
+
       el.scrollBy({ left: direction * distance * sign, behavior: "smooth" });
     },
-    [locale]
+    [atEnd, atStart, locale, loop]
   );
+
+  useEffect(() => {
+    if (!autoplay || isPaused) return;
+    const handle = window.setInterval(() => {
+      step(1);
+    }, delay);
+    return () => window.clearInterval(handle);
+  }, [autoplay, delay, isPaused, step]);
 
   const Prev = locale === "ar" ? ChevronRight : ChevronLeft;
   const Next = locale === "ar" ? ChevronLeft : ChevronRight;
@@ -73,6 +102,10 @@ export function Carousel({ children, label, className, hideControls }: CarouselP
       <div
         ref={scrollerRef}
         onScroll={sync}
+        onMouseEnter={() => setIsPaused(true)}
+        onMouseLeave={() => setIsPaused(false)}
+        onFocus={() => setIsPaused(true)}
+        onBlur={() => setIsPaused(false)}
         className="mz-scroller -mx-1 flex gap-5 overflow-x-auto px-1 pb-2"
         tabIndex={0}
         role="region"
@@ -83,10 +116,10 @@ export function Carousel({ children, label, className, hideControls }: CarouselP
 
       {!hideControls && (
         <>
-          <CarouselArrow side="start" onClick={() => step(-1)} disabled={atStart} label={t("common.previous")}>
+          <CarouselArrow side="start" onClick={() => step(-1)} disabled={loop ? false : atStart} label={t("common.previous")}>
             <Prev className="h-5 w-5" aria-hidden="true" />
           </CarouselArrow>
-          <CarouselArrow side="end" onClick={() => step(1)} disabled={atEnd} label={t("common.next")}>
+          <CarouselArrow side="end" onClick={() => step(1)} disabled={loop ? false : atEnd} label={t("common.next")}>
             <Next className="h-5 w-5" aria-hidden="true" />
           </CarouselArrow>
         </>

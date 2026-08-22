@@ -18,6 +18,17 @@ export const revalidate = 0;
    horizontal affordance is visible without a scroll hint (§49). */
 const CAROUSEL_ITEM = "mz-snap w-[min(19rem,78vw)] shrink-0";
 
+function expandShowcase<T>(items: T[], target: number): T[] {
+  if (items.length === 0) return [];
+  if (items.length >= target) return items.slice(0, target);
+
+  const expanded: T[] = [];
+  for (let i = 0; i < target; i += 1) {
+    expanded.push(items[i % items.length]);
+  }
+  return expanded;
+}
+
 export default async function HomePage() {
   const [{ live, upcoming, recentlyCompleted }, vipPlates, stats, { t, locale }] = await Promise.all([
     getHomeAuctions(),
@@ -27,6 +38,9 @@ export default async function HomePage() {
   ]);
 
   const featured = live[0] ?? upcoming[0] ?? null;
+  const vipShowcase = expandShowcase(vipPlates, 12);
+  const upcomingShowcase = expandShowcase(upcoming, 12);
+  const completedShowcase = expandShowcase(recentlyCompleted, 12);
 
   return (
     <>
@@ -68,10 +82,10 @@ export default async function HomePage() {
             subtitle={t("home.vipPlatesSubtitle")}
             href="/vip"
           />
-          {vipPlates.length > 0 ? (
-            <Carousel label={t("home.vipPlates")}>
-              {vipPlates.map((plate) => (
-                <VipPlateCard key={plate._id} plate={plate} href="/vip" className={CAROUSEL_ITEM} />
+          {vipShowcase.length > 0 ? (
+            <Carousel label={t("home.vipPlates")} autoplay loop delay={4500}>
+              {vipShowcase.map((plate, index) => (
+                <VipPlateCard key={`${plate._id}-${index}`} plate={plate} href="/vip" className={CAROUSEL_ITEM} />
               ))}
             </Carousel>
           ) : (
@@ -87,10 +101,10 @@ export default async function HomePage() {
             subtitle={t("home.upcomingAuctionsSubtitle")}
             href="/auctions?status=scheduled"
           />
-          {upcoming.length > 0 ? (
-            <Carousel label={t("home.upcomingAuctions")}>
-              {upcoming.map((auction) => (
-                <AuctionCard key={auction._id} auction={auction} className={CAROUSEL_ITEM} />
+          {upcomingShowcase.length > 0 ? (
+            <Carousel label={t("home.upcomingAuctions")} autoplay loop delay={5000}>
+              {upcomingShowcase.map((auction, index) => (
+                <AuctionCard key={`${auction._id}-${index}`} auction={auction} className={CAROUSEL_ITEM} />
               ))}
             </Carousel>
           ) : (
@@ -106,10 +120,10 @@ export default async function HomePage() {
             subtitle={t("home.completedResultsSubtitle")}
             href="/auctions?status=completed"
           />
-          {recentlyCompleted.length > 0 ? (
-            <Carousel label={t("home.completedResults")}>
-              {recentlyCompleted.map((auction) => (
-                <AuctionCard key={auction._id} auction={auction} className={CAROUSEL_ITEM} />
+          {completedShowcase.length > 0 ? (
+            <Carousel label={t("home.completedResults")} autoplay loop delay={4500}>
+              {completedShowcase.map((auction, index) => (
+                <AuctionCard key={`${auction._id}-${index}`} auction={auction} className={CAROUSEL_ITEM} />
               ))}
             </Carousel>
           ) : (
