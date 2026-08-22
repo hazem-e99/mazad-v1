@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { AuthShell } from "@/components/auth/AuthShell";
-import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
+import { useFormValidation } from "@/hooks/useFormValidation";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 export default function RegisterPage() {
@@ -17,24 +18,28 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { schemas, fieldProps, formError, validate, applyApiError, clearField } = useFormValidation(formRef);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+
+    const data = validate(schemas.registerSchema, { name, phone, password });
+    if (!data) return;
+
     setLoading(true);
     try {
       await apiFetch("/api/auth/register", {
         method: "POST",
-        body: JSON.stringify({ name, phone, password }),
+        body: JSON.stringify(data),
+        silentErrors: true,
       });
       push(t("auth.registerSuccess"), "success");
       router.push("/");
       router.refresh();
     } catch (err) {
-      const message = err instanceof ApiClientError ? err.message : t("common.error");
-      setError(message);
+      applyApiError(err);
     } finally {
       setLoading(false);
     }
@@ -56,13 +61,18 @@ export default function RegisterPage() {
         </>
       }
     >
-      <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+      <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
         <Input
           label={t("auth.fullName")}
           value={name}
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => {
+            setName(e.target.value);
+            clearField("name");
+          }}
           required
+          maxLength={100}
           autoComplete="name"
+          {...fieldProps("name")}
         />
         <Input
           label={t("auth.phone")}
@@ -71,20 +81,32 @@ export default function RegisterPage() {
           dir="ltr"
           placeholder="05xxxxxxxx"
           value={phone}
-          onChange={(e) => setPhone(e.target.value)}
+          onChange={(e) => {
+            setPhone(e.target.value);
+            clearField("phone");
+          }}
           required
           autoComplete="tel"
+          {...fieldProps("phone")}
         />
         <Input
           label={t("auth.password")}
           type="password"
           hint={t("auth.passwordHint")}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            clearField("password");
+          }}
           required
           autoComplete="new-password"
-          error={error ?? undefined}
+          {...fieldProps("password")}
         />
+        {formError && (
+          <p role="alert" className="text-sm font-medium text-(--color-danger)">
+            {formError}
+          </p>
+        )}
         <Button type="submit" variant="gold" size="lg" loading={loading} className="mt-1 w-full">
           {t("auth.register")}
         </Button>

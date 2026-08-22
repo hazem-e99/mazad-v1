@@ -5,7 +5,7 @@ import { Plate } from "@/models/Plate";
 import "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { auctionSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
@@ -40,6 +40,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await requirePermission("auction:create");
+    const { auctionSchema } = await getLocalizedSchemas();
     const body = auctionSchema.parse(await req.json());
     await connectDB();
 

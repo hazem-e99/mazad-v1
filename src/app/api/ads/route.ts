@@ -1,19 +1,11 @@
 import { NextRequest } from "next/server";
-import { z } from "zod";
 import { connectDB } from "@/lib/db";
 import { Advertisement } from "@/models/Advertisement";
 import { requireSession, getSession, hasPermission } from "@/lib/auth";
 import { jsonOk, handleApiError } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 import { Errors } from "@/lib/api";
-
-const createAdSchema = z.object({
-  title: z.string().trim().min(2).max(150),
-  description: z.string().trim().max(1000).optional(),
-  image: z.string().min(1, "الصورة مطلوبة"),
-  price: z.number().min(0).optional(),
-  contactPhone: z.string().trim().min(9).max(15),
-});
+import { getLocalizedSchemas } from "@/lib/validation-server";
 
 export async function GET(req: NextRequest) {
   try {
@@ -54,6 +46,7 @@ export async function POST(req: NextRequest) {
     const session = await requireSession();
     if (!rateLimit(`ad:${session.sub}`, 10, 60_000)) throw Errors.rateLimited();
 
+    const { createAdSchema } = await getLocalizedSchemas();
     const body = createAdSchema.parse(await req.json());
     await connectDB();
 

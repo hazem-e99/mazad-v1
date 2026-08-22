@@ -2,7 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
 import { hashPassword, setSessionCookie, effectivePermissions } from "@/lib/auth";
-import { registerSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 
@@ -11,6 +11,7 @@ export async function POST(req: NextRequest) {
     const ip = req.headers.get("x-forwarded-for") ?? "unknown";
     if (!rateLimit(`register:${ip}`, 5, 60_000)) throw Errors.rateLimited();
 
+    const { registerSchema } = await getLocalizedSchemas();
     const body = registerSchema.parse(await req.json());
     await connectDB();
 

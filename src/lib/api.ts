@@ -51,6 +51,21 @@ async function localize(code: string, fallback: string): Promise<string> {
   }
 }
 
+/**
+ * Collapses a ZodError into { fieldPath: firstMessage }. Only the first
+ * failure per field is kept — showing a user three cascading complaints
+ * about one input is noise, and the first is always the most specific
+ * reason the value was rejected.
+ */
+export function fieldErrorsFromZod(error: ZodError): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const issue of error.issues) {
+    const key = issue.path.length ? issue.path.join(".") : "_form";
+    if (!(key in out)) out[key] = issue.message;
+  }
+  return out;
+}
+
 export function jsonOk<T>(data: T, status = 200) {
   return NextResponse.json({ ok: true, data }, { status });
 }
@@ -61,8 +76,16 @@ export async function handleApiError(err: unknown) {
     return NextResponse.json({ ok: false, code: err.code, message }, { status: err.status });
   }
   if (err instanceof ZodError) {
-    const message = await localize("validation_error", "بيانات غير صالحة");
-    return NextResponse.json({ ok: false, code: "validation_error", message, issues: err.issues }, { status: 422 });
+    const fieldErrors = fieldErrorsFromZod(err);
+    // The top-level message is the first field's own reason rather than a
+    // bare "invalid data", so even a client that only reads `message`
+    // (or a toast) tells the user what actually went wrong.
+    const first = Object.values(fieldErrors)[0];
+    const message = first ?? (await localize("validation_error", "بيانات غير صالحة"));
+    return NextResponse.json(
+      { ok: false, code: "validation_error", message, fieldErrors, issues: err.issues },
+      { status: 422 }
+    );
   }
   const isProd = process.env.NODE_ENV === "production";
   console.error(err);

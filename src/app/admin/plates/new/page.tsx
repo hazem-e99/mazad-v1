@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { Input, Select, Checkbox } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { PlateLogoSelect } from "@/components/plate/PlateLogoSelect";
-import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { validateUploadFile } from "@/lib/fileValidation";
 import { usePlateLogos } from "@/hooks/usePlateLogos";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { PLATE_TYPES, plateTypeLabel } from "@/lib/constants";
@@ -29,7 +30,9 @@ export default function AdminNewPlatePage() {
   const [isVip, setIsVip] = useState(false);
   const [isFeatured, setIsFeatured] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { schemas, errorFor, fieldProps, formError, validate, applyApiError, setFieldError, clearField } =
+    useFormValidation(formRef);
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
@@ -40,7 +43,26 @@ export default function AdminNewPlatePage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+
+    const data = validate(schemas.plateSchema, {
+      type,
+      lettersAr,
+      lettersEn,
+      numbers,
+      logo: logoId,
+      isVip,
+      isFeatured,
+    });
+    if (!data) return;
+
+    // The image is optional here, but if one was chosen it must be usable.
+    const fileProblem = validateUploadFile(file, t, "image");
+    if (fileProblem) {
+      setFieldError("image", fileProblem);
+      push(fileProblem, "error");
+      return;
+    }
+
     setLoading(true);
     try {
       let imageUrl: string | null = null;
@@ -48,18 +70,23 @@ export default function AdminNewPlatePage() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("subdir", "plates");
-        const uploadData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: formData });
+        const uploadData = await apiFetch<{ url: string }>("/api/uploads", {
+          method: "POST",
+          body: formData,
+          silentErrors: true,
+        });
         imageUrl = uploadData.url;
       }
       await apiFetch("/api/plates", {
         method: "POST",
-        body: JSON.stringify({ type, lettersAr, lettersEn, numbers, image: imageUrl, logo: logoId, isVip, isFeatured }),
+        body: JSON.stringify({ ...data, image: imageUrl }),
+        silentErrors: true,
       });
       push(t("admin.plateCreated"), "success");
       router.push("/admin/plates");
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : t("admin.plateCreateFailed"));
+      applyApiError(err, t("admin.plateCreateFailed"));
     } finally {
       setLoading(false);
     }
@@ -88,30 +115,46 @@ export default function AdminNewPlatePage() {
               )}
               <input
                 id="plate-image-input"
+                name="image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const picked = e.target.files?.[0] ?? null;
+                  const problem = validateUploadFile(picked, t, "image");
+                  if (problem) {
+                    e.target.value = "";
+                    setFile(null);
+                    setFieldError("image", problem);
+                    push(problem, "error");
+                    return;
+                  }
+                  setFile(picked);
+                  clearField("image");
+                }}
                 className="sr-only"
               />
             </label>
+            {errorFor("image") && (
+              <p role="alert" className="text-xs font-medium text-(--color-danger)">
+                {errorFor("image")}
+              </p>
+            )}
           </div>
 
-          <form onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
+          <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-4" noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-(--color-text)">{t("pages.plateTypeLabel")}</span>
-                <select
-                  value={type}
-                  onChange={(e) => setType(e.target.value as PlateType)}
-                  className="h-10 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm"
-                >
-                  {PLATE_TYPES.map((plateType) => (
-                    <option key={plateType} value={plateType}>
-                      {plateTypeLabel(plateType, locale)}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <Select
+                label={t("pages.plateTypeLabel")}
+                value={type}
+                onChange={(e) => setType(e.target.value as PlateType)}
+                {...fieldProps("type")}
+              >
+                {PLATE_TYPES.map((plateType) => (
+                  <option key={plateType} value={plateType}>
+                    {plateTypeLabel(plateType, locale)}
+                  </option>
+                ))}
+              </Select>
               <PlateLogoSelect
                 label={t("pages.plateLogoLabel")}
                 value={logoId}
@@ -122,28 +165,63 @@ export default function AdminNewPlatePage() {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Input label={t("pages.lettersArLabel")} value={lettersAr} onChange={(e) => setLettersAr(e.target.value)} required />
-              <Input label={t("pages.lettersEnLabel")} value={lettersEn} onChange={(e) => setLettersEn(e.target.value)} required />
+              <Input
+                label={t("pages.lettersArLabel")}
+                value={lettersAr}
+                onChange={(e) => {
+                  setLettersAr(e.target.value);
+                  clearField("lettersAr");
+                }}
+                required
+                dir="rtl"
+                maxLength={10}
+                {...fieldProps("lettersAr")}
+              />
+              <Input
+                label={t("pages.lettersEnLabel")}
+                value={lettersEn}
+                onChange={(e) => {
+                  setLettersEn(e.target.value.toUpperCase());
+                  clearField("lettersEn");
+                }}
+                required
+                dir="ltr"
+                maxLength={10}
+                {...fieldProps("lettersEn")}
+              />
               <Input
                 label={t("pages.numbersLabel")}
                 value={numbers}
-                onChange={(e) => setNumbers(e.target.value.replace(/[^0-9]/g, ""))}
+                onChange={(e) => {
+                  setNumbers(e.target.value.replace(/[^0-9]/g, ""));
+                  clearField("numbers");
+                }}
+                inputMode="numeric"
+                dir="ltr"
                 maxLength={4}
                 required
-                error={error ?? undefined}
+                {...fieldProps("numbers")}
               />
             </div>
 
-            <div className="flex items-center gap-6">
-              <label className="flex items-center gap-2 text-sm text-(--color-text)">
-                <input type="checkbox" checked={isVip} onChange={(e) => setIsVip(e.target.checked)} />
-                {t("admin.plateVipCheckbox")}
-              </label>
-              <label className="flex items-center gap-2 text-sm text-(--color-text)">
-                <input type="checkbox" checked={isFeatured} onChange={(e) => setIsFeatured(e.target.checked)} />
-                {t("admin.plateFeaturedCheckbox")}
-              </label>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Checkbox
+                label={t("admin.plateVipCheckbox")}
+                checked={isVip}
+                onChange={(e) => setIsVip(e.target.checked)}
+              />
+              <Checkbox
+                label={t("admin.plateFeaturedCheckbox")}
+                checked={isFeatured}
+                onChange={(e) => setIsFeatured(e.target.checked)}
+              />
             </div>
+
+            {formError && (
+              <p role="alert" className="text-sm font-medium text-(--color-danger)">
+                {formError}
+              </p>
+            )}
 
             <Button type="submit" variant="gold" size="lg" loading={loading} className="mt-2">
               {t("admin.createPlateButton")}

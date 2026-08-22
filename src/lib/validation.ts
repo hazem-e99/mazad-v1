@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { MESSAGES, DEFAULT_LOCALE, resolveMessage, type Locale } from "@/lib/i18n";
 import {
   PLATE_TYPES,
   AUCTION_CATEGORIES,
@@ -10,146 +11,331 @@ import {
   MODERATION_STATUSES,
 } from "@/lib/constants";
 
-export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "معرّف غير صالح");
+/**
+ * One definition of every input rule, parameterised by a translator.
+ *
+ * The same factory is used by the API routes (with the request's locale)
+ * and by the forms (with the page's locale), so a field can never be
+ * accepted by the browser and rejected by the server — and the message a
+ * user reads is always in the language they are reading the page in.
+ */
+export type Translate = (key: string, params?: Record<string, string | number>) => string;
 
-export const phoneSchema = z
-  .string()
-  .trim()
-  .regex(/^05\d{8}$/, "رقم الجوال يجب أن يبدأ بـ 05 ويتكون من 10 أرقام");
+export function translatorFor(locale: Locale): Translate {
+  return (key, params) => resolveMessage(MESSAGES[locale], key, params);
+}
 
-export const registerSchema = z.object({
-  name: z.string().trim().min(2, "الاسم قصير جدًا").max(100),
-  phone: phoneSchema,
-  password: z.string().min(8, "كلمة المرور يجب ألا تقل عن 8 أحرف").max(100),
-});
+/** Longest plausible amount, to reject overflow/typo values like 1e21. */
+const MAX_AMOUNT = 1_000_000_000;
 
-export const loginSchema = z.object({
-  phone: phoneSchema,
-  password: z.string().min(1, "كلمة المرور مطلوبة"),
-});
+/** Minimum auction duration; anything shorter is a mis-entered date. */
+export const MIN_AUCTION_DURATION_MS = 60_000;
 
-export const plateSchema = z.object({
-  type: z.enum(PLATE_TYPES),
-  lettersAr: z.string().trim().min(1).max(10),
-  lettersEn: z.string().trim().min(1).max(10),
-  numbers: z.string().trim().regex(/^\d{1,4}$/, "الأرقام يجب أن تكون من 1 إلى 4 خانات"),
-  image: z.string().min(1).nullable().optional(),
-  // Admin-managed logo reference — a real ObjectId string, or null/absent
-  // for "no logo". Existence + isActive are checked in the route handler
-  // (DB-dependent, not expressible in a pure schema).
-  logo: objectIdSchema.nullable().optional(),
-  isVip: z.boolean().default(false),
-  isFeatured: z.boolean().default(false),
-  notes: z.string().trim().max(500).optional(),
-});
+export function buildSchemas(t: Translate) {
+  const v = (key: string, params?: Record<string, string | number>) => t("validation." + key, params);
 
-export const plateCategoryCreateSchema = z.object({
-  nameAr: z.string().trim().min(1, "الاسم بالعربي مطلوب").max(100),
-  nameEn: z.string().trim().min(1, "الاسم بالإنجليزي مطلوب").max(100),
-  isActive: z.boolean().default(true),
-  sortOrder: z.number().int().default(0),
-});
+  /** A number field that reports a readable message for NaN/undefined
+   * instead of Zod's "expected number, received NaN". */
+  const amount = (messageKey: string, opts: { min?: number; allowZero?: boolean } = {}) =>
+    z
+      .number({ error: () => v(messageKey) })
+      .refine((n) => Number.isFinite(n), { message: v("numberInvalid") })
+      .refine((n) => (opts.allowZero ? n >= 0 : n > 0), { message: v(messageKey) })
+      .refine((n) => (opts.min == null ? true : n >= opts.min), { message: v(messageKey) })
+      .refine((n) => n <= MAX_AMOUNT, { message: v("priceTooLarge") });
 
-export const plateCategoryUpdateSchema = z.object({
-  nameAr: z.string().trim().min(1).max(100).optional(),
-  nameEn: z.string().trim().min(1).max(100).optional(),
-  isActive: z.boolean().optional(),
-  sortOrder: z.number().int().optional(),
-});
+  const objectId = z.string().regex(/^[0-9a-fA-F]{24}$/, v("invalidId"));
 
-// Saudi numbers only — matches phoneSchema's shape without requiring the
-// caller to also be a registerable account phone (a listing's contact
-// number may differ from the submitting account's own phone).
-const contactPhoneSchema = z
-  .string()
-  .trim()
-  .regex(/^(05\d{8}|\+9665\d{8}|9665\d{8})$/, "رقم جوال سعودي غير صالح");
+  /** Account phone: Saudi mobile in local 05XXXXXXXX form. */
+  const phone = z
+    .string({ error: () => v("phoneRequired") })
+    .trim()
+    .min(1, v("phoneRequired"))
+    .regex(/^05\d{8}$/, v("phoneInvalid"));
 
-const socialHandleSchema = z.string().trim().max(60).optional();
+  /** A listing's contact number may differ from the account's own, and is
+   * commonly pasted in +966/966 form, so all three shapes are accepted. */
+  const contactPhone = z
+    .string({ error: () => v("phoneRequired") })
+    .trim()
+    .min(1, v("phoneRequired"))
+    .regex(/^(05\d{8}|\+9665\d{8}|9665\d{8})$/, v("contactPhoneInvalid"));
+
+  const email = z.string().trim().email(v("emailInvalid"));
+  const optionalEmail = z.union([email, z.literal("")]).optional();
+
+  const socialHandle = z.string().trim().max(60, v("handleTooLong")).optional();
+
+  // Arabic block plus the space/separator characters a plate legitimately
+  // contains; anything Latin in this field is a wrong-keyboard mistake.
+  const lettersAr = z
+    .string({ error: () => v("lettersArRequired") })
+    .trim()
+    .min(1, v("lettersArRequired"))
+    .max(10, v("lettersTooLong"))
+    .regex(/^[؀-ۿ\s]+$/, v("lettersArInvalid"));
+
+  const lettersEn = z
+    .string({ error: () => v("lettersEnRequired") })
+    .trim()
+    .min(1, v("lettersEnRequired"))
+    .max(10, v("lettersTooLong"))
+    .regex(/^[A-Za-z\s]+$/, v("lettersEnInvalid"));
+
+  const plateNumbers = z
+    .string({ error: () => v("numbersRequired") })
+    .trim()
+    .min(1, v("numbersRequired"))
+    .regex(/^\d{1,4}$/, v("numbersInvalid"));
+
+  const title = z
+    .string({ error: () => v("titleRequired") })
+    .trim()
+    .min(1, v("titleRequired"))
+    .min(2, v("titleTooShort"))
+    .max(150, v("titleTooLong"));
+
+  const description = z.string().trim().max(2000, v("descriptionTooLong")).optional();
+
+  const sortOrder = z.number().int(v("sortOrderInteger"));
+
+  /** datetime-local / ISO strings. z.coerce.date() turns an unparseable
+   * value into an Invalid Date whose default message is unreadable. */
+  const dateField = z
+    .union([z.string(), z.date()])
+    .transform((value) => (value instanceof Date ? value : new Date(value)))
+    .refine((d) => !Number.isNaN(d.getTime()), { message: v("dateInvalid") });
+
+  const objectIdSchema = objectId;
+  const phoneSchema = phone;
+
+  const registerSchema = z.object({
+    name: z
+      .string({ error: () => v("nameRequired") })
+      .trim()
+      .min(1, v("nameRequired"))
+      .min(2, v("nameTooShort"))
+      .max(100, v("nameTooLong")),
+    phone: phoneSchema,
+    password: z
+      .string({ error: () => v("passwordRequired") })
+      .min(8, v("passwordTooShort"))
+      .max(100, v("passwordTooLong")),
+  });
+
+  const loginSchema = z.object({
+    phone: phoneSchema,
+    password: z.string({ error: () => v("passwordRequired") }).min(1, v("passwordRequired")),
+  });
+
+  const plateSchema = z.object({
+    type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
+    lettersAr,
+    lettersEn,
+    numbers: plateNumbers,
+    image: z.string().min(1, v("imageRequired")).nullable().optional(),
+    // Admin-managed logo reference — a real ObjectId string, or null/absent
+    // for "no logo". Existence + isActive are checked in the route handler
+    // (DB-dependent, not expressible in a pure schema).
+    logo: objectId.nullable().optional(),
+    isVip: z.boolean().default(false),
+    isFeatured: z.boolean().default(false),
+    notes: z.string().trim().max(500, v("tooLong", { max: 500 })).optional(),
+  });
+
+  const plateCategoryCreateSchema = z.object({
+    nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")),
+    nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")),
+    isActive: z.boolean().default(true),
+    sortOrder: sortOrder.default(0),
+  });
+
+  const plateCategoryUpdateSchema = z.object({
+    nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")).optional(),
+    nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")).optional(),
+    isActive: z.boolean().optional(),
+    sortOrder: sortOrder.optional(),
+  });
+
+  /**
+   * The public "أضف لوحتك" submission flow — a real marketplace listing or
+   * auction request, not the bare admin/legacy plate-identity creation
+   * (see plateSchema above, still used by /admin/plates/new).
+   */
+  const listingFieldsSchema = z.object({
+    type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
+    lettersAr,
+    lettersEn,
+    numbers: plateNumbers,
+    logo: objectId.nullable().optional(),
+    classification: z.enum(PLATE_CLASSIFICATIONS, { error: () => v("selectRequired") }).nullable().optional(),
+    usageType: z.enum(USAGE_TYPES, { error: () => v("selectRequired") }).nullable().optional(),
+    shape: z.enum(PLATE_SHAPES, { error: () => v("selectRequired") }).nullable().optional(),
+    size: z.enum(PLATE_SIZES, { error: () => v("selectRequired") }).nullable().optional(),
+    category: objectId.nullable().optional(),
+    title,
+    description,
+    price: amount("pricePositive").nullable().optional(),
+    image: z.string().min(1, v("plateImageRequired")),
+    ownershipDocument: z.string().min(1).optional(),
+    contactPhone,
+    contactEmail: optionalEmail,
+    instagram: socialHandle,
+    tiktok: socialHandle,
+    snapchat: socialHandle,
+    submissionType: z.enum(SUBMISSION_TYPES, { error: () => v("submissionTypeRequired") }),
+  });
+
+  const listingSubmitSchema = listingFieldsSchema.refine(
+    (data) => data.submissionType !== "marketplace" || (data.price != null && data.price > 0),
+    { message: v("priceRequired"), path: ["price"] }
+  );
+
+  const listingUpdateSchema = listingFieldsSchema.partial();
+
+  const moderationDecisionSchema = z
+    .object({
+      status: z.enum(MODERATION_STATUSES, { error: () => v("selectRequired") }),
+      rejectionReason: z.string().trim().max(500, v("tooLong", { max: 500 })).optional(),
+    })
+    .refine((data) => data.status !== "rejected" || Boolean(data.rejectionReason), {
+      message: v("rejectionReasonRequired"),
+      path: ["rejectionReason"],
+    });
+
+  const plateLogoCreateSchema = z.object({
+    nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")),
+    nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")),
+    image: z.string().min(1, v("logoImageRequired")),
+    isActive: z.boolean().default(true),
+    sortOrder: sortOrder.default(0),
+  });
+
+  const plateLogoUpdateSchema = z.object({
+    nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")).optional(),
+    nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")).optional(),
+    image: z.string().min(1, v("logoImageRequired")).optional(),
+    isActive: z.boolean().optional(),
+    sortOrder: sortOrder.optional(),
+  });
+
+  const auctionSchema = z
+    .object({
+      plate: z.string({ error: () => v("plateRequired") }).min(1, v("plateRequired")),
+      category: z.enum(AUCTION_CATEGORIES, { error: () => v("selectRequired") }).default("regular"),
+      startingPrice: amount("startingPriceNotNegative", { allowZero: true }),
+      minIncrement: amount("minIncrementMin", { min: 1 }),
+      startAt: dateField,
+      endAt: dateField,
+      directPurchaseEnabled: z.boolean().default(false),
+      directPurchasePrice: amount("pricePositive").nullable().optional(),
+      backgroundImage: z.string().nullable().optional(),
+    })
+    .refine((data) => data.endAt > data.startAt, {
+      message: v("endBeforeStart"),
+      path: ["endAt"],
+    })
+    .refine((data) => data.endAt.getTime() - data.startAt.getTime() >= MIN_AUCTION_DURATION_MS, {
+      message: v("durationTooShort"),
+      path: ["endAt"],
+    })
+    .refine((data) => data.endAt.getTime() > Date.now(), {
+      message: v("endInPast"),
+      path: ["endAt"],
+    })
+    .refine((data) => !data.directPurchaseEnabled || Boolean(data.directPurchasePrice), {
+      message: v("directPurchaseRequired"),
+      path: ["directPurchasePrice"],
+    })
+    .refine(
+      (data) =>
+        !data.directPurchaseEnabled ||
+        data.directPurchasePrice == null ||
+        data.directPurchasePrice > data.startingPrice,
+      { message: v("directPurchaseAboveStart"), path: ["directPurchasePrice"] }
+    );
+
+  const bidSchema = z.object({
+    amount: amount("bidPositive"),
+  });
+
+  const createAdSchema = z.object({
+    title,
+    description: z.string().trim().max(1000, v("tooLong", { max: 1000 })).optional(),
+    image: z.string().min(1, v("imageRequired")),
+    price: amount("pricePositive").optional(),
+    contactPhone,
+  });
+
+  const chatMessageSchema = z.object({
+    text: z
+      .string({ error: () => v("messageRequired") })
+      .trim()
+      .min(1, v("messageRequired"))
+      .max(500, v("messageTooLong")),
+  });
+
+  return {
+    objectIdSchema,
+    phoneSchema,
+    contactPhoneSchema: contactPhone,
+    emailSchema: email,
+    registerSchema,
+    loginSchema,
+    plateSchema,
+    plateCategoryCreateSchema,
+    plateCategoryUpdateSchema,
+    listingFieldsSchema,
+    listingSubmitSchema,
+    listingUpdateSchema,
+    moderationDecisionSchema,
+    plateLogoCreateSchema,
+    plateLogoUpdateSchema,
+    auctionSchema,
+    bidSchema,
+    createAdSchema,
+    chatMessageSchema,
+  };
+}
+
+export type Schemas = ReturnType<typeof buildSchemas>;
 
 /**
- * The public "أضف لوحتك" submission flow — a real marketplace listing or
- * auction request, not the bare admin/legacy plate-identity creation
- * (see plateSchema below, still used by /admin/plates/new).
+ * Default (Arabic) instances. Every existing import site keeps working
+ * unchanged; routes that want the caller's own language use
+ * getLocalizedSchemas() instead.
  */
-export const listingFieldsSchema = z.object({
-  type: z.enum(PLATE_TYPES),
-  lettersAr: z.string().trim().min(1).max(10),
-  lettersEn: z.string().trim().min(1).max(10),
-  numbers: z.string().trim().regex(/^\d{1,4}$/, "الأرقام يجب أن تكون من 1 إلى 4 خانات"),
-  logo: objectIdSchema.nullable().optional(),
-  classification: z.enum(PLATE_CLASSIFICATIONS).nullable().optional(),
-  usageType: z.enum(USAGE_TYPES).nullable().optional(),
-  shape: z.enum(PLATE_SHAPES).nullable().optional(),
-  size: z.enum(PLATE_SIZES).nullable().optional(),
-  category: objectIdSchema.nullable().optional(),
-  title: z.string().trim().min(2, "العنوان قصير جدًا").max(150),
-  description: z.string().trim().max(2000).optional(),
-  price: z.number().min(0).nullable().optional(),
-  image: z.string().min(1, "صورة اللوحة الفعلية مطلوبة"),
-  ownershipDocument: z.string().min(1).optional(),
-  contactPhone: contactPhoneSchema,
-  contactEmail: z.string().trim().email("بريد إلكتروني غير صالح").optional().or(z.literal("")),
-  instagram: socialHandleSchema,
-  tiktok: socialHandleSchema,
-  snapchat: socialHandleSchema,
-  submissionType: z.enum(SUBMISSION_TYPES),
-});
+const defaultSchemas = buildSchemas(translatorFor(DEFAULT_LOCALE));
 
-export const listingSubmitSchema = listingFieldsSchema.refine((data) => data.submissionType !== "marketplace" || (data.price != null && data.price > 0), {
-  message: "السعر المطلوب إلزامي عند عرض اللوحة في السوق",
-  path: ["price"],
-});
+export const {
+  objectIdSchema,
+  phoneSchema,
+  contactPhoneSchema,
+  emailSchema,
+  registerSchema,
+  loginSchema,
+  plateSchema,
+  plateCategoryCreateSchema,
+  plateCategoryUpdateSchema,
+  listingFieldsSchema,
+  listingSubmitSchema,
+  listingUpdateSchema,
+  moderationDecisionSchema,
+  plateLogoCreateSchema,
+  plateLogoUpdateSchema,
+  auctionSchema,
+  bidSchema,
+  createAdSchema,
+  chatMessageSchema,
+} = defaultSchemas;
 
-export const listingUpdateSchema = listingFieldsSchema.partial();
-
-export const moderationDecisionSchema = z
-  .object({
-    status: z.enum(MODERATION_STATUSES),
-    rejectionReason: z.string().trim().max(500).optional(),
-  })
-  .refine((data) => data.status !== "rejected" || Boolean(data.rejectionReason), {
-    message: "سبب الرفض مطلوب",
-    path: ["rejectionReason"],
-  });
-
-export const plateLogoCreateSchema = z.object({
-  nameAr: z.string().trim().min(1, "الاسم بالعربي مطلوب").max(100),
-  nameEn: z.string().trim().min(1, "الاسم بالإنجليزي مطلوب").max(100),
-  image: z.string().min(1, "صورة الشعار مطلوبة"),
-  isActive: z.boolean().default(true),
-  sortOrder: z.number().int().default(0),
-});
-
-export const plateLogoUpdateSchema = z.object({
-  nameAr: z.string().trim().min(1).max(100).optional(),
-  nameEn: z.string().trim().min(1).max(100).optional(),
-  image: z.string().min(1).optional(),
-  isActive: z.boolean().optional(),
-  sortOrder: z.number().int().optional(),
-});
-
-export const auctionSchema = z
-  .object({
-    plate: z.string().min(1, "اللوحة مطلوبة"),
-    category: z.enum(AUCTION_CATEGORIES).default("regular"),
-    startingPrice: z.number().min(0),
-    minIncrement: z.number().min(1),
-    startAt: z.coerce.date(),
-    endAt: z.coerce.date(),
-    directPurchaseEnabled: z.boolean().default(false),
-    directPurchasePrice: z.number().min(0).nullable().optional(),
-    backgroundImage: z.string().nullable().optional(),
-  })
-  .refine((data) => data.endAt > data.startAt, {
-    message: "وقت الانتهاء يجب أن يكون بعد وقت البداية",
-    path: ["endAt"],
-  })
-  .refine((data) => !data.directPurchaseEnabled || Boolean(data.directPurchasePrice), {
-    message: "سعر الشراء المباشر مطلوب عند تفعيله",
-    path: ["directPurchasePrice"],
-  });
-
-export const bidSchema = z.object({
-  amount: z.number().positive("قيمة المزايدة يجب أن تكون أكبر من صفر"),
-});
+/**
+ * Schemas for an explicit locale. Server code reaches these through
+ * getLocalizedSchemas() in validation-server.ts, which resolves the
+ * request's locale first — this module stays free of next/headers so it
+ * can also be imported by client components.
+ */
+export function schemasForLocale(locale: Locale): Schemas {
+  if (locale === DEFAULT_LOCALE) return defaultSchemas;
+  return buildSchemas(translatorFor(locale));
+}

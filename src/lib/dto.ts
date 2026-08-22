@@ -336,8 +336,11 @@ export interface LeanBid {
 }
 
 export function toBidDTO(bid: LeanBid): BidDTO {
-  const user = toUserRefDTO(bid.user);
-  if (!user) throw new Error("toBidDTO: bid.user must be populated before mapping to a DTO");
+  // populate() returns null when the referenced User no longer exists
+  // (deleted account, or a bid imported before that user). The bid itself
+  // is still valid history, so it degrades to an anonymous entry rather
+  // than throwing and taking the whole auction page down with it.
+  const user = toUserRefDTO(bid.user) ?? { _id: "", name: "" };
 
   return {
     _id: idToString(bid._id),
@@ -458,8 +461,9 @@ export interface LeanChatMessage {
 }
 
 export function toChatMessageDTO(message: LeanChatMessage): ChatMessageDTO {
-  const user = toUserRefDTO(message.user);
-  if (!user) throw new Error("toChatMessageDTO: message.user must be populated before mapping to a DTO");
+  // Same reasoning as toBidDTO: a message whose author was deleted still
+  // renders, attributed to nobody, instead of breaking the chat page.
+  const user = toUserRefDTO(message.user) ?? { _id: "", name: "" };
 
   return {
     _id: idToString(message._id),

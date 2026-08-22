@@ -4,7 +4,7 @@ import { PlateCategory } from "@/models/PlateCategory";
 import { Plate } from "@/models/Plate";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { plateCategoryUpdateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 
 interface Params {
@@ -15,6 +15,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const session = await requirePermission("category:manage");
+    const { plateCategoryUpdateSchema } = await getLocalizedSchemas();
     const body = plateCategoryUpdateSchema.parse(await req.json());
     await connectDB();
 

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { acquireSocket, releaseSocket, createEventDeduper } from "@/lib/realtimeClient";
-import type { AuctionSocketEvent } from "@/lib/socket";
+import type { AuctionSocketEvent } from "@/lib/realtimeEvents";
 
-export type { AuctionSocketEvent, AuctionSnapshot } from "@/lib/socket";
+export type { AuctionSocketEvent, AuctionSnapshot } from "@/lib/realtimeEvents";
 
 /**
  * Joins the given auction's realtime room and invokes onEvent for every
