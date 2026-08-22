@@ -50,6 +50,19 @@ export default async function AdminListingsPage({ searchParams }: Props) {
   const listings = toPlateDTOList(docs);
   const pages = Math.max(1, Math.ceil(total / limit));
 
+  console.log("[admin/listings] response", {
+    filter,
+    total,
+    page,
+    pages,
+    items: listings.map((listing) => ({
+      id: listing._id,
+      title: listing.title,
+      submissionType: listing.submissionType,
+      moderationStatus: listing.moderationStatus,
+    })),
+  });
+
   return (
     <div className="flex flex-col gap-6">
       <div>

@@ -31,7 +31,6 @@ export default async function MyListingsPage() {
   const docs = await Plate.find({ ownerUser: session.sub, submissionType: { $ne: null } })
     .sort({ createdAt: -1 })
     .populate("logo")
-    .populate("category")
     .lean<LeanPlate[]>();
   const listings = toPlateDTOList(docs);
 

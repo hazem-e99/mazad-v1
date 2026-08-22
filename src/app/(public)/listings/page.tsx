@@ -51,7 +51,6 @@ export default async function ListingsPage({ searchParams }: Props) {
       .skip((page - 1) * limit)
       .limit(limit)
       .populate("logo")
-      .populate("category")
       .lean<LeanPlate[]>(),
     Plate.countDocuments(filter),
     PlateCategory.find({ isActive: true }).sort({ sortOrder: 1 }).lean<LeanPlateCategory[]>(),

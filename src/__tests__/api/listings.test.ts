@@ -101,13 +101,13 @@ describe("Listing submission validation", () => {
     expect(status).toBe(422);
   });
 
-  it("accepts a valid marketplace submission and defaults it to pending", async () => {
+  it("accepts a valid marketplace submission and publishes it immediately", async () => {
     const { status, body } = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5002" })) });
     expect(status).toBe(201);
     createdPlateIds.push(body.data._id);
 
     const doc = await Plate.findById(body.data._id);
-    expect(doc?.moderationStatus).toBe("pending");
+    expect(doc?.moderationStatus).toBe("approved");
     expect(doc?.submissionType).toBe("marketplace");
     expect(String(doc?.ownerUser)).toBe(ownerUserId);
   });
@@ -136,7 +136,11 @@ describe("Listing submission validation", () => {
 
 describe("Public visibility", () => {
   it("hides a pending marketplace listing from the public listings feed and detail route", async () => {
-    const created = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5010", title: "PENDING-VISIBILITY-TEST" })) });
+    const created = await api("/api/listings", {
+      method: "POST",
+      cookie: ownerCookie,
+      body: JSON.stringify(listingPayload({ numbers: "5010", title: "PENDING-VISIBILITY-TEST", submissionType: "auction_request", price: undefined })),
+    });
     const id = created.body.data._id;
     createdPlateIds.push(id);
 

@@ -109,6 +109,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { ownershipDocument, contactEmail, ...rest } = body;
+    const moderationStatus = body.submissionType === "marketplace" ? "approved" : "pending";
 
     const plate = await Plate.create({
       ...rest,
@@ -116,7 +117,7 @@ export async function POST(req: NextRequest) {
       ownershipDocument: ownershipDocument ?? null,
       ownerUser: session.sub,
       createdBy: session.sub,
-      moderationStatus: "pending",
+      moderationStatus,
       isVisible: true,
     });
 
