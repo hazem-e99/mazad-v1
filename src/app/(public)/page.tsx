@@ -1,7 +1,8 @@
-import { Gavel, Crown, Search } from "lucide-react";
-import { getHomeAuctions, getVipPlates } from "@/lib/queries";
+import { Gavel, Crown, Search, Store } from "lucide-react";
+import { getHomeAuctions, getVipPlates, getMarketplaceListings } from "@/lib/queries";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { AuctionCard } from "@/components/auction/AuctionCard";
+import { ListingCard } from "@/components/plate/ListingCard";
 import { PlateRenderer } from "@/components/plate/PlateRenderer";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
@@ -13,9 +14,10 @@ export const revalidate = 0;
 const CARD_GRID = "grid grid-cols-[repeat(auto-fit,minmax(260px,300px))] justify-center gap-4";
 
 export default async function HomePage() {
-  const [{ live, upcoming, recentlyCompleted }, vipPlates, { t, locale }] = await Promise.all([
+  const [{ live, upcoming, recentlyCompleted }, vipPlates, marketplaceListings, { t, locale }] = await Promise.all([
     getHomeAuctions(),
     getVipPlates(8),
+    getMarketplaceListings(6),
     getServerTranslator(),
   ]);
 
@@ -38,6 +40,10 @@ export default async function HomePage() {
             <LinkButton href="/vip" variant="secondary" size="lg">
               <Crown className="h-4.5 w-4.5" aria-hidden="true" />
               {t("home.vipPlates")}
+            </LinkButton>
+            <LinkButton href="/plates/new" variant="outline" size="lg">
+              <Store className="h-4.5 w-4.5" aria-hidden="true" />
+              {t("home.listYourPlate")}
             </LinkButton>
           </div>
           {(live.length > 0 || vipPlates.length > 0) && (
@@ -162,6 +168,17 @@ export default async function HomePage() {
           <EmptyState icon={Crown} title={t("home.noVipPlates")} />
         )}
       </section>
+
+      {marketplaceListings.length > 0 && (
+        <section>
+          <SectionHeader title={t("home.marketplaceListings")} subtitle={t("home.marketplaceListingsSubtitle")} href="/listings" />
+          <div className={CARD_GRID}>
+            {marketplaceListings.map((listing) => (
+              <ListingCard key={listing._id} listing={listing} />
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <SectionHeader title={t("home.upcomingAuctions")} subtitle={t("home.upcomingAuctionsSubtitle")} href="/auctions?status=scheduled" />

@@ -14,6 +14,8 @@ import {
   Users,
   Megaphone,
   Image as ImageIcon,
+  ClipboardCheck,
+  FolderTree,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -53,9 +55,11 @@ export function useAdminNavGroups(): AdminNavGroup[] {
     {
       title: t("admin.navPlatesGroup"),
       items: [
+        { href: "/admin/listings", label: t("admin.navListingsModeration"), icon: ClipboardCheck },
         { href: "/admin/plates", label: t("admin.navPlatesList"), icon: IdCard },
         { href: "/admin/vip", label: t("admin.navVip"), icon: Crown },
         { href: "/admin/plate-logos", label: t("admin.navPlateLogos"), icon: ImageIcon },
+        { href: "/admin/plate-categories", label: t("admin.navPlateCategories"), icon: FolderTree },
       ],
     },
     {

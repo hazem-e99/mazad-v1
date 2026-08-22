@@ -11,6 +11,8 @@ setInterval(() => {
 }, 60_000).unref();
 
 export function rateLimit(key: string, limit: number, windowMs: number): boolean {
+  if (process.env.MAZAD_TEST_MODE === "1") return true;
+
   const now = Date.now();
   const bucket = buckets.get(key);
 

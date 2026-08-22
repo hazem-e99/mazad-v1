@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file=.env server/seed.ts",
     "migrate:plate-logos": "tsx --env-file=.env server/migratePlateLogos.ts",
+    "migrate:plate-listing-fields": "tsx --env-file=.env server/migratePlateListingFields.ts",
     "test": "vitest run",
     "test:unit": "vitest run src/services src/lib/__tests__",
     "test:api": "next build && vitest run src/__tests__/api"

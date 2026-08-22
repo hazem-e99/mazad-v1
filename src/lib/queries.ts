@@ -3,7 +3,19 @@ import { Auction } from "@/models/Auction";
 import { Plate } from "@/models/Plate";
 import "@/models/User";
 import "@/models/PlateLogo";
-import { toAuctionDTOList, toPlateDTO, type LeanAuction, type LeanPlate } from "@/lib/dto";
+import "@/models/PlateCategory";
+import { toAuctionDTOList, toPlateDTO, toPlateDTOList, type LeanAuction, type LeanPlate } from "@/lib/dto";
+
+export async function getMarketplaceListings(limit = 8) {
+  await connectDB();
+  const plates = await Plate.find({ submissionType: "marketplace", moderationStatus: "approved", isVisible: true })
+    .sort({ isFeatured: -1, createdAt: -1 })
+    .limit(limit)
+    .populate("logo")
+    .populate("category")
+    .lean<LeanPlate[]>();
+  return toPlateDTOList(plates);
+}
 
 export async function getHomeAuctions() {
   await connectDB();

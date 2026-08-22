@@ -32,7 +32,13 @@ export default function AdminNewAuctionPage() {
   const push = useToastStore((s) => s.push);
   const { t, locale } = useTranslations();
   const [plates, setPlates] = useState<PlateOption[]>([]);
-  const [plateId, setPlateId] = useState("");
+  // Prefills from the admin moderation screen's "Create Auction" action
+  // (?plateId=...) — reused directly, never duplicated. A lazy initializer
+  // reads it once at mount rather than setState-in-effect; guarded for SSR
+  // since this "use client" page still renders server-side first.
+  const [plateId, setPlateId] = useState(() =>
+    typeof window === "undefined" ? "" : new URLSearchParams(window.location.search).get("plateId") ?? ""
+  );
   const [category, setCategory] = useState<AuctionCategory>("regular");
   const [startingPrice, setStartingPrice] = useState("1000");
   const [minIncrement, setMinIncrement] = useState("50");

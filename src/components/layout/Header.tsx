@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { Gavel, Crown, Sparkles, Megaphone, MessageCircle, Plus, Menu, X } from "lucide-react";
+import { Gavel, Crown, Sparkles, Megaphone, MessageCircle, Plus, Menu, X, Store } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { LinkButton } from "@/components/ui/Button";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
@@ -16,6 +16,7 @@ export function Header() {
 
   const navItems = [
     { href: "/auctions", label: t("nav.auctions"), icon: Gavel },
+    { href: "/listings", label: t("nav.marketplace"), icon: Store },
     { href: "/auctions/exclusive", label: t("nav.exclusive"), icon: Sparkles },
     { href: "/vip", label: t("nav.vip"), icon: Crown },
     { href: "/ads", label: t("nav.ads"), icon: Megaphone },

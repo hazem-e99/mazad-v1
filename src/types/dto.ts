@@ -1,4 +1,16 @@
-import type { AuctionCategory, AuctionStatus, PlateType, UserRole, Permission } from "@/lib/constants";
+import type {
+  AuctionCategory,
+  AuctionStatus,
+  PlateType,
+  UserRole,
+  Permission,
+  PlateClassification,
+  UsageType,
+  PlateShape,
+  PlateSize,
+  SubmissionType,
+  ModerationStatus,
+} from "@/lib/constants";
 
 /**
  * Plain-object DTOs safe to pass from a Server Component into a "use
@@ -40,6 +52,16 @@ export interface PlateLogoDTO {
   updatedAt: string;
 }
 
+export interface PlateCategoryDTO {
+  _id: string;
+  nameAr: string;
+  nameEn: string;
+  isActive: boolean;
+  sortOrder: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface PlateDTO {
   _id: string;
   type: PlateType;
@@ -53,8 +75,33 @@ export interface PlateDTO {
   ownerUser: string | null;
   createdBy: string;
   notes: string | null;
+  classification: PlateClassification | null;
+  usageType: UsageType | null;
+  shape: PlateShape | null;
+  size: PlateSize | null;
+  category: PlateCategoryDTO | null;
+  title: string | null;
+  description: string | null;
+  price: number | null;
+  image: string | null;
+  contactPhone: string | null;
+  contactEmail: string | null;
+  instagram: string | null;
+  tiktok: string | null;
+  snapchat: string | null;
+  submissionType: SubmissionType | null;
+  moderationStatus: ModerationStatus | null;
+  rejectionReason: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+/** Adds ownership-document *presence* (never the raw file path) — only for
+ * the plate's owner or staff with `ownership_document:view`. Fetch the
+ * actual file via the protected /api/plates/[id]/ownership-document route,
+ * never from this DTO. */
+export interface PlateListingDTO extends PlateDTO {
+  hasOwnershipDocument: boolean;
 }
 
 export interface AuctionDTO {

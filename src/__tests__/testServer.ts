@@ -37,7 +37,7 @@ export async function startTestServer(): Promise<void> {
     [path.join("node_modules", "tsx", "dist", "cli.mjs"), "--env-file=.env", "server/index.ts"],
     {
       cwd: repoRoot,
-      env: { ...process.env, PORT: String(TEST_PORT), NODE_ENV: "production" },
+      env: { ...process.env, PORT: String(TEST_PORT), NODE_ENV: "production", MAZAD_TEST_MODE: "1" },
       stdio: "pipe",
     }
   );

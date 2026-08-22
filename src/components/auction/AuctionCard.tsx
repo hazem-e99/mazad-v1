@@ -90,17 +90,26 @@ export function AuctionCard({ auction }: { auction: AuctionSummary }) {
               {label}
             </Badge>
           </div>
-          <div className="flex items-center justify-center py-2">
-            <PlateRenderer
-              type={auction.plate.type}
-              lettersAr={auction.plate.lettersAr}
-              lettersEn={auction.plate.lettersEn}
-              numbers={auction.plate.numbers}
-              logo={auction.plate.logo}
-              size="md"
-              locale={locale}
-              className="transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
-            />
+          <div className="flex aspect-[4/3] items-center justify-center overflow-hidden rounded-(--radius-md) bg-(--color-bg)">
+            {auction.plate.image ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={auction.plate.image}
+                alt={auction.plate.title ?? `${auction.plate.lettersAr} ${auction.plate.numbers}`}
+                className="h-full w-full object-cover transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
+              />
+            ) : (
+              <PlateRenderer
+                type={auction.plate.type}
+                lettersAr={auction.plate.lettersAr}
+                lettersEn={auction.plate.lettersEn}
+                numbers={auction.plate.numbers}
+                logo={auction.plate.logo}
+                size="md"
+                locale={locale}
+                className="transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
+              />
+            )}
           </div>
         </div>
 
