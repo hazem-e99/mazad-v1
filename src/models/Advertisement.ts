@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const advertisementSchema = new Schema(
   {
@@ -18,5 +19,4 @@ const advertisementSchema = new Schema(
 advertisementSchema.index({ isActive: 1, createdAt: -1 });
 
 export type AdvertisementDoc = InferSchemaType<typeof advertisementSchema>;
-export const Advertisement: Model<AdvertisementDoc> =
-  models.Advertisement ?? model<AdvertisementDoc>("Advertisement", advertisementSchema);
+export const Advertisement: Model<AdvertisementDoc> = registerModel<AdvertisementDoc>("Advertisement", advertisementSchema);

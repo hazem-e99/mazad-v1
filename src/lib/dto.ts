@@ -159,7 +159,9 @@ export interface LeanPlate {
   isVip: boolean;
   isFeatured: boolean;
   isVisible: boolean;
-  ownerUser?: ObjectIdLike | null;
+  // Populated (LeanUserContactRef) when the query does
+  // `.populate("ownerUser", ...)`, a raw ObjectId when it doesn't.
+  ownerUser?: LeanUserContactRef | ObjectIdLike | null;
   createdBy: ObjectIdLike;
   notes?: string | null;
   classification?: PlateClassification | null;
@@ -198,7 +200,15 @@ export function toPlateDTO(plate: LeanPlate): PlateDTO {
     isVip: plate.isVip,
     isFeatured: plate.isFeatured,
     isVisible: plate.isVisible,
-    ownerUser: plate.ownerUser ? idToString(plate.ownerUser) : null,
+    // Always the id, whether or not the ref was populated — passing a
+    // populated lean doc straight to idToString() would stringify the
+    // whole object, which is how this silently produced "[object Object]"
+    // on any screen that populated the owner.
+    ownerUser: toIdOrNull(plate.ownerUser),
+    owner:
+      plate.ownerUser != null && isPopulated<LeanUserContactRef>(plate.ownerUser as LeanUserContactRef)
+        ? toUserContactRefDTO(plate.ownerUser as LeanUserContactRef)
+        : null,
     createdBy: idToString(plate.createdBy),
     notes: plate.notes ?? null,
     classification: plate.classification ?? null,

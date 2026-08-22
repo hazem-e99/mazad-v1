@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const chatMessageSchema = new Schema(
   {
@@ -11,5 +12,4 @@ const chatMessageSchema = new Schema(
 chatMessageSchema.index({ createdAt: -1 });
 
 export type ChatMessageDoc = InferSchemaType<typeof chatMessageSchema>;
-export const ChatMessage: Model<ChatMessageDoc> =
-  models.ChatMessage ?? model<ChatMessageDoc>("ChatMessage", chatMessageSchema);
+export const ChatMessage: Model<ChatMessageDoc> = registerModel<ChatMessageDoc>("ChatMessage", chatMessageSchema);

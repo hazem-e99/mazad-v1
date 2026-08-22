@@ -109,15 +109,19 @@ export async function POST(req: NextRequest) {
     }
 
     const { ownershipDocument, contactEmail, ...rest } = body;
-    const moderationStatus = body.submissionType === "marketplace" ? "approved" : "pending";
 
+    // Every user submission enters review as "pending", whatever its
+    // submission type: a marketplace listing is no more self-evidently
+    // legitimate than an auction request, and nothing a user creates may
+    // reach the public site before a moderator acts on it. Only the
+    // staff-only moderate endpoint moves a listing out of this state.
     const plate = await Plate.create({
       ...rest,
       contactEmail: contactEmail || null,
       ownershipDocument: ownershipDocument ?? null,
       ownerUser: session.sub,
       createdBy: session.sub,
-      moderationStatus,
+      moderationStatus: "pending",
       isVisible: true,
     });
 

@@ -20,6 +20,9 @@ import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { formatDateTime } from "@/lib/format";
 import { EmptyState } from "@/components/layout/EmptyState";
+import { AdminRealtimeStatus } from "@/components/admin/LiveAuctionCells";
+import { AdminLiveRefresher } from "@/components/admin/AdminLiveRefresher";
+import { LiveBidsFeed } from "@/components/admin/LiveBidsFeed";
 
 export const revalidate = 0;
 
@@ -46,14 +49,22 @@ export default async function AdminDashboardPage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Counters here are aggregates (COUNT queries), so a single bid
+          event can't update them arithmetically without the client
+          inventing numbers — this re-runs the queries instead. */}
+      <AdminLiveRefresher />
+
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.18em] text-(--color-gold)">{t("admin.dashboardTitle")}</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-(--color-text)">{t("admin.dashboardSubtitle")}</h1>
         </div>
-        <div className="inline-flex items-center gap-2 rounded-full border border-(--color-gold)/30 bg-(--color-gold-tint) px-3 py-1.5 text-xs font-medium text-(--color-gold)">
-          <span className="h-2 w-2 rounded-full bg-(--color-gold)" aria-hidden="true" />
-          {stats.activeAuctions} {t("admin.statActiveAuctions")}
+        <div className="flex flex-wrap items-center gap-2">
+          <AdminRealtimeStatus />
+          <div className="inline-flex items-center gap-2 rounded-full border border-(--color-gold)/30 bg-(--color-gold-tint) px-3 py-1.5 text-xs font-medium text-(--color-gold)">
+            <span className="h-2 w-2 rounded-full bg-(--color-gold)" aria-hidden="true" />
+            {stats.activeAuctions} {t("admin.statActiveAuctions")}
+          </div>
         </div>
       </div>
 
@@ -143,34 +154,15 @@ export default async function AdminDashboardPage() {
         </Card>
       </div>
 
+      {/* Bids as they commit, pushed straight from placeBid(). Replaces a
+          second, identical copy of the audit list that used to sit here. */}
       <Card>
-        <CardHeader>
-          <h2 className="font-semibold text-(--color-text)">{t("admin.recentActivity")}</h2>
+        <CardHeader className="flex items-center justify-between gap-3">
+          <h2 className="font-semibold text-(--color-text)">{t("admin.liveBidsHeader")}</h2>
+          <AdminRealtimeStatus />
         </CardHeader>
         <CardBody className="p-0!">
-          {logs.length === 0 ? (
-            <div className="p-5">
-              <EmptyState icon={Activity} title={t("admin.noActivityYet")} />
-            </div>
-          ) : (
-            <ul className="flex flex-col divide-y divide-(--color-border)">
-              {logs.map((log) => {
-                const Icon = iconForAction(log.action);
-                return (
-                  <li key={`${log._id}-detail`} className="flex items-center gap-3 px-5 py-3 text-sm">
-                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-(--color-surface-hover) text-(--color-text-muted)">
-                      <Icon className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <span className="font-medium text-(--color-text)">{log.action}</span>
-                      <span className="text-(--color-text-faint)"> — {log.entityType}</span>
-                    </div>
-                    <span className="tnum shrink-0 text-xs text-(--color-text-faint)">{formatDateTime(log.createdAt, locale)}</span>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
+          <LiveBidsFeed />
         </CardBody>
       </Card>
     </div>

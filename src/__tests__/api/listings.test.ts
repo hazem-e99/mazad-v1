@@ -5,6 +5,7 @@ import { User } from "@/models/User";
 import { Plate } from "@/models/Plate";
 import { PlateCategory } from "@/models/PlateCategory";
 import { hashPassword } from "@/lib/session";
+import { PLATE_TYPES, SUBMISSION_TYPES } from "@/lib/constants";
 import { startTestServer, stopTestServer, BASE_URL, extractSessionCookie } from "../testServer";
 
 const TEST_TAG = `listingtest-${Date.now()}`;
@@ -101,15 +102,42 @@ describe("Listing submission validation", () => {
     expect(status).toBe(422);
   });
 
-  it("accepts a valid marketplace submission and publishes it immediately", async () => {
+  it("accepts a valid marketplace submission and defaults it to pending", async () => {
     const { status, body } = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5002" })) });
     expect(status).toBe(201);
     createdPlateIds.push(body.data._id);
 
     const doc = await Plate.findById(body.data._id);
-    expect(doc?.moderationStatus).toBe("approved");
+    expect(doc?.moderationStatus).toBe("pending");
     expect(doc?.submissionType).toBe("marketplace");
     expect(String(doc?.ownerUser)).toBe(ownerUserId);
+  });
+
+  // The submission type decides where an approved listing ends up, never
+  // whether it is reviewed at all — every plate type and every submission
+  // type enters the queue at "pending".
+  it.each(PLATE_TYPES)("defaults a %s plate to pending for both submission types", async (plateType) => {
+    for (const submissionType of SUBMISSION_TYPES) {
+      const { status, body } = await api("/api/listings", {
+        method: "POST",
+        cookie: ownerCookie,
+        body: JSON.stringify(
+          listingPayload({
+            type: plateType,
+            submissionType,
+            numbers: String(1000 + PLATE_TYPES.indexOf(plateType) * 2 + SUBMISSION_TYPES.indexOf(submissionType)),
+            price: submissionType === "marketplace" ? 25000 : undefined,
+          })
+        ),
+      });
+      expect(status).toBe(201);
+      createdPlateIds.push(body.data._id);
+
+      const doc = await Plate.findById(body.data._id);
+      expect(doc?.type).toBe(plateType);
+      expect(doc?.submissionType).toBe(submissionType);
+      expect(doc?.moderationStatus).toBe("pending");
+    }
   });
 
   it("accepts a valid auction_request submission without requiring a price", async () => {
@@ -139,7 +167,7 @@ describe("Public visibility", () => {
     const created = await api("/api/listings", {
       method: "POST",
       cookie: ownerCookie,
-      body: JSON.stringify(listingPayload({ numbers: "5010", title: "PENDING-VISIBILITY-TEST", submissionType: "auction_request", price: undefined })),
+      body: JSON.stringify(listingPayload({ numbers: "5010", title: "PENDING-VISIBILITY-TEST" })),
     });
     const id = created.body.data._id;
     createdPlateIds.push(id);
@@ -254,6 +282,126 @@ describe("Moderation permissions and transitions", () => {
     createdPlateIds.push(created.body.data._id);
     const { status } = await api(`/api/listings/${created.body.data._id}`, { method: "PATCH", cookie: otherUserCookie, body: JSON.stringify({ title: "hijacked" }) });
     expect(status).toBe(403);
+  });
+});
+
+describe("End-to-end moderation flow (persisted, not client-side)", () => {
+  it("approve writes the new status to the database and the listing survives a re-read", async () => {
+    const created = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5050" })) });
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    expect((await Plate.findById(id))?.moderationStatus).toBe("pending");
+
+    const decided = await api(`/api/listings/${id}/moderate`, { method: "PATCH", cookie: adminCookie, body: JSON.stringify({ status: "approved" }) });
+    expect(decided.status).toBe(200);
+
+    // Read straight from Mongo, not from the response body — the point of
+    // this assertion is that the decision was persisted server-side, not
+    // merely echoed back.
+    const stored = await Plate.findById(id);
+    expect(stored?.moderationStatus).toBe("approved");
+    expect(stored?.rejectionReason).toBeNull();
+
+    // And a fresh request (a "refresh") sees the same thing.
+    const reread = await api(`/api/listings/${id}`);
+    expect(reread.status).toBe(200);
+    expect(reread.body.data.moderationStatus).toBe("approved");
+  });
+
+  it("reject writes status + reason to the database and hides the listing again", async () => {
+    const created = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5051" })) });
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    await api(`/api/listings/${id}/moderate`, { method: "PATCH", cookie: adminCookie, body: JSON.stringify({ status: "approved" }) });
+    const rejected = await api(`/api/listings/${id}/moderate`, {
+      method: "PATCH",
+      cookie: adminCookie,
+      body: JSON.stringify({ status: "rejected", rejectionReason: "صورة اللوحة غير واضحة" }),
+    });
+    expect(rejected.status).toBe(200);
+
+    const stored = await Plate.findById(id);
+    expect(stored?.moderationStatus).toBe("rejected");
+    expect(stored?.rejectionReason).toBe("صورة اللوحة غير واضحة");
+
+    const list = await api("/api/listings");
+    expect(list.body.data.items.some((i: { _id: string }) => i._id === id)).toBe(false);
+  });
+
+  it("a moderator can reverse their own rejection without the owner resubmitting", async () => {
+    const created = await api("/api/listings", { method: "POST", cookie: ownerCookie, body: JSON.stringify(listingPayload({ numbers: "5052" })) });
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    await api(`/api/listings/${id}/moderate`, { method: "PATCH", cookie: adminCookie, body: JSON.stringify({ status: "rejected", rejectionReason: "خطأ في المراجعة" }) });
+    const reversed = await api(`/api/listings/${id}/moderate`, { method: "PATCH", cookie: adminCookie, body: JSON.stringify({ status: "approved" }) });
+    expect(reversed.status).toBe(200);
+
+    const stored = await Plate.findById(id);
+    expect(stored?.moderationStatus).toBe("approved");
+    expect(stored?.rejectionReason).toBeNull();
+  });
+
+  it("the staff moderation queue returns the real pending submissions", async () => {
+    const created = await api("/api/listings", {
+      method: "POST",
+      cookie: ownerCookie,
+      body: JSON.stringify(listingPayload({ numbers: "5053", title: "QUEUE-VISIBILITY-TEST" })),
+    });
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    const queue = await api("/api/listings?staff=true&status=pending&limit=50", { cookie: adminCookie });
+    expect(queue.status).toBe(200);
+    expect(queue.body.data.items.some((i: { _id: string }) => i._id === id)).toBe(true);
+
+    // The same query as a regular user is *not* a moderation queue — it
+    // silently falls back to the public marketplace filter.
+    const asUser = await api("/api/listings?staff=true&status=pending&limit=50", { cookie: otherUserCookie });
+    expect(asUser.body.data.items.some((i: { _id: string }) => i._id === id)).toBe(false);
+  });
+
+  it("a plate created straight through /api/plates by a non-staff user still lands in the review queue", async () => {
+    const created = await api("/api/plates", {
+      method: "POST",
+      cookie: ownerCookie,
+      body: JSON.stringify({ type: "sport", lettersAr: "ط ط ط", lettersEn: "TTT", numbers: "5060", logo: null }),
+    });
+    expect(created.status).toBe(201);
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    const stored = await Plate.findById(id);
+    expect(stored?.moderationStatus).toBe("pending");
+    expect(stored?.submissionType).toBe("marketplace");
+
+    // ...and is therefore not public through the general plates endpoint.
+    const publicPlates = await api("/api/plates?search=TTT&limit=50");
+    expect(publicPlates.body.data.items.some((i: { _id: string }) => i._id === id)).toBe(false);
+
+    const queue = await api("/api/listings?staff=true&status=pending&limit=50", { cookie: adminCookie });
+    expect(queue.body.data.items.some((i: { _id: string }) => i._id === id)).toBe(true);
+  });
+
+  it("an auction cannot be created from a plate that is still awaiting review", async () => {
+    const created = await api("/api/listings", {
+      method: "POST",
+      cookie: ownerCookie,
+      body: JSON.stringify(listingPayload({ numbers: "5061", submissionType: "auction_request", price: undefined })),
+    });
+    const id = created.body.data._id;
+    createdPlateIds.push(id);
+
+    const start = new Date(Date.now() + 60_000).toISOString();
+    const end = new Date(Date.now() + 3_600_000).toISOString();
+    const blocked = await api("/api/auctions", {
+      method: "POST",
+      cookie: adminCookie,
+      body: JSON.stringify({ plate: id, startingPrice: 1000, minIncrement: 100, startAt: start, endAt: end }),
+    });
+    expect(blocked.status).toBe(409);
   });
 });
 

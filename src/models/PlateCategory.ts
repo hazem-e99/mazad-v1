@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const plateCategorySchema = new Schema(
   {
@@ -14,5 +15,4 @@ const plateCategorySchema = new Schema(
 plateCategorySchema.index({ isActive: 1, sortOrder: 1 });
 
 export type PlateCategoryDoc = InferSchemaType<typeof plateCategorySchema>;
-export const PlateCategory: Model<PlateCategoryDoc> =
-  models.PlateCategory ?? model<PlateCategoryDoc>("PlateCategory", plateCategorySchema);
+export const PlateCategory: Model<PlateCategoryDoc> = registerModel<PlateCategoryDoc>("PlateCategory", plateCategorySchema);

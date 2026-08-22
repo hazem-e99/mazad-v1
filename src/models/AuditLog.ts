@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const auditLogSchema = new Schema(
   {
@@ -16,4 +17,4 @@ auditLogSchema.index({ actor: 1, createdAt: -1 });
 auditLogSchema.index({ createdAt: -1 });
 
 export type AuditLogDoc = InferSchemaType<typeof auditLogSchema>;
-export const AuditLog: Model<AuditLogDoc> = models.AuditLog ?? model<AuditLogDoc>("AuditLog", auditLogSchema);
+export const AuditLog: Model<AuditLogDoc> = registerModel<AuditLogDoc>("AuditLog", auditLogSchema);

@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 import { connectDB } from "@/lib/db";
 import { Auction, type AuctionDoc } from "@/models/Auction";
+import { Plate } from "@/models/Plate";
 import { Bid } from "@/models/Bid";
 import { User } from "@/models/User";
 import { Purchase } from "@/models/Purchase";
@@ -10,7 +11,49 @@ import {
   AUCTION_EXTENSION_WINDOW_SECONDS,
 } from "@/lib/constants";
 import { ApiError, Errors } from "@/lib/api";
-import { emitAuctionEvent } from "@/lib/socket";
+import { emitAuctionEvent, newEventId, type AuctionSnapshot } from "@/lib/socket";
+import type { AuctionStatus } from "@/lib/constants";
+
+/**
+ * Builds the realtime snapshot from the document a conditional update
+ * returned — i.e. state that is already committed. Nothing here is derived
+ * from the caller's request body, so a snapshot can never advertise a
+ * price that is not in the database.
+ */
+function snapshotOf(
+  auction: AuctionDoc & { _id: Types.ObjectId },
+  names: { highestBidderName?: string | null; winnerName?: string | null } = {}
+): AuctionSnapshot {
+  return {
+    auctionId: String(auction._id),
+    status: auction.status as AuctionStatus,
+    currentPrice: auction.currentPrice,
+    minIncrement: auction.minIncrement,
+    bidCount: auction.bidCount ?? 0,
+    startAt: auction.startAt.toISOString(),
+    endAt: auction.endAt.toISOString(),
+    highestBidderId: auction.highestBidder ? String(auction.highestBidder) : null,
+    highestBidderName: names.highestBidderName ?? null,
+    finalPrice: auction.finalPrice ?? null,
+    winnerId: auction.winner ? String(auction.winner) : null,
+    winnerName: names.winnerName ?? null,
+    version: auction.version ?? 0,
+  };
+}
+
+/** Human-readable plate label, so an admin table row can update in place
+ * without the client re-fetching the auction just to know what it is. */
+async function plateLabelFor(auction: AuctionDoc): Promise<string | null> {
+  try {
+    const plate = await Plate.findById(auction.plate)
+      .select("lettersAr numbers")
+      .lean<{ lettersAr?: string; numbers?: string } | null>();
+    if (!plate) return null;
+    return `${plate.lettersAr ?? ""} ${plate.numbers ?? ""}`.trim() || null;
+  } catch {
+    return null;
+  }
+}
 
 export interface PlaceBidResult {
   auction: (AuctionDoc & { _id: Types.ObjectId }) | null;
@@ -88,16 +131,27 @@ export async function placeBid(params: {
     throw Errors.conflict("سبقتك مزايدة أخرى، حاول بقيمة أعلى");
   }
 
-  const bidder = await User.findById(userId).select("name");
+  const bidder = await User.findById(userId).select("name phone");
+  const bidderName = bidder?.name ?? "مستخدم";
 
-  emitAuctionEvent({
-    type: "bid_accepted",
-    auctionId: String(auction._id),
-    amount,
-    bidderId: userId,
-    bidderName: bidder?.name ?? "مستخدم",
-    endAt: updated.endAt.toISOString(),
-  });
+  // Emitted only after the conditional update above actually committed —
+  // a rejected or race-losing bid returns earlier and never reaches here,
+  // so no subscriber can ever be shown a price that was not persisted.
+  emitAuctionEvent(
+    {
+      type: "bid_accepted",
+      eventId: newEventId(),
+      auctionId: String(auction._id),
+      bidId: String(bid._id),
+      amount,
+      bidderId: userId,
+      bidderName,
+      createdAt: new Date().toISOString(),
+      endAt: updated.endAt.toISOString(),
+      snapshot: snapshotOf(updated, { highestBidderName: bidderName }),
+    },
+    { bidderPhone: bidder?.phone ?? null, plateLabel: await plateLabelFor(updated) }
+  );
 
   return { auction: updated, bidId: bid._id, amount, extended: shouldExtend };
 }
@@ -163,14 +217,22 @@ export async function purchaseDirect(params: {
     metadata: { price: auction.directPurchasePrice },
   });
 
-  emitAuctionEvent({
-    type: "direct_purchase",
-    auctionId: String(auction._id),
-    buyerId: userId,
-    price: auction.directPurchasePrice as number,
-  });
+  const finalDoc = updated as AuctionDoc & { _id: Types.ObjectId };
+  const buyer = await User.findById(userId).select("name phone");
 
-  return { auction: updated as AuctionDoc & { _id: Types.ObjectId } };
+  emitAuctionEvent(
+    {
+      type: "direct_purchase",
+      eventId: newEventId(),
+      auctionId: String(auction._id),
+      buyerId: userId,
+      price: auction.directPurchasePrice as number,
+      snapshot: snapshotOf(finalDoc, { winnerName: buyer?.name ?? null }),
+    },
+    { bidderPhone: buyer?.phone ?? null, plateLabel: await plateLabelFor(finalDoc) }
+  );
+
+  return { auction: finalDoc };
 }
 
 /**
@@ -222,13 +284,25 @@ export async function finalizeAuction(auctionId: string, options: { force?: bool
       metadata: { result: updated.status, finalPrice: updated.finalPrice },
     });
 
-    emitAuctionEvent({
-      type: "auction_finalized",
-      auctionId: String(auction._id),
-      status: updated.status,
-      winnerId: updated.winner ? String(updated.winner) : undefined,
-      finalPrice: updated.finalPrice ?? undefined,
-    });
+    const winnerName = updated.winner
+      ? (await User.findById(updated.winner).select("name"))?.name ?? null
+      : null;
+
+    emitAuctionEvent(
+      {
+        type: "auction_finalized",
+        eventId: newEventId(),
+        auctionId: String(auction._id),
+        status: updated.status,
+        winnerId: updated.winner ? String(updated.winner) : undefined,
+        finalPrice: updated.finalPrice ?? undefined,
+        snapshot: snapshotOf(updated as AuctionDoc & { _id: Types.ObjectId }, {
+          highestBidderName: winnerName,
+          winnerName,
+        }),
+      },
+      { plateLabel: await plateLabelFor(updated) }
+    );
   }
 
   // If the conditional update didn't match, something else changed this
@@ -278,7 +352,15 @@ export async function activateScheduledAuctions(): Promise<number> {
     );
     if (updated) {
       activatedCount += 1;
-      emitAuctionEvent({ type: "auction_started", auctionId: String(_id) });
+      emitAuctionEvent(
+        {
+          type: "auction_started",
+          eventId: newEventId(),
+          auctionId: String(_id),
+          snapshot: snapshotOf(updated as AuctionDoc & { _id: Types.ObjectId }),
+        },
+        { plateLabel: await plateLabelFor(updated) }
+      );
     }
   }
 

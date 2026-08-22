@@ -1,8 +1,8 @@
 import { createServer } from "node:http";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
-import { verifySession } from "@/lib/session";
-import { setIO, auctionRoom } from "@/lib/socket";
+import { verifySession, hasPermission, type SessionPayload } from "@/lib/session";
+import { setIO, auctionRoom, ADMIN_AUCTION_ROOM } from "@/lib/socket";
 import { connectDB } from "@/lib/db";
 import { ChatMessage } from "@/models/ChatMessage";
 import { User } from "@/models/User";
@@ -47,10 +47,38 @@ async function main() {
     next();
   });
 
+  // Staff may watch the global auction feed; everyone else is limited to
+  // the individual auction rooms. Mirrors the /admin layout's own gate so
+  // the socket surface can't hand out data the pages wouldn't render.
+  const isStaff = (session: SessionPayload | undefined) =>
+    Boolean(
+      session &&
+        (session.role === "admin" ||
+          session.role === "supervisor" ||
+          hasPermission(session, "auction:manage") ||
+          hasPermission(session, "stats:view"))
+    );
+
   io.on("connection", (socket) => {
     socket.on("auction:join", (auctionId: string) => {
       if (typeof auctionId !== "string" || !auctionId) return;
       socket.join(auctionRoom(auctionId));
+    });
+
+    // Acked so the dashboard can distinguish "connected but not authorized"
+    // from "connected and receiving" instead of silently showing stale data.
+    socket.on("admin:join", (ack?: (result: { ok: boolean }) => void) => {
+      const session = socket.data.session as SessionPayload | undefined;
+      if (!isStaff(session)) {
+        if (typeof ack === "function") ack({ ok: false });
+        return;
+      }
+      socket.join(ADMIN_AUCTION_ROOM);
+      if (typeof ack === "function") ack({ ok: true });
+    });
+
+    socket.on("admin:leave", () => {
+      socket.leave(ADMIN_AUCTION_ROOM);
     });
 
     socket.on("auction:leave", (auctionId: string) => {

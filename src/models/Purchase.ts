@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const purchaseSchema = new Schema(
   {
@@ -12,4 +13,4 @@ const purchaseSchema = new Schema(
 purchaseSchema.index({ buyer: 1, createdAt: -1 });
 
 export type PurchaseDoc = InferSchemaType<typeof purchaseSchema>;
-export const Purchase: Model<PurchaseDoc> = models.Purchase ?? model<PurchaseDoc>("Purchase", purchaseSchema);
+export const Purchase: Model<PurchaseDoc> = registerModel<PurchaseDoc>("Purchase", purchaseSchema);

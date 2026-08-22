@@ -622,6 +622,23 @@ export interface MessageCatalog {
     listingApproved: string;
     listingRejected: string;
     createAuctionFromRequest: string;
+    listingDetailTitle: string;
+    listingDetailSubtitle: string;
+    viewListingDetails: string;
+    backToListingsQueue: string;
+    colSubmitter: string;
+    listingSubmitterHeader: string;
+    listingPlateHeader: string;
+    listingMediaHeader: string;
+    listingModerationHeader: string;
+    uploadedPlatePhoto: string;
+    openOwnershipDocument: string;
+    noOwnershipDocument: string;
+    listingNotModeratable: string;
+    submittedAtLabel: string;
+    lastUpdatedLabel: string;
+    noDecisionAvailable: string;
+    pendingReviewCount: string;
 
     plateCategoriesTitle: string;
     plateCategoriesSubtitle: string;
@@ -937,7 +954,7 @@ const ar: MessageCatalog = {
     previewLabel: "معاينة",
     addPlateSubtitle: "أدخل بيانات لوحتك لعرضها ضمن قائمة اللوحات",
     submitPlate: "إرسال اللوحة",
-    plateSubmitted: "تم إرسال لوحتك بنجاح",
+    plateSubmitted: "تم إرسال لوحتك بنجاح وهي الآن قيد المراجعة",
     addAdTitle: "أضف رقمك",
     addAdSubtitle: "أنشئ إعلانًا لبيع رقمك المميز",
     adTitle: "عنوان الإعلان",
@@ -1266,6 +1283,23 @@ const ar: MessageCatalog = {
     listingApproved: "تم قبول العرض",
     listingRejected: "تم رفض العرض",
     createAuctionFromRequest: "إنشاء مزاد من هذه اللوحة",
+    listingDetailTitle: "تفاصيل العرض",
+    listingDetailSubtitle: "راجع كل ما أدخله المستخدم قبل القبول أو الرفض",
+    viewListingDetails: "عرض التفاصيل",
+    backToListingsQueue: "العودة إلى مراجعة العروض",
+    colSubmitter: "مقدم الطلب",
+    listingSubmitterHeader: "بيانات مقدم الطلب",
+    listingPlateHeader: "بيانات اللوحة",
+    listingMediaHeader: "الصور والمستندات",
+    listingModerationHeader: "قرار المراجعة",
+    uploadedPlatePhoto: "الصورة المرفوعة من المستخدم",
+    openOwnershipDocument: "فتح مستند إثبات الملكية",
+    noOwnershipDocument: "لم يرفق المستخدم مستند إثبات ملكية",
+    listingNotModeratable: "هذه اللوحة ليست طلب عرض قابل للمراجعة",
+    submittedAtLabel: "تاريخ الإرسال",
+    lastUpdatedLabel: "آخر تحديث",
+    noDecisionAvailable: "لا يوجد إجراء متاح لهذه الحالة",
+    pendingReviewCount: "{count} عرض بانتظار المراجعة",
 
     plateCategoriesTitle: "فئات اللوحات",
     plateCategoriesSubtitle: "إدارة الفئات المتاحة عند إضافة لوحة",

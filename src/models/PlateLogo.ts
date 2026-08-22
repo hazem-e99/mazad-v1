@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 
 const plateLogoSchema = new Schema(
   {
@@ -25,4 +26,4 @@ const plateLogoSchema = new Schema(
 plateLogoSchema.index({ isActive: 1, sortOrder: 1 });
 
 export type PlateLogoDoc = InferSchemaType<typeof plateLogoSchema>;
-export const PlateLogo: Model<PlateLogoDoc> = models.PlateLogo ?? model<PlateLogoDoc>("PlateLogo", plateLogoSchema);
+export const PlateLogo: Model<PlateLogoDoc> = registerModel<PlateLogoDoc>("PlateLogo", plateLogoSchema);

@@ -119,10 +119,16 @@ export type SubmissionType = (typeof SUBMISSION_TYPES)[number];
 export const MODERATION_STATUSES = ["pending", "approved", "rejected"] as const;
 export type ModerationStatus = (typeof MODERATION_STATUSES)[number];
 
+// `rejected -> pending` is the owner's resubmission path (see the listing
+// PATCH route); `rejected -> approved` lets a moderator reverse their own
+// mistaken rejection without making the user resubmit unchanged data.
+// Re-applying the status a listing already has is never a transition — it
+// is rejected as a conflict so a double-clicked Approve can't silently
+// overwrite a decision another moderator made in between.
 export const MODERATION_TRANSITIONS: Record<ModerationStatus, ModerationStatus[]> = {
   pending: ["approved", "rejected"],
   approved: ["rejected"],
-  rejected: ["pending"],
+  rejected: ["pending", "approved"],
 };
 
 export const AUCTION_CATEGORIES = ["regular", "exclusive"] as const;

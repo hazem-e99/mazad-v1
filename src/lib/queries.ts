@@ -62,7 +62,11 @@ export async function getHomeAuctions() {
 
 export async function getVipPlates(limit = 12) {
   await connectDB();
-  const plates = await Plate.find({ isVip: true, isVisible: true })
+  // A submission still in (or rejected by) review is never public, even if
+  // it also carries the VIP flag — the moderation gate outranks every
+  // other display toggle. `null` (a legacy/admin-created plate that was
+  // never part of the submission flow) stays visible.
+  const plates = await Plate.find({ isVip: true, isVisible: true, moderationStatus: { $nin: ["pending", "rejected"] } })
     .sort({ isFeatured: -1, createdAt: -1 })
     .limit(limit)
     .populate("logo")

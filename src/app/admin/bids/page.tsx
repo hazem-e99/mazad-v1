@@ -9,6 +9,8 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Card } from "@/components/ui/Card";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
+import { AdminRealtimeStatus } from "@/components/admin/LiveAuctionCells";
+import { AdminLiveRefresher } from "@/components/admin/AdminLiveRefresher";
 
 export const revalidate = 0;
 
@@ -34,9 +36,18 @@ export default async function AdminBidsPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-(--color-text)">{t("admin.bidsTitle")}</h1>
-        <p className="text-sm text-(--color-text-muted) mt-1">{t("admin.bidsSubtitle")}</p>
+      {/* This table is a paginated, filtered projection of the Bid
+          collection — a new bid has to come back through the query to land
+          on the right page in the right order, so re-read rather than
+          splice a row in on the client. */}
+      <AdminLiveRefresher />
+
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-(--color-text)">{t("admin.bidsTitle")}</h1>
+          <p className="text-sm text-(--color-text-muted) mt-1">{t("admin.bidsSubtitle")}</p>
+        </div>
+        <AdminRealtimeStatus />
       </div>
 
       <FilterBar

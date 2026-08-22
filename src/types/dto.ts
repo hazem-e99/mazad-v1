@@ -73,6 +73,10 @@ export interface PlateDTO {
   isFeatured: boolean;
   isVisible: boolean;
   ownerUser: string | null;
+  /** The submitting user, name + phone, only when the source query
+   * populated `ownerUser` (admin moderation screens). `null` everywhere
+   * else — never a half-filled ref with an empty name. */
+  owner: UserContactRefDTO | null;
   createdBy: string;
   notes: string | null;
   classification: PlateClassification | null;

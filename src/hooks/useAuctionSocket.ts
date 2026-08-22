@@ -1,49 +1,78 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { io, type Socket } from "socket.io-client";
+import { acquireSocket, releaseSocket, createEventDeduper } from "@/lib/realtimeClient";
+import type { AuctionSocketEvent } from "@/lib/socket";
 
-export type AuctionSocketEvent =
-  | { type: "bid_accepted"; auctionId: string; amount: number; bidderId: string; bidderName: string; endAt: string }
-  | { type: "auction_started"; auctionId: string }
-  | { type: "auction_ending_soon"; auctionId: string; endAt: string }
-  | { type: "auction_ended"; auctionId: string }
-  | { type: "auction_finalized"; auctionId: string; status: string; winnerId?: string; finalPrice?: number }
-  | { type: "direct_purchase"; auctionId: string; buyerId: string; price: number };
+export type { AuctionSocketEvent, AuctionSnapshot } from "@/lib/socket";
 
 /**
  * Joins the given auction's realtime room and invokes onEvent for every
- * server-pushed update. Handles reconnection automatically (rejoining the
- * room) since Socket.IO's default reconnection logic re-fires "connect".
+ * server-pushed update.
+ *
+ * - Shares the tab's single socket (see realtimeClient) rather than
+ *   opening one per mounted component.
+ * - Rejoins the room on reconnect, and fires onResync so the caller can
+ *   re-read authoritative state for whatever it missed while offline.
+ * - Drops repeat deliveries by event id, so a redelivered bid never
+ *   double-counts.
  */
-export function useAuctionSocket(auctionId: string, onEvent: (event: AuctionSocketEvent) => void) {
+export function useAuctionSocket(
+  auctionId: string,
+  onEvent: (event: AuctionSocketEvent) => void,
+  onResync?: () => void
+) {
   const [connected, setConnected] = useState(false);
   const onEventRef = useRef(onEvent);
+  const onResyncRef = useRef(onResync);
 
   useEffect(() => {
     onEventRef.current = onEvent;
-  }, [onEvent]);
+    onResyncRef.current = onResync;
+  }, [onEvent, onResync]);
 
   useEffect(() => {
-    const socket: Socket = io({ path: "/socket.io", withCredentials: true });
+    if (!auctionId) return;
+
+    const socket = acquireSocket();
+    const dedupe = createEventDeduper();
+    // A first "connect" is the initial join, not a recovery — only a
+    // later one means events may have been missed in between.
+    let hasConnectedBefore = false;
+
+    const join = () => socket.emit("auction:join", auctionId);
 
     const handleConnect = () => {
       setConnected(true);
-      socket.emit("auction:join", auctionId);
+      join();
+      if (hasConnectedBefore) onResyncRef.current?.();
+      hasConnectedBefore = true;
     };
     const handleDisconnect = () => setConnected(false);
-    const handleEvent = (event: AuctionSocketEvent) => onEventRef.current(event);
+    const handleEvent = (event: AuctionSocketEvent) => {
+      if (event.auctionId !== auctionId) return;
+      if (!dedupe.accept(event.eventId)) return;
+      onEventRef.current(event);
+    };
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("auction:event", handleEvent);
+
+    // The shared socket may already be connected when this mounts, in
+    // which case "connect" has fired and will not fire again.
+    if (socket.connected) {
+      setConnected(true);
+      hasConnectedBefore = true;
+      join();
+    }
 
     return () => {
       socket.emit("auction:leave", auctionId);
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("auction:event", handleEvent);
-      socket.disconnect();
+      releaseSocket();
     };
   }, [auctionId]);
 

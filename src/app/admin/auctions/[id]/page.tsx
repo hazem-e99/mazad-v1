@@ -14,19 +14,17 @@ import { AuctionStatusActions } from "./AuctionStatusActions";
 import { AuctionBackgroundUploader } from "./AuctionBackgroundUploader";
 import type { AuctionStatus } from "@/lib/constants";
 import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
+import {
+  LivePrice,
+  LiveBidCount,
+  LiveHighestBidder,
+  LiveStatusBadge,
+  LiveEndAt,
+  AdminRealtimeStatus,
+} from "@/components/admin/LiveAuctionCells";
+import { AdminLiveRefresher } from "@/components/admin/AdminLiveRefresher";
 
 export const revalidate = 0;
-
-const statusTone: Record<string, "live" | "scheduled" | "sold" | "unsold" | "neutral"> = {
-  draft: "neutral",
-  scheduled: "scheduled",
-  live: "live",
-  ended: "unsold",
-  sold: "sold",
-  unsold: "unsold",
-  purchased: "sold",
-  cancelled: "neutral",
-};
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -53,22 +51,18 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
   const auction = toAuctionDTO(auctionDoc);
   const bids = toBidDTOList(bidDocs);
 
-  const statusLabelMap: Record<string, string> = {
-    draft: t("common.status"),
-    scheduled: t("auction.scheduled"),
-    live: t("auction.live"),
-    ended: t("auction.ended"),
-    sold: t("auction.sold"),
-    unsold: t("auction.unsold"),
-    purchased: t("auction.purchased"),
-    cancelled: t("auction.cancelled"),
-  };
-
   return (
     <div className="flex flex-col gap-6 max-w-4xl">
-      <div>
-        <h1 className="text-2xl font-bold text-(--color-text)">{t("admin.auctionDetailTitle")}</h1>
-        <p className="text-sm text-(--color-text-muted) mt-1">{t("admin.auctionDetailSubtitle")}</p>
+      {/* Keeps the server-rendered bid history and audit trail in step with
+          the live figures above it. */}
+      <AdminLiveRefresher />
+
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-(--color-text)">{t("admin.auctionDetailTitle")}</h1>
+          <p className="text-sm text-(--color-text-muted) mt-1">{t("admin.auctionDetailSubtitle")}</p>
+        </div>
+        <AdminRealtimeStatus />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -83,9 +77,7 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
               size="md"
               locale={locale}
             />
-            <Badge tone={statusTone[auction.status] ?? "neutral"} dot={auction.status === "live"}>
-              {statusLabelMap[auction.status] ?? auction.status}
-            </Badge>
+            <LiveStatusBadge auctionId={auction._id} status={auction.status as AuctionStatus} />
           </CardBody>
         </Card>
 
@@ -96,15 +88,22 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
           <CardBody className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
               <span className="text-(--color-text-muted)">{t("auction.currentPrice")}</span>
-              <span className="tnum font-semibold">{formatSar(auction.currentPrice, locale)}</span>
+              <LivePrice
+                auctionId={auction._id}
+                currentPrice={auction.currentPrice}
+                finalPrice={auction.finalPrice}
+                status={auction.status as AuctionStatus}
+                locale={locale}
+                className="font-semibold text-(--color-gold)"
+              />
             </div>
             <div className="flex justify-between">
               <span className="text-(--color-text-muted)">{t("admin.bidCountLabel")}</span>
-              <span className="tnum">{auction.bidCount}</span>
+              <LiveBidCount auctionId={auction._id} bidCount={auction.bidCount} />
             </div>
             <div className="flex justify-between">
               <span className="text-(--color-text-muted)">{t("auction.highestBidder")}</span>
-              <span>{auction.highestBidder?.name ?? "—"}</span>
+              <LiveHighestBidder auctionId={auction._id} name={auction.highestBidder?.name} />
             </div>
             <div className="flex justify-between">
               <span className="text-(--color-text-muted)">{t("auction.winner")}</span>
@@ -116,8 +115,16 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
             </div>
             <div className="flex justify-between">
               <span className="text-(--color-text-muted)">{t("admin.colEnd")}</span>
-              <span className="text-xs">{formatDateTime(auction.endAt, locale)}</span>
+              <span className="text-xs">
+                <LiveEndAt auctionId={auction._id} endAt={auction.endAt} locale={locale} />
+              </span>
             </div>
+            {auction.status === "live" && (
+              <div className="flex justify-between border-t border-(--color-border) pt-2">
+                <span className="text-(--color-text-muted)">{t("auction.timeRemaining")}</span>
+                <LiveEndAt auctionId={auction._id} endAt={auction.endAt} locale={locale} countdown />
+              </div>
+            )}
           </CardBody>
         </Card>
       </div>

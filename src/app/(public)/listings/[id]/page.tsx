@@ -28,7 +28,7 @@ export default async function ListingDetailPage({ params }: Props) {
   await connectDB();
   const { t, locale } = await getServerTranslator();
 
-  const doc = await Plate.findById(id).populate("logo").lean<LeanPlate>();
+  const doc = await Plate.findById(id).populate("logo").populate("category").lean<LeanPlate>();
   if (!doc || doc.submissionType !== "marketplace" || doc.moderationStatus !== "approved" || !doc.isVisible) notFound();
   const listing = toPlateDTO(doc);
 
