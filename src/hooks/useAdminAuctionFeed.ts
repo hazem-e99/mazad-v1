@@ -3,9 +3,9 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { acquireSocket, releaseSocket, createEventDeduper } from "@/lib/realtimeClient";
-import type { AdminAuctionSocketEvent, AuctionSnapshot } from "@/lib/socket";
+import type { AdminAuctionSocketEvent, AuctionSnapshot } from "@/lib/realtimeEvents";
 
-export type { AuctionSnapshot } from "@/lib/socket";
+export type { AuctionSnapshot } from "@/lib/realtimeEvents";
 
 export interface AdminLiveBid {
   /** The Bid document's id — stable across redeliveries, so React keys
@@ -21,6 +21,11 @@ export interface AdminLiveBid {
 }
 
 export type AdminFeedStatus = "connecting" | "live" | "offline" | "unauthorized";
+
+/** How long to wait for the server to acknowledge the room join before
+ * treating the feed as down. */
+const JOIN_ACK_TIMEOUT_MS = 5000;
+const JOIN_RETRY_MS = 3000;
 
 interface Options {
   /** Re-pull server-rendered data after a reconnect, so anything that
@@ -57,21 +62,36 @@ export function useAdminAuctionFeed(options: Options = {}) {
     let hasJoinedBefore = false;
     let disposed = false;
 
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+
     const join = () => {
-      socket.emit("admin:join", (result: { ok: boolean } | undefined) => {
-        if (disposed) return;
-        if (!result?.ok) {
-          setStatus("unauthorized");
-          return;
-        }
-        setStatus("live");
-        if (hasJoinedBefore) {
-          // Reconnected: the database is the source of truth for whatever
-          // was missed, so re-read rather than guessing from local state.
-          (onResyncRef.current ?? (() => router.refresh()))();
-        }
-        hasJoinedBefore = true;
-      });
+      // socket.timeout() makes a missing/stale server handler observable:
+      // without it a server running older code simply never acks and the
+      // dashboard shows "connecting" indefinitely.
+      socket
+        .timeout(JOIN_ACK_TIMEOUT_MS)
+        .emit("admin:join", (timeoutError: Error | null, result?: { ok: boolean }) => {
+          if (disposed) return;
+
+          if (timeoutError) {
+            setStatus("offline");
+            retryTimer = setTimeout(join, JOIN_RETRY_MS);
+            return;
+          }
+          if (!result?.ok) {
+            setStatus("unauthorized");
+            return;
+          }
+
+          setStatus("live");
+          if (hasJoinedBefore) {
+            // Reconnected: the database is the source of truth for
+            // whatever was missed, so re-read rather than guessing from
+            // local state.
+            (onResyncRef.current ?? (() => router.refresh()))();
+          }
+          hasJoinedBefore = true;
+        });
     };
 
     const handleConnect = () => join();
@@ -119,6 +139,7 @@ export function useAdminAuctionFeed(options: Options = {}) {
 
     return () => {
       disposed = true;
+      if (retryTimer) clearTimeout(retryTimer);
       socket.emit("admin:leave");
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);

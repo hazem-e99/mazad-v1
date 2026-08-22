@@ -4,7 +4,7 @@ import { Plate } from "@/models/Plate";
 import { PlateLogo } from "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
 import { requireSession, hasPermission } from "@/lib/auth";
-import { plateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 
 export async function GET(req: NextRequest) {
@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
     // an admin/supervisor holding plate:create_featured may mark it VIP or
     // featured at creation time — otherwise those flags are stripped.
     const session = await requireSession();
+    const { plateSchema } = await getLocalizedSchemas();
     const body = plateSchema.parse(await req.json());
     await connectDB();
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, FileText, Gavel, IdCard, Store, Upload } from "lucide-react";
 import { PlateLogoSelect } from "@/components/plate/PlateLogoSelect";
@@ -8,8 +8,10 @@ import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Stepper } from "@/components/ui/Stepper";
-import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
+import { useFormValidation, FORM_ERROR_KEY } from "@/hooks/useFormValidation";
+import { validateUploadFile } from "@/lib/fileValidation";
 import { usePlateLogos } from "@/hooks/usePlateLogos";
 import { usePlateCategories } from "@/hooks/usePlateCategories";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
@@ -65,7 +67,10 @@ export default function NewPlatePage() {
   const [snapchat, setSnapchat] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+
+  const formRef = useRef<HTMLFormElement>(null);
+  const { schemas, errors, errorFor, fieldProps, formError, report, applyApiError, setFieldError, clearField, clearAll } =
+    useFormValidation(formRef);
 
   const previewLogo = useMemo(
     () => (logoId ? (logos ?? []).find((l) => l._id === logoId) ?? null : null),
@@ -93,42 +98,130 @@ export default function NewPlatePage() {
     { key: "review", label: t("pages.stepReview"), hint: t("pages.stepReviewHint") },
   ];
 
-  const stepComplete =
-    step === 0
-      ? Boolean(
-          submissionType &&
-            title.trim() &&
-            contactPhone.trim() &&
-            (submissionType !== "marketplace" || (price.trim() && Number(price) > 0))
-        )
-      : step === 1
-        ? Boolean(lettersAr.trim() && lettersEn.trim() && numbers.trim())
-        : step === 2
-          ? Boolean(imageFile)
-          : true;
+  // The payload the API will receive, assembled once so the step schemas
+  // and the final submit validate exactly the bytes that get sent — there
+  // is no second, looser code path that could smuggle a bad value through.
+  function buildPayload() {
+    return {
+      type,
+      lettersAr,
+      lettersEn,
+      numbers,
+      logo: logoId,
+      classification: classification || null,
+      usageType: usageType || null,
+      shape: shape || null,
+      size: size || null,
+      category: categoryId || null,
+      title,
+      description: description || undefined,
+      price: submissionType === "marketplace" ? (price.trim() === "" ? undefined : Number(price)) : null,
+      // A placeholder for the not-yet-uploaded file: the real URL is
+      // substituted after the upload succeeds. Only its presence is being
+      // validated at this point.
+      image: imageFile ? "pending-upload" : "",
+      contactPhone,
+      contactEmail: contactEmail || undefined,
+      instagram: instagram || undefined,
+      tiktok: tiktok || undefined,
+      snapchat: snapchat || undefined,
+      submissionType: submissionType ?? undefined,
+    };
+  }
 
-  function validationStep() {
-    if (!submissionType) return { step: 0, message: t("pages.chooseSubmissionTypeFirst") };
-    if (!title.trim() || !contactPhone.trim()) return { step: 0, message: t("common.error") };
-    if (submissionType === "marketplace" && (!price.trim() || Number(price) <= 0)) return { step: 0, message: t("common.error") };
-    if (!lettersAr.trim() || !lettersEn.trim() || !numbers.trim()) return { step: 1, message: t("common.error") };
-    if (!imageFile) return { step: 2, message: t("pages.plateImageRequired") };
-    return null;
+  /** Which fields each step owns. A step is judged only on its own
+   * fields, so step 1 is never blocked by a photo that belongs to step 3. */
+  const STEP_FIELDS: string[][] = [
+    ["submissionType", "title", "description", "price", "contactPhone", "contactEmail", "instagram", "tiktok", "snapchat"],
+    ["lettersAr", "lettersEn", "numbers", "type", "logo", "classification", "usageType", "shape", "size", "category"],
+    ["image"],
+    [],
+  ];
+
+  /**
+   * Validates one step by running the full listing schema and keeping only
+   * the failures that belong to that step. Reusing the real schema (rather
+   * than a hand-written per-step copy) is what guarantees the client and
+   * the server agree about what "valid" means.
+   */
+  function validateStep(index: number, options: { silent?: boolean } = {}): boolean {
+    const owned = STEP_FIELDS[index];
+    if (owned.length === 0) return true;
+
+    const result = schemas.listingSubmitSchema.safeParse(buildPayload());
+    if (result.success) return true;
+
+    const stepErrors: Record<string, string> = {};
+    for (const issue of result.error.issues) {
+      const key = issue.path.length ? issue.path.map(String).join(".") : FORM_ERROR_KEY;
+      if (!owned.includes(key)) continue;
+      if (!(key in stepErrors)) stepErrors[key] = issue.message;
+    }
+
+    // Step 0 owns the submission type, which is a card picker rather than
+    // an input — give it its own wording instead of a generic enum error.
+    if (index === 0 && !submissionType) {
+      stepErrors.submissionType = t("pages.chooseSubmissionTypeFirst");
+    }
+    // Likewise the plate photo: the schema only sees a string.
+    if (index === 2 && !imageFile) {
+      stepErrors.image = t("validation.plateImageRequired");
+    }
+
+    if (Object.keys(stepErrors).length === 0) return true;
+    report(stepErrors, { toastKey: "fixBeforeContinue", silent: options.silent });
+    return false;
+  }
+
+  /** Steps are only reachable once every step before them validates, so a
+   * user cannot jump ahead past a half-filled step via the Stepper. */
+  function goToStep(target: number) {
+    if (target <= step) {
+      clearAll();
+      setStep(target);
+      return;
+    }
+    for (let i = step; i < target; i += 1) {
+      if (!validateStep(i)) {
+        setStep(i);
+        return;
+      }
+    }
+    clearAll();
+    setStep(target);
   }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
+    // Advance one step at a time; a failing step stays put and shows why.
     if (step < steps.length - 1) {
-      if (stepComplete) setStep((s) => s + 1);
+      if (validateStep(step)) {
+        clearAll();
+        setStep((s) => s + 1);
+      }
       return;
     }
 
-    const invalid = validationStep();
-    if (invalid) {
-      setError(invalid.message);
-      setStep(invalid.step);
+    // Final guard: re-check every step, and land the user on the first one
+    // that still has a problem rather than failing silently at the API.
+    for (let i = 0; i < steps.length - 1; i += 1) {
+      if (!validateStep(i)) {
+        setStep(i);
+        return;
+      }
+    }
+
+    const fileError = validateUploadFile(imageFile, t, "image");
+    if (fileError) {
+      report({ image: fileError });
+      setStep(2);
+      return;
+    }
+    const docError = validateUploadFile(docFile, t, "document");
+    if (docError) {
+      report({ ownershipDocument: docError });
+      setStep(2);
       return;
     }
 
@@ -149,40 +242,24 @@ export default function NewPlatePage() {
 
       await apiFetch("/api/listings", {
         method: "POST",
-        body: JSON.stringify({
-          type,
-          lettersAr,
-          lettersEn,
-          numbers,
-          logo: logoId,
-          classification: classification || null,
-          usageType: usageType || null,
-          shape: shape || null,
-          size: size || null,
-          category: categoryId || null,
-          title,
-          description: description || undefined,
-          price: submissionType === "marketplace" ? Number(price) : null,
-          image: imageData.url,
-          ownershipDocument,
-          contactPhone,
-          contactEmail: contactEmail || undefined,
-          instagram: instagram || undefined,
-          tiktok: tiktok || undefined,
-          snapchat: snapchat || undefined,
-          submissionType,
-        }),
+        body: JSON.stringify({ ...buildPayload(), image: imageData.url, ownershipDocument }),
+        silentErrors: true,
       });
 
       push(t("pages.plateSubmitted"), "success");
       router.push("/my-listings");
       router.refresh();
     } catch (err) {
-      const message = err instanceof ApiClientError ? err.message : t("common.error");
-      setError(message);
-      if (err instanceof ApiClientError && err.code === "unauthorized") {
-        push(t("auction.mustLoginToBid"), "error");
-      }
+      applyApiError(err);
+      // Server-side rejections are field-addressed too: send the user back
+      // to the step that owns the first bad field.
+      const rejected = Object.keys(
+        err && typeof err === "object" && "fieldErrors" in err
+          ? ((err as { fieldErrors: Record<string, string> }).fieldErrors ?? {})
+          : {}
+      );
+      const targetStep = STEP_FIELDS.findIndex((fields) => rejected.some((f) => fields.includes(f)));
+      if (targetStep >= 0) setStep(targetStep);
     } finally {
       setLoading(false);
     }
@@ -216,9 +293,9 @@ export default function NewPlatePage() {
         <span className="relative text-xs text-(--color-text-faint)">{t("pages.livePreviewHint")}</span>
       </div>
 
-      <form onSubmit={onSubmit} noValidate className="rounded-(--radius-xl) border border-(--color-border) bg-(--color-surface)">
+      <form ref={formRef} onSubmit={onSubmit} noValidate className="rounded-(--radius-xl) border border-(--color-border) bg-(--color-surface)">
         <div className="border-b border-(--color-border) p-5 sm:p-6">
-          <Stepper steps={steps} current={step} onStepChange={setStep} />
+          <Stepper steps={steps} current={step} onStepChange={goToStep} />
         </div>
 
         <div className="flex flex-col gap-6 p-5 sm:p-6">
@@ -229,7 +306,12 @@ export default function NewPlatePage() {
 
           {step === 0 && (
             <div className="flex flex-col gap-5">
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
+                role="radiogroup"
+                aria-label={t("pages.howToListQuestion")}
+                aria-invalid={errorFor("submissionType") ? true : undefined}
+              >
                 {SUBMISSION_TYPES.map((option) => {
                   const selected = submissionType === option;
                   const Icon = option === "marketplace" ? Store : Gavel;
@@ -237,14 +319,21 @@ export default function NewPlatePage() {
                     <button
                       key={option}
                       type="button"
-                      onClick={() => setSubmissionType(option)}
-                      aria-pressed={selected}
+                      role="radio"
+                      data-field={option === SUBMISSION_TYPES[0] ? "submissionType" : undefined}
+                      onClick={() => {
+                        setSubmissionType(option);
+                        clearField("submissionType");
+                      }}
+                      aria-checked={selected}
                       className={cn(
                         "flex min-h-32 flex-col gap-3 rounded-(--radius-lg) border p-4 text-start transition-colors",
                         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
                         selected
                           ? "border-(--color-gold) bg-(--color-gold-tint) text-(--color-text)"
-                          : "border-(--color-border) bg-(--color-bg-elevated) text-(--color-text-muted) hover:border-(--color-gold)/50"
+                          : errorFor("submissionType")
+                            ? "border-(--color-danger) bg-(--color-bg-elevated) text-(--color-text-muted)"
+                            : "border-(--color-border) bg-(--color-bg-elevated) text-(--color-text-muted) hover:border-(--color-gold)/50"
                       )}
                     >
                       <span className="flex items-center justify-between gap-3">
@@ -262,13 +351,33 @@ export default function NewPlatePage() {
                 })}
               </div>
 
-              <Input label={t("pages.titleLabel")} value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={150} />
+              {errorFor("submissionType") && (
+                <p role="alert" className="-mt-2 text-xs font-medium text-(--color-danger)">
+                  {errorFor("submissionType")}
+                </p>
+              )}
+
+              <Input
+                label={t("pages.titleLabel")}
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  clearField("title");
+                }}
+                required
+                maxLength={150}
+                {...fieldProps("title")}
+              />
               <Textarea
                 label={t("pages.descriptionLabel")}
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  setDescription(e.target.value);
+                  clearField("description");
+                }}
                 rows={4}
                 maxLength={2000}
+                {...fieldProps("description")}
               />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -276,26 +385,76 @@ export default function NewPlatePage() {
                   <Input
                     label={t("pages.askingPriceLabel")}
                     type="number"
+                    inputMode="numeric"
                     value={price}
-                    onChange={(e) => setPrice(e.target.value)}
+                    onChange={(e) => {
+                      setPrice(e.target.value);
+                      clearField("price");
+                    }}
                     min={1}
+                    step={1}
                     required
+                    {...fieldProps("price")}
                   />
                 )}
                 <Input
                   label={t("pages.contactPhoneLabel")}
+                  type="tel"
+                  inputMode="numeric"
+                  dir="ltr"
                   value={contactPhone}
-                  onChange={(e) => setContactPhone(e.target.value)}
+                  onChange={(e) => {
+                    setContactPhone(e.target.value);
+                    clearField("contactPhone");
+                  }}
                   placeholder="05xxxxxxxx"
                   required
+                  {...fieldProps("contactPhone")}
                 />
-                <Input label={t("pages.contactEmailLabel")} type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
+                <Input
+                  label={t("pages.contactEmailLabel")}
+                  type="email"
+                  dir="ltr"
+                  value={contactEmail}
+                  onChange={(e) => {
+                    setContactEmail(e.target.value);
+                    clearField("contactEmail");
+                  }}
+                  {...fieldProps("contactEmail")}
+                />
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-                <Input label={t("pages.instagramLabel")} value={instagram} onChange={(e) => setInstagram(e.target.value)} />
-                <Input label={t("pages.tiktokLabel")} value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
-                <Input label={t("pages.snapchatLabel")} value={snapchat} onChange={(e) => setSnapchat(e.target.value)} />
+                <Input
+                  label={t("pages.instagramLabel")}
+                  value={instagram}
+                  onChange={(e) => {
+                    setInstagram(e.target.value);
+                    clearField("instagram");
+                  }}
+                  maxLength={60}
+                  {...fieldProps("instagram")}
+                />
+                <Input
+                  label={t("pages.tiktokLabel")}
+                  value={tiktok}
+                  onChange={(e) => {
+                    setTiktok(e.target.value);
+                    clearField("tiktok");
+                  }}
+                  maxLength={60}
+                  {...fieldProps("tiktok")}
+                />
+                <Input
+                  label={t("pages.snapchatLabel")}
+                  value={snapchat}
+                  onChange={(e) => {
+                    setSnapchat(e.target.value);
+                    clearField("snapchat");
+                  }}
+                  maxLength={60}
+                  {...fieldProps("snapchat")}
+                />
               </div>
             </div>
           )}
@@ -306,28 +465,42 @@ export default function NewPlatePage() {
                 <Input
                   label={t("pages.lettersArLabel")}
                   value={lettersAr}
-                  onChange={(e) => setLettersAr(e.target.value)}
+                  onChange={(e) => {
+                    setLettersAr(e.target.value);
+                    clearField("lettersAr");
+                  }}
                   required
                   dir="rtl"
+                  maxLength={10}
                   placeholder={PREVIEW_PLACEHOLDER.lettersAr}
+                  {...fieldProps("lettersAr")}
                 />
                 <Input
                   label={t("pages.lettersEnLabel")}
                   value={lettersEn}
-                  onChange={(e) => setLettersEn(e.target.value.toUpperCase())}
+                  onChange={(e) => {
+                    setLettersEn(e.target.value.toUpperCase());
+                    clearField("lettersEn");
+                  }}
                   required
                   dir="ltr"
+                  maxLength={10}
                   placeholder={PREVIEW_PLACEHOLDER.lettersEn}
+                  {...fieldProps("lettersEn")}
                 />
                 <Input
                   label={t("pages.numbersLabel")}
                   value={numbers}
-                  onChange={(e) => setNumbers(e.target.value.replace(/[^0-9]/g, ""))}
+                  onChange={(e) => {
+                    setNumbers(e.target.value.replace(/[^0-9]/g, ""));
+                    clearField("numbers");
+                  }}
                   inputMode="numeric"
                   maxLength={4}
                   required
                   dir="ltr"
                   placeholder={PREVIEW_PLACEHOLDER.numbers}
+                  {...fieldProps("numbers")}
                 />
               </div>
 
@@ -415,13 +588,33 @@ export default function NewPlatePage() {
                 )}
                 <input
                   id="plate-image-input"
+                  name="image"
                   type="file"
                   accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => setImageFile(e.target.files?.[0] ?? null)}
+                  onChange={(e) => {
+                    const picked = e.target.files?.[0] ?? null;
+                    const problem = validateUploadFile(picked, t, "image");
+                    if (problem) {
+                      // Reject at the picker so the user sees why straight
+                      // away instead of after a failed upload round-trip.
+                      e.target.value = "";
+                      setImageFile(null);
+                      setFieldError("image", problem);
+                      push(problem, "error");
+                      return;
+                    }
+                    setImageFile(picked);
+                    clearField("image");
+                  }}
                   className="sr-only"
                   required
                 />
               </label>
+              {errorFor("image") && (
+                <p role="alert" className="text-xs font-medium text-(--color-danger) lg:col-span-2">
+                  {errorFor("image")}
+                </p>
+              )}
 
               <div className="flex flex-col justify-between gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-5">
                 <div>
@@ -434,12 +627,30 @@ export default function NewPlatePage() {
                 <label className="flex cursor-pointer flex-col gap-2 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) p-4 text-sm text-(--color-text) transition-colors hover:border-(--color-gold)/50">
                   <span>{docFile ? docFile.name : t("common.optional")}</span>
                   <input
+                    name="ownershipDocument"
                     type="file"
                     accept="image/jpeg,image/png,image/webp,application/pdf"
-                    onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+                    onChange={(e) => {
+                      const picked = e.target.files?.[0] ?? null;
+                      const problem = validateUploadFile(picked, t, "document");
+                      if (problem) {
+                        e.target.value = "";
+                        setDocFile(null);
+                        setFieldError("ownershipDocument", problem);
+                        push(problem, "error");
+                        return;
+                      }
+                      setDocFile(picked);
+                      clearField("ownershipDocument");
+                    }}
                     className="text-xs text-(--color-text-muted)"
                   />
                 </label>
+                {errorFor("ownershipDocument") && (
+                  <p role="alert" className="text-xs font-medium text-(--color-danger)">
+                    {errorFor("ownershipDocument")}
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -473,7 +684,16 @@ export default function NewPlatePage() {
             </dl>
           )}
 
-          {error && <p className="text-sm font-medium text-(--color-danger)">{error}</p>}
+          {formError && (
+            <p role="alert" className="text-sm font-medium text-(--color-danger)">
+              {formError}
+            </p>
+          )}
+          {!formError && Object.keys(errors).length > 0 && (
+            <p role="alert" className="text-sm font-medium text-(--color-danger)">
+              {t("validation.errorsCount", { count: Object.keys(errors).length })}
+            </p>
+          )}
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-(--color-border) bg-black/20 p-5">
@@ -482,7 +702,10 @@ export default function NewPlatePage() {
             {t("common.back")}
           </Button>
 
-          <Button type="submit" variant="gold" size="lg" loading={loading} disabled={!stepComplete && step < steps.length - 1}>
+          {/* Deliberately always enabled: a disabled button tells the user
+              nothing. Pressing it runs validation and names what is
+              missing, both inline and as a toast. */}
+          <Button type="submit" variant="gold" size="lg" loading={loading}>
             {step === steps.length - 1 ? (
               <>
                 <Check className="h-4.5 w-4.5" aria-hidden="true" />

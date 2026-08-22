@@ -6,7 +6,7 @@ import { PlateCategory } from "@/models/PlateCategory";
 import { Auction } from "@/models/Auction";
 import { AuditLog } from "@/models/AuditLog";
 import { getSession, requireSession, hasPermission } from "@/lib/auth";
-import { listingUpdateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { deleteImage } from "@/lib/storage";
 import { deleteOwnershipDocument } from "@/lib/privateStorage";
@@ -59,6 +59,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     if (!plate) throw Errors.notFound("اللوحة");
     if (!isOwnerOrStaff(session, plate)) throw Errors.forbidden();
 
+    const { listingUpdateSchema } = await getLocalizedSchemas();
     const body = listingUpdateSchema.parse(await req.json());
 
     if (body.logo) {

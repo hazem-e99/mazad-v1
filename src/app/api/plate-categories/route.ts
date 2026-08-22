@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { PlateCategory } from "@/models/PlateCategory";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { plateCategoryCreateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError } from "@/lib/api";
 import { toPlateCategoryDTOList, type LeanPlateCategory } from "@/lib/dto";
 
@@ -22,6 +22,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await requirePermission("category:manage");
+    const { plateCategoryCreateSchema } = await getLocalizedSchemas();
     const body = plateCategoryCreateSchema.parse(await req.json());
     await connectDB();
     const category = await PlateCategory.create({ ...body, createdBy: session.sub });

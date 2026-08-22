@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ImagePlus } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { Input, Checkbox } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
+import { useFormValidation } from "@/hooks/useFormValidation";
+import { validateUploadFile } from "@/lib/fileValidation";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import type { PlateLogoDTO } from "@/types/dto";
 
@@ -26,7 +28,9 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
   const [sortOrder, setSortOrder] = useState(String(initial?.sortOrder ?? 0));
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { schemas, errorFor, fieldProps, formError, validate, applyApiError, setFieldError, clearField } =
+    useFormValidation(formRef);
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
@@ -39,10 +43,24 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
-    if (mode === "create" && !file) {
-      setError(t("admin.logoImageRequired"));
+    const parsedSortOrder = sortOrder.trim() === "" ? 0 : Number(sortOrder);
+    const existingImage = mode === "edit" ? initial?.image : undefined;
+    const data = validate(schemas.plateLogoCreateSchema, {
+      nameAr,
+      nameEn,
+      isActive,
+      sortOrder: Number.isFinite(parsedSortOrder) ? parsedSortOrder : NaN,
+      // On edit the already-stored image satisfies the requirement; on
+      // create only a freshly picked file does.
+      image: file ? "pending-upload" : existingImage ?? "",
+    });
+    if (!data) return;
+
+    const fileProblem = validateUploadFile(file, t, "image");
+    if (fileProblem) {
+      setFieldError("image", fileProblem);
+      push(fileProblem, "error");
       return;
     }
 
@@ -53,30 +71,31 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("subdir", "plate-logos");
-        const uploadData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: formData });
+        const uploadData = await apiFetch<{ url: string }>("/api/uploads", {
+          method: "POST",
+          body: formData,
+          silentErrors: true,
+        });
         imageUrl = uploadData.url;
       }
 
-      const payload = {
-        nameAr,
-        nameEn,
-        image: imageUrl,
-        isActive,
-        sortOrder: Number(sortOrder) || 0,
-      };
+      const payload = { ...data, image: imageUrl };
 
       if (mode === "create") {
-        await apiFetch("/api/plate-logos", { method: "POST", body: JSON.stringify(payload) });
+        await apiFetch("/api/plate-logos", { method: "POST", body: JSON.stringify(payload), silentErrors: true });
         push(t("admin.logoCreated"), "success");
       } else {
-        await apiFetch(`/api/plate-logos/${initial!._id}`, { method: "PATCH", body: JSON.stringify(payload) });
+        await apiFetch(`/api/plate-logos/${initial!._id}`, {
+          method: "PATCH",
+          body: JSON.stringify(payload),
+          silentErrors: true,
+        });
         push(t("admin.logoUpdated"), "success");
       }
       router.push("/admin/plate-logos");
       router.refresh();
     } catch (err) {
-      const message = err instanceof ApiClientError ? err.message : mode === "create" ? t("admin.logoCreateFailed") : t("admin.logoUpdateFailed");
-      setError(message);
+      applyApiError(err, mode === "create" ? t("admin.logoCreateFailed") : t("admin.logoUpdateFailed"));
     } finally {
       setLoading(false);
     }
@@ -85,7 +104,7 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
   return (
     <Card className="mx-auto w-full max-w-[820px] border-(--color-border) bg-(--color-surface) shadow-(--shadow-card)">
       <CardBody className="flex flex-col gap-5 p-5 sm:p-6 lg:p-7">
-        <form onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
+        <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-5" noValidate>
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-(--color-text)">
               {t("admin.logoImageLabel")}
@@ -106,29 +125,80 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
               )}
               <input
                 id="plate-logo-image-input"
+                name="image"
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => {
+                  const picked = e.target.files?.[0] ?? null;
+                  const problem = validateUploadFile(picked, t, "image");
+                  if (problem) {
+                    e.target.value = "";
+                    setFile(null);
+                    setFieldError("image", problem);
+                    push(problem, "error");
+                    return;
+                  }
+                  setFile(picked);
+                  clearField("image");
+                }}
                 className="sr-only"
               />
             </label>
+            {errorFor("image") && (
+              <p role="alert" className="text-xs font-medium text-(--color-danger)">
+                {errorFor("image")}
+              </p>
+            )}
           </div>
 
-          <Input label={t("admin.colNameAr")} value={nameAr} onChange={(e) => setNameAr(e.target.value)} required dir="rtl" />
-          <Input label={t("admin.colNameEn")} value={nameEn} onChange={(e) => setNameEn(e.target.value)} required dir="ltr" />
+          <Input
+            label={t("admin.colNameAr")}
+            value={nameAr}
+            onChange={(e) => {
+              setNameAr(e.target.value);
+              clearField("nameAr");
+            }}
+            required
+            dir="rtl"
+            maxLength={100}
+            {...fieldProps("nameAr")}
+          />
+          <Input
+            label={t("admin.colNameEn")}
+            value={nameEn}
+            onChange={(e) => {
+              setNameEn(e.target.value);
+              clearField("nameEn");
+            }}
+            required
+            dir="ltr"
+            maxLength={100}
+            {...fieldProps("nameEn")}
+          />
           <Input
             label={t("admin.logoSortOrderLabel")}
             type="number"
+            inputMode="numeric"
+            step={1}
             value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value)}
+            onChange={(e) => {
+              setSortOrder(e.target.value);
+              clearField("sortOrder");
+            }}
+            {...fieldProps("sortOrder")}
           />
 
-          <label className="flex items-center gap-2.5 text-sm text-(--color-text)">
-            <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} className="h-4 w-4 accent-(--color-gold)" />
-            {t("admin.logoActiveLabel")}
-          </label>
+          <Checkbox
+            label={t("admin.logoActiveLabel")}
+            checked={isActive}
+            onChange={(e) => setIsActive(e.target.checked)}
+          />
 
-          {error && <p className="text-sm text-(--color-danger)">{error}</p>}
+          {formError && (
+            <p role="alert" className="text-sm font-medium text-(--color-danger)">
+              {formError}
+            </p>
+          )}
 
           <Button type="submit" variant="gold" size="lg" loading={loading} className="mt-1">
             {t("admin.saveLogoButton")}

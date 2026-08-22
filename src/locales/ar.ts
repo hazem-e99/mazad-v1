@@ -244,6 +244,77 @@ export interface MessageCatalog {
     statActiveBids: string;
     statWon: string;
   };
+  /** Field- and form-level validation copy. Zod schemas reference these
+   * keys rather than literal strings, so the same rule renders in the
+   * reader's language on both the client and the server. */
+  validation: {
+    fixBeforeContinue: string;
+    fixBeforeSubmit: string;
+    stepIncomplete: string;
+    errorsCount: string;
+    required: string;
+    selectRequired: string;
+    tooShort: string;
+    tooLong: string;
+    nameRequired: string;
+    nameTooShort: string;
+    nameTooLong: string;
+    nameArRequired: string;
+    nameEnRequired: string;
+    phoneRequired: string;
+    phoneInvalid: string;
+    contactPhoneInvalid: string;
+    passwordRequired: string;
+    passwordTooShort: string;
+    passwordTooLong: string;
+    emailRequired: string;
+    emailInvalid: string;
+    numberRequired: string;
+    numberInvalid: string;
+    integerRequired: string;
+    priceRequired: string;
+    pricePositive: string;
+    priceNotNegative: string;
+    priceTooLarge: string;
+    startingPriceNotNegative: string;
+    minIncrementMin: string;
+    bidPositive: string;
+    bidBelowMinimum: string;
+    bidIncrementMismatch: string;
+    directPurchaseRequired: string;
+    directPurchaseAboveStart: string;
+    sortOrderInteger: string;
+    plateRequired: string;
+    plateTypeRequired: string;
+    lettersArRequired: string;
+    lettersArInvalid: string;
+    lettersEnRequired: string;
+    lettersEnInvalid: string;
+    lettersTooLong: string;
+    numbersRequired: string;
+    numbersInvalid: string;
+    titleRequired: string;
+    titleTooShort: string;
+    titleTooLong: string;
+    descriptionTooLong: string;
+    rejectionReasonRequired: string;
+    handleTooLong: string;
+    submissionTypeRequired: string;
+    imageRequired: string;
+    plateImageRequired: string;
+    logoImageRequired: string;
+    fileTypeInvalid: string;
+    documentTypeInvalid: string;
+    fileTooLarge: string;
+    dateRequired: string;
+    dateInvalid: string;
+    endBeforeStart: string;
+    endInPast: string;
+    durationTooShort: string;
+    invalidId: string;
+    messageRequired: string;
+    messageTooLong: string;
+  };
   errors: {
     notFoundTitle: string;
     notFoundHint: string;
@@ -661,6 +732,13 @@ export interface MessageCatalog {
     permCategoryManage: string;
     permListingModerate: string;
     permOwnershipDocumentView: string;
+
+    realtimeLive: string;
+    realtimeConnecting: string;
+    realtimeOffline: string;
+    realtimeUnauthorized: string;
+    liveBidsHeader: string;
+    awaitingLiveBids: string;
   };
 }
 
@@ -909,6 +987,74 @@ const ar: MessageCatalog = {
     statPlates: "لوحاتي",
     statActiveBids: "مزادات نشطة",
     statWon: "مزادات فزت بها",
+  },
+  validation: {
+    fixBeforeContinue: "يرجى استكمال البيانات المطلوبة قبل المتابعة.",
+    fixBeforeSubmit: "يرجى تصحيح الأخطاء المذكورة قبل الإرسال.",
+    stepIncomplete: "الخطوة {step} تحتوي على حقول ناقصة.",
+    errorsCount: "يوجد {count} حقل يحتاج إلى تصحيح.",
+    required: "هذا الحقل مطلوب.",
+    selectRequired: "يرجى اختيار أحد الخيارات.",
+    tooShort: "يجب ألا يقل عن {min} أحرف.",
+    tooLong: "يجب ألا يزيد عن {max} حرفًا.",
+    nameRequired: "يرجى إدخال الاسم.",
+    nameTooShort: "الاسم قصير جدًا، حرفان على الأقل.",
+    nameTooLong: "الاسم طويل جدًا، 100 حرف كحد أقصى.",
+    nameArRequired: "يرجى إدخال الاسم بالعربية.",
+    nameEnRequired: "يرجى إدخال الاسم بالإنجليزية.",
+    phoneRequired: "يرجى إدخال رقم الجوال.",
+    phoneInvalid: "رقم الجوال غير صحيح، يجب أن يبدأ بـ 05 ويتكون من 10 أرقام.",
+    contactPhoneInvalid: "رقم جوال سعودي غير صالح، مثال: 0512345678.",
+    passwordRequired: "يرجى إدخال كلمة المرور.",
+    passwordTooShort: "كلمة المرور يجب ألا تقل عن 8 أحرف.",
+    passwordTooLong: "كلمة المرور طويلة جدًا، 100 حرف كحد أقصى.",
+    emailRequired: "يرجى إدخال البريد الإلكتروني.",
+    emailInvalid: "صيغة البريد الإلكتروني غير صحيحة.",
+    numberRequired: "يرجى إدخال رقم.",
+    numberInvalid: "يرجى إدخال رقم صحيح.",
+    integerRequired: "يجب إدخال رقم صحيح بدون كسور.",
+    priceRequired: "يرجى إدخال السعر.",
+    pricePositive: "السعر يجب أن يكون أكبر من صفر.",
+    priceNotNegative: "السعر لا يمكن أن يكون سالبًا.",
+    priceTooLarge: "السعر أكبر من الحد المسموح به.",
+    startingPriceNotNegative: "سعر البداية لا يمكن أن يكون سالبًا.",
+    minIncrementMin: "الحد الأدنى للزيادة يجب أن يكون ريالًا واحدًا على الأقل.",
+    bidPositive: "قيمة المزايدة يجب أن تكون أكبر من صفر.",
+    bidBelowMinimum: "يجب أن تكون المزايدة {min} ريال على الأقل.",
+    bidIncrementMismatch: "قيمة المزايدة يجب أن تكون من مضاعفات {step} ريال.",
+    directPurchaseRequired: "سعر الشراء المباشر مطلوب عند تفعيله.",
+    directPurchaseAboveStart: "سعر الشراء المباشر يجب أن يكون أعلى من سعر البداية.",
+    sortOrderInteger: "ترتيب العرض يجب أن يكون رقمًا صحيحًا.",
+    plateRequired: "يرجى اختيار اللوحة.",
+    plateTypeRequired: "يرجى اختيار نوع اللوحة.",
+    lettersArRequired: "يرجى إدخال حروف اللوحة بالعربية.",
+    lettersArInvalid: "يرجى إدخال حروف عربية فقط.",
+    lettersEnRequired: "يرجى إدخال حروف اللوحة بالإنجليزية.",
+    lettersEnInvalid: "يرجى إدخال حروف إنجليزية فقط.",
+    lettersTooLong: "الحروف يجب ألا تزيد عن 10 خانات.",
+    numbersRequired: "يرجى إدخال أرقام اللوحة.",
+    numbersInvalid: "الأرقام يجب أن تكون من 1 إلى 4 خانات.",
+    titleRequired: "يرجى إدخال العنوان.",
+    titleTooShort: "العنوان قصير جدًا، حرفان على الأقل.",
+    titleTooLong: "العنوان يجب ألا يزيد عن 150 حرفًا.",
+    descriptionTooLong: "الوصف يجب ألا يزيد عن 2000 حرف.",
+    rejectionReasonRequired: "يرجى كتابة سبب الرفض.",
+    handleTooLong: "المعرّف يجب ألا يزيد عن 60 حرفًا.",
+    submissionTypeRequired: "يرجى اختيار طريقة عرض اللوحة.",
+    imageRequired: "يرجى اختيار صورة.",
+    plateImageRequired: "صورة اللوحة الفعلية مطلوبة.",
+    logoImageRequired: "صورة الشعار مطلوبة.",
+    fileTypeInvalid: "نوع الملف غير مدعوم، يُسمح فقط بـ JPEG أو PNG أو WEBP.",
+    documentTypeInvalid: "نوع الملف غير مدعوم، يُسمح فقط بـ JPEG أو PNG أو WEBP أو PDF.",
+    fileTooLarge: "حجم الملف يتجاوز الحد المسموح به ({max} ميجابايت).",
+    dateRequired: "يرجى تحديد التاريخ والوقت.",
+    dateInvalid: "التاريخ المدخل غير صالح.",
+    endBeforeStart: "وقت الانتهاء يجب أن يكون بعد وقت البداية.",
+    endInPast: "وقت الانتهاء يجب أن يكون في المستقبل.",
+    durationTooShort: "مدة المزاد يجب ألا تقل عن دقيقة واحدة.",
+    invalidId: "معرّف غير صالح.",
+    messageRequired: "يرجى كتابة رسالة قبل الإرسال.",
+    messageTooLong: "الرسالة يجب ألا تزيد عن 500 حرف.",
   },
   errors: {
     notFoundTitle: "الصفحة غير موجودة",
@@ -1322,6 +1468,13 @@ const ar: MessageCatalog = {
     permCategoryManage: "إدارة فئات اللوحات",
     permListingModerate: "مراجعة العروض",
     permOwnershipDocumentView: "الاطلاع على مستندات إثبات الملكية",
+
+    realtimeLive: "مباشر",
+    realtimeConnecting: "جارٍ الاتصال...",
+    realtimeOffline: "انقطع الاتصال — جارٍ إعادة المحاولة",
+    realtimeUnauthorized: "لا توجد صلاحية للبث المباشر",
+    liveBidsHeader: "المزايدات المباشرة",
+    awaitingLiveBids: "في انتظار أول مزايدة — ستظهر هنا فور وصولها بدون تحديث الصفحة.",
   },
 };
 

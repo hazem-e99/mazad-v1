@@ -5,7 +5,7 @@ import { PlateLogo } from "@/models/PlateLogo";
 import { PlateCategory } from "@/models/PlateCategory";
 import { AuditLog } from "@/models/AuditLog";
 import { requireSession, getSession, hasPermission } from "@/lib/auth";
-import { listingSubmitSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 import { toPlateDTOList, type LeanPlate } from "@/lib/dto";
@@ -96,6 +96,7 @@ export async function POST(req: NextRequest) {
     const session = await requireSession();
     if (!rateLimit(`listing:${session.sub}`, 6, 60_000)) throw Errors.rateLimited();
 
+    const { listingSubmitSchema } = await getLocalizedSchemas();
     const body = listingSubmitSchema.parse(await req.json());
     await connectDB();
 

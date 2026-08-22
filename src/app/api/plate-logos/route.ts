@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { PlateLogo } from "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { plateLogoCreateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError } from "@/lib/api";
 import { toPlateLogoDTOList, type LeanPlateLogo } from "@/lib/dto";
 
@@ -30,6 +30,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const session = await requirePermission("plate_logo:manage");
+    const { plateLogoCreateSchema } = await getLocalizedSchemas();
     const body = plateLogoCreateSchema.parse(await req.json());
     await connectDB();
 

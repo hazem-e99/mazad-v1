@@ -4,7 +4,7 @@ import { PlateLogo } from "@/models/PlateLogo";
 import { Plate } from "@/models/Plate";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { plateLogoUpdateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { deleteImage } from "@/lib/storage";
 
@@ -16,6 +16,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const session = await requirePermission("plate_logo:manage");
+    const { plateLogoUpdateSchema } = await getLocalizedSchemas();
     const body = plateLogoUpdateSchema.parse(await req.json());
     await connectDB();
 

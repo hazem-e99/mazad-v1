@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Plate } from "@/models/Plate";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { moderationDecisionSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { MODERATION_TRANSITIONS, type ModerationStatus } from "@/lib/constants";
 
@@ -15,6 +15,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const session = await requirePermission("listing:moderate");
+    const { moderationDecisionSchema } = await getLocalizedSchemas();
     const body = moderationDecisionSchema.parse(await req.json());
     await connectDB();
 

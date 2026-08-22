@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Input } from "@/components/ui/Input";
+import { Input, Select, Checkbox } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
 import { PlateRenderer } from "@/components/plate/PlateRenderer";
-import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
+import { useFormValidation } from "@/hooks/useFormValidation";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { AUCTION_CATEGORIES } from "@/lib/constants";
 import type { AuctionCategory, PlateType } from "@/lib/constants";
@@ -47,7 +48,8 @@ export default function AdminNewAuctionPage() {
   const [directPurchaseEnabled, setDirectPurchaseEnabled] = useState(false);
   const [directPurchasePrice, setDirectPurchasePrice] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const { schemas, fieldProps, formError, validate, applyApiError, clearField } = useFormValidation(formRef);
 
   useEffect(() => {
     apiFetch<{ items: PlateOption[] }>("/api/plates?limit=100")
@@ -59,33 +61,39 @@ export default function AdminNewAuctionPage() {
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
 
-    if (!plateId) {
-      setError(t("admin.selectPlateRequired"));
-      return;
-    }
+    // The same schema the POST handler parses: date ordering, minimum
+    // duration, "end must be in the future", and the direct-purchase
+    // price rules are all checked here before anything is sent.
+    const data = validate(schemas.auctionSchema, {
+      plate: plateId,
+      category,
+      startingPrice: startingPrice.trim() === "" ? undefined : Number(startingPrice),
+      minIncrement: minIncrement.trim() === "" ? undefined : Number(minIncrement),
+      startAt,
+      endAt,
+      directPurchaseEnabled,
+      directPurchasePrice:
+        directPurchaseEnabled && directPurchasePrice.trim() !== "" ? Number(directPurchasePrice) : null,
+    });
+    if (!data) return;
 
     setLoading(true);
     try {
       const created = await apiFetch<{ _id: string }>("/api/auctions", {
         method: "POST",
         body: JSON.stringify({
-          plate: plateId,
-          category,
-          startingPrice: Number(startingPrice),
-          minIncrement: Number(minIncrement),
-          startAt: new Date(startAt).toISOString(),
-          endAt: new Date(endAt).toISOString(),
-          directPurchaseEnabled,
-          directPurchasePrice: directPurchaseEnabled ? Number(directPurchasePrice) : null,
+          ...data,
+          startAt: data.startAt.toISOString(),
+          endAt: data.endAt.toISOString(),
         }),
+        silentErrors: true,
       });
       push(t("admin.auctionCreated"), "success");
       router.push(`/admin/auctions/${created._id}`);
       router.refresh();
     } catch (err) {
-      setError(err instanceof ApiClientError ? err.message : t("admin.auctionCreateFailed"));
+      applyApiError(err, t("admin.auctionCreateFailed"));
     } finally {
       setLoading(false);
     }
@@ -110,42 +118,39 @@ export default function AdminNewAuctionPage() {
             </div>
           )}
 
-          <form onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
+          <form ref={formRef} onSubmit={onSubmit} className="flex flex-col gap-6" noValidate>
             <div className="flex flex-col gap-4">
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-(--color-text)">
-                  {t("admin.fieldPlate")}
-                  <span className="text-(--color-gold) ms-0.5" aria-hidden="true">*</span>
-                </span>
-                <select
-                  value={plateId}
-                  onChange={(e) => setPlateId(e.target.value)}
-                  required
-                  className="h-10 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm text-(--color-text) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
-                >
-                  <option value="">{t("admin.choosePlate")}</option>
-                  {plates.map((p) => (
-                    <option key={p._id} value={p._id}>
-                      {p.lettersAr} {p.numbers} ({p.lettersEn})
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <Select
+                label={t("admin.fieldPlate")}
+                required
+                value={plateId}
+                onChange={(e) => {
+                  setPlateId(e.target.value);
+                  clearField("plate");
+                }}
+                {...fieldProps("plate")}
+                error={fieldProps("plate").error ?? undefined}
+              >
+                <option value="">{t("admin.choosePlate")}</option>
+                {plates.map((p) => (
+                  <option key={p._id} value={p._id}>
+                    {p.lettersAr} {p.numbers} ({p.lettersEn})
+                  </option>
+                ))}
+              </Select>
 
-              <label className="flex flex-col gap-1.5">
-                <span className="text-sm font-medium text-(--color-text)">{t("admin.fieldCategory")}</span>
-                <select
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value as AuctionCategory)}
-                  className="h-10 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm text-(--color-text) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
-                >
-                  {AUCTION_CATEGORIES.map((c) => (
-                    <option key={c} value={c}>
-                      {c === "exclusive" ? t("auction.exclusiveBadge") : t("admin.categoryRegular")}
-                    </option>
-                  ))}
-                </select>
-              </label>
+              <Select
+                label={t("admin.fieldCategory")}
+                value={category}
+                onChange={(e) => setCategory(e.target.value as AuctionCategory)}
+                {...fieldProps("category")}
+              >
+                {AUCTION_CATEGORIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c === "exclusive" ? t("auction.exclusiveBadge") : t("admin.categoryRegular")}
+                  </option>
+                ))}
+              </Select>
             </div>
 
             <div className="flex flex-col gap-4 pt-5 border-t border-(--color-border)">
@@ -154,16 +159,30 @@ export default function AdminNewAuctionPage() {
                 <Input
                   label={t("admin.fieldStartingPrice")}
                   type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1}
                   value={startingPrice}
-                  onChange={(e) => setStartingPrice(e.target.value)}
+                  onChange={(e) => {
+                    setStartingPrice(e.target.value);
+                    clearField("startingPrice");
+                  }}
                   required
+                  {...fieldProps("startingPrice")}
                 />
                 <Input
                   label={t("admin.fieldMinIncrement")}
                   type="number"
+                  inputMode="numeric"
+                  min={1}
+                  step={1}
                   value={minIncrement}
-                  onChange={(e) => setMinIncrement(e.target.value)}
+                  onChange={(e) => {
+                    setMinIncrement(e.target.value);
+                    clearField("minIncrement");
+                  }}
                   required
+                  {...fieldProps("minIncrement")}
                 />
               </div>
             </div>
@@ -175,44 +194,65 @@ export default function AdminNewAuctionPage() {
                   label={t("admin.fieldStartTime")}
                   type="datetime-local"
                   value={startAt}
-                  onChange={(e) => setStartAt(e.target.value)}
+                  onChange={(e) => {
+                    setStartAt(e.target.value);
+                    clearField("startAt");
+                    clearField("endAt");
+                  }}
                   required
+                  {...fieldProps("startAt")}
                 />
                 <Input
                   label={t("admin.fieldEndTime")}
                   type="datetime-local"
                   value={endAt}
-                  onChange={(e) => setEndAt(e.target.value)}
+                  // The end field owns the cross-field rules (after start,
+                  // long enough, in the future), so its error renders here.
+                  min={startAt}
+                  onChange={(e) => {
+                    setEndAt(e.target.value);
+                    clearField("endAt");
+                  }}
                   required
+                  {...fieldProps("endAt")}
                 />
               </div>
             </div>
 
             <div className="flex flex-col gap-4 pt-5 border-t border-(--color-border)">
               <h2 className="text-xs font-semibold uppercase tracking-wide text-(--color-text-faint)">{t("admin.sectionPurchase")}</h2>
-              <label className="flex items-center gap-2.5 text-sm text-(--color-text)">
-                <input
-                  type="checkbox"
-                  checked={directPurchaseEnabled}
-                  onChange={(e) => setDirectPurchaseEnabled(e.target.checked)}
-                  className="h-4 w-4 accent-(--color-gold)"
-                />
-                {t("admin.enableDirectPurchase")}
-              </label>
+              <Checkbox
+                label={t("admin.enableDirectPurchase")}
+                checked={directPurchaseEnabled}
+                onChange={(e) => {
+                  setDirectPurchaseEnabled(e.target.checked);
+                  clearField("directPurchasePrice");
+                }}
+              />
 
               {directPurchaseEnabled && (
                 <Input
                   label={t("admin.fieldDirectPurchasePrice")}
                   type="number"
+                  inputMode="numeric"
+                  min={1}
+                  step={1}
                   value={directPurchasePrice}
-                  onChange={(e) => setDirectPurchasePrice(e.target.value)}
+                  onChange={(e) => {
+                    setDirectPurchasePrice(e.target.value);
+                    clearField("directPurchasePrice");
+                  }}
                   required
-                  error={error ?? undefined}
+                  {...fieldProps("directPurchasePrice")}
                 />
               )}
             </div>
 
-            {!directPurchaseEnabled && error && <p className="text-sm text-(--color-danger)">{error}</p>}
+            {formError && (
+              <p role="alert" className="text-sm font-medium text-(--color-danger)">
+                {formError}
+              </p>
+            )}
 
             <Button type="submit" variant="gold" size="lg" loading={loading} className="mt-1">
               {t("admin.createAuctionSubmit")}

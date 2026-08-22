@@ -4,7 +4,7 @@ import { Plate } from "@/models/Plate";
 import { PlateLogo } from "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
-import { plateSchema } from "@/lib/validation";
+import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 
 interface Params {
@@ -27,6 +27,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const session = await requirePermission("plate:manage");
+    const { plateSchema } = await getLocalizedSchemas();
     const body = plateSchema.partial().parse(await req.json());
     await connectDB();
 
