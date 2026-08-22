@@ -1,9 +1,30 @@
 import { connectDB } from "@/lib/db";
 import { Auction } from "@/models/Auction";
 import { Plate } from "@/models/Plate";
+import { Bid } from "@/models/Bid";
 import "@/models/User";
 import "@/models/PlateLogo";
 import { toAuctionDTOList, toPlateDTO, type LeanAuction, type LeanPlate } from "@/lib/dto";
+
+/** Brand claim, not a measured figure — the platform has no satisfaction
+ * survey, so it is stated here rather than dressed up as a query result. */
+const SATISFACTION_CLAIM = 98;
+
+/**
+ * The three figures behind the home page's proof band. Counts come from
+ * the same collections the admin dashboard reads, so the public number
+ * and the internal number can never disagree.
+ */
+export async function getPlatformStats() {
+  await connectDB();
+
+  const [totalBids, soldPlates] = await Promise.all([
+    Bid.countDocuments({ accepted: true }),
+    Auction.countDocuments({ status: { $in: ["sold", "purchased"] } }),
+  ]);
+
+  return { totalBids, soldPlates, satisfaction: SATISFACTION_CLAIM };
+}
 
 export async function getHomeAuctions() {
   await connectDB();
@@ -50,12 +71,27 @@ export async function getExclusiveAuctions(limit = 12) {
 
 const COMPLETED_STATUSES = ["sold", "unsold", "purchased"];
 
+/**
+ * Sort orders offered to the listing UI. Whitelisted rather than passed
+ * through, so a hand-edited `?sort=` can never reach Mongo as an
+ * arbitrary sort spec.
+ */
+const SORT_ORDERS: Record<string, Record<string, 1 | -1>> = {
+  ending: { endAt: 1 },
+  newest: { createdAt: -1 },
+  price_asc: { currentPrice: 1 },
+  price_desc: { currentPrice: -1 },
+};
+
+const DEFAULT_SORT: Record<string, 1 | -1> = { status: 1, endAt: 1 };
+
 export async function getAuctionsList(params: {
   status?: string;
   category?: string;
   vip?: boolean;
   plateType?: string;
   search?: string;
+  sort?: string;
   page?: number;
 }) {
   await connectDB();
@@ -89,7 +125,7 @@ export async function getAuctionsList(params: {
 
   const [items, total] = await Promise.all([
     Auction.find(filter)
-      .sort({ status: 1, endAt: 1 })
+      .sort((params.sort && SORT_ORDERS[params.sort]) || DEFAULT_SORT)
       .skip((page - 1) * limit)
       .limit(limit)
       .populate({ path: "plate", populate: { path: "logo" } })

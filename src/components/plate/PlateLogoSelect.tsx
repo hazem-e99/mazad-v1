@@ -112,7 +112,7 @@ export function PlateLogoSelect({ value, onChange, logos, loadError = false, lab
             }
           }}
           disabled={loading || loadError}
-          className="flex h-11 w-full items-center gap-2.5 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm text-(--color-text) disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-brand)"
+          className="flex h-11 w-full items-center gap-2.5 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm text-(--color-text) disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
         >
           {loading ? (
             <span className="text-(--color-text-faint)">{t("common.loading")}</span>

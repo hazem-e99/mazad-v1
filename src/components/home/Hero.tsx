@@ -20,15 +20,11 @@ export function Hero({ featured, vipPlates, liveCount }: HeroProps) {
 
   return (
     <section className="relative -mt-px overflow-hidden border-b border-(--color-border)">
-      {/* The backdrop is pinned to the bottom of the section so the horizon
-          line sits under the content rather than behind the headline. */}
+      {/* The photograph and its scrims live in one component, so the section
+          only owns layout. The backdrop carries its own top/bottom fades. */}
       <HeroBackdrop className="pointer-events-none absolute inset-0 h-full w-full" />
-      <span
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-linear-to-t from-(--color-bg) to-transparent"
-      />
 
-      <div className="mz-container relative grid grid-cols-1 items-center gap-10 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:py-20">
+      <div className="mz-container relative grid min-h-[32rem] grid-cols-1 items-center gap-10 py-14 lg:min-h-[36rem] lg:grid-cols-[1.1fr_0.9fr] lg:gap-14 lg:py-20">
         {/* ── Copy ─────────────────────────────────────────────────────
             First in the DOM, so mobile stacks heading → description → CTA
             → featured card without any order juggling (§49). */}

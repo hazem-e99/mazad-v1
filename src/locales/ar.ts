@@ -13,6 +13,10 @@ export interface MessageCatalog {
     closeMenu: string;
     mainNav: string;
     mobileNav: string;
+    myAccount: string;
+    myPlates: string;
+    myBids: string;
+    dashboard: string;
   };
   footer: {
     tagline: string;
@@ -20,11 +24,35 @@ export interface MessageCatalog {
     contact: string;
     contactHint: string;
     rights: string;
+    downloadOn: string;
+    getItOn: string;
   };
   home: {
     badge: string;
     title: string;
+    titleLine1: string;
+    titleHighlight: string;
+    titleLine2: string;
     subtitle: string;
+    viewAuction: string;
+    browseUpcoming: string;
+    trustLabel: string;
+    trustSecure: string;
+    trustSecureHint: string;
+    trustLive: string;
+    trustLiveHint: string;
+    trustExclusive: string;
+    trustExclusiveHint: string;
+    trustSupport: string;
+    trustSupportHint: string;
+    statsLabel: string;
+    statBids: string;
+    statSatisfaction: string;
+    statSold: string;
+    noVipPlatesHint: string;
+    noUpcomingAuctionsHint: string;
+    noResultsHint: string;
+    completedResultsSubtitle: string;
     browseAuctions: string;
     vipPlates: string;
     liveAuctions: string;
@@ -66,8 +94,22 @@ export interface MessageCatalog {
   auction: {
     live: string;
     liveNow: string;
+    draft: string;
     scheduled: string;
+    startsAt: string;
     notStartedYet: string;
+    unitHours: string;
+    unitMinutes: string;
+    unitSeconds: string;
+    dayShort: string;
+    auctionEnded: string;
+    timeRemainingSr: string;
+    bidNow: string;
+    bidsLabel: string;
+    bidHistory: string;
+    minIncrementLabel: string;
+    auctionDetails: string;
+    stickyBidLabel: string;
     sold: string;
     unsold: string;
     purchased: string;
@@ -140,6 +182,72 @@ export interface MessageCatalog {
     yes: string;
     no: string;
     close: string;
+    filters: string;
+    pagination: string;
+    back: string;
+    continue: string;
+    submit: string;
+    step: string;
+    optional: string;
+    all: string;
+    none: string;
+    retry: string;
+    goHome: string;
+  };
+  account: {
+    title: string;
+    subtitle: string;
+    navProfile: string;
+    navPlates: string;
+    navBids: string;
+    navSecurity: string;
+    profileTitle: string;
+    profileSubtitle: string;
+    securityTitle: string;
+    securitySubtitle: string;
+    securityHint: string;
+    fieldName: string;
+    fieldPhone: string;
+    fieldEmail: string;
+    fieldRole: string;
+    memberSince: string;
+    platesTitle: string;
+    platesSubtitle: string;
+    plateTabAll: string;
+    plateTabInAuction: string;
+    plateTabReview: string;
+    plateTabSold: string;
+    plateTabInactive: string;
+    noPlates: string;
+    noPlatesHint: string;
+    bidsTitle: string;
+    bidsSubtitle: string;
+    bidTabAll: string;
+    bidTabWinning: string;
+    bidTabOutbid: string;
+    bidTabWon: string;
+    bidTabEnded: string;
+    noBids: string;
+    noBidsHint: string;
+    statusWinning: string;
+    statusOutbid: string;
+    statusWon: string;
+    statusLost: string;
+    statusEnded: string;
+    yourBid: string;
+    statPlates: string;
+    statActiveBids: string;
+    statWon: string;
+  };
+  errors: {
+    notFoundTitle: string;
+    notFoundHint: string;
+    forbiddenTitle: string;
+    forbiddenHint: string;
+    serverTitle: string;
+    serverHint: string;
+    networkTitle: string;
+    networkHint: string;
   };
   pages: {
     auctionsTitle: string;
@@ -194,6 +302,26 @@ export interface MessageCatalog {
     lettersEnLabel: string;
     numbersLabel: string;
     pleaseSelectImage: string;
+    stepPlateInfo: string;
+    stepPlateInfoHint: string;
+    stepAppearance: string;
+    stepAppearanceHint: string;
+    stepReview: string;
+    stepReviewHint: string;
+    reviewPlateType: string;
+    reviewLetters: string;
+    reviewNumbers: string;
+    reviewLogo: string;
+    livePreviewHint: string;
+    auctionsResultCount: string;
+    sortLabel: string;
+    sortEndingSoon: string;
+    sortNewest: string;
+    sortPriceAsc: string;
+    sortPriceDesc: string;
+    vipHeroTagline: string;
+    exclusiveEyebrow: string;
+    adsEyebrow: string;
   };
   admin: {
     navOverview: string;
@@ -433,19 +561,47 @@ const ar: MessageCatalog = {
     openMenu: "فتح القائمة",
     closeMenu: "إغلاق القائمة",
     mainNav: "التنقل الرئيسي",
-    mobileNav: "قائمة التنقل للجوال",
+    mobileNav: "قائمة التنقل",
+    myAccount: "حسابي",
+    myPlates: "لوحاتي",
+    myBids: "مزايداتي",
+    dashboard: "لوحة التحكم",
   },
   footer: {
-    tagline: "منصة رائدة لمزادات لوحات السيارات المميزة في المملكة العربية السعودية.",
+    tagline: "منصة مزاد للوحات السيارات المميزة في المملكة العربية السعودية.",
     quickLinks: "روابط سريعة",
     contact: "تواصل معنا",
-    contactHint: "للدعم والاستفسارات تواصل عبر الدردشة المباشرة.",
+    contactHint: "للدعم والاستفسارات تواصل عبر الواتساب أو البريد الإلكتروني.",
     rights: "جميع الحقوق محفوظة.",
+    downloadOn: "حمّل من",
+    getItOn: "احصل عليه من",
   },
   home: {
     badge: "منصة مزادات لوحات السيارات الأولى",
-    title: "امتلك لوحة مميزة عبر مزاد مباشر وآمن",
-    subtitle: "تصفح آلاف اللوحات المميزة، وشارك في المزادات المباشرة، أو استخدم الشراء الفوري لامتلاك لوحتك الآن.",
+    title: "امتلك لوحة تعبر عنك وتبقى لك",
+    titleLine1: "امتلك لوحة",
+    titleHighlight: "تعبّر عنك",
+    titleLine2: "وتبقى لك",
+    subtitle: "تصفح آلاف اللوحات المميزة وشارك في المزادات المباشرة، أو استخدم الشراء الفوري لامتلاك لوحتك الآن.",
+    viewAuction: "عرض المزاد",
+    browseUpcoming: "تصفح المزادات القادمة",
+    trustLabel: "لماذا مزاد",
+    trustSecure: "آمن وموثوق",
+    trustSecureHint: "معاملات آمنة ١٠٠٪",
+    trustLive: "مزاد مباشر",
+    trustLiveHint: "تجربة فورية بدون تأخير",
+    trustExclusive: "لوحات حصرية",
+    trustExclusiveHint: "نخبة مختارة من اللوحات المميزة",
+    trustSupport: "دعم على مدار الساعة",
+    trustSupportHint: "نحن هنا لمساعدتك دائمًا",
+    statsLabel: "إحصائيات المنصة",
+    statBids: "مزايدة ناجحة",
+    statSatisfaction: "عملاء راضون",
+    statSold: "لوحة مباعة",
+    noVipPlatesHint: "سيتم عرض اللوحات المميزة هنا فور إضافتها",
+    noUpcomingAuctionsHint: "تابعنا لمعرفة موعد المزادات القادمة",
+    noResultsHint: "ستظهر نتائج المزادات المكتملة هنا",
+    completedResultsSubtitle: "نتائج المزادات الأخيرة",
     browseAuctions: "تصفح المزادات",
     vipPlates: "لوحات VIP",
     liveAuctions: "مزادات مباشرة الآن",
@@ -487,8 +643,22 @@ const ar: MessageCatalog = {
   auction: {
     live: "مباشر",
     liveNow: "مباشر الآن",
+    draft: "مسودة",
     scheduled: "قادم",
+    startsAt: "يبدأ في",
     notStartedYet: "لم يبدأ بعد",
+    unitHours: "ساعة",
+    unitMinutes: "دقيقة",
+    unitSeconds: "ثانية",
+    dayShort: "ي",
+    auctionEnded: "انتهى المزاد",
+    timeRemainingSr: "الوقت المتبقي {days} يوم و{hours} ساعة و{minutes} دقيقة و{seconds} ثانية",
+    bidNow: "زايد الآن",
+    bidsLabel: "عدد المزايدات",
+    bidHistory: "سجل المزايدات",
+    minIncrementLabel: "الحد الأدنى للزيادة",
+    auctionDetails: "تفاصيل المزاد",
+    stickyBidLabel: "لوحة المزايدة",
     sold: "مباع",
     unsold: "بدون بيع",
     purchased: "تم الشراء",
@@ -561,6 +731,72 @@ const ar: MessageCatalog = {
     yes: "نعم",
     no: "لا",
     close: "إغلاق",
+    filters: "تصفية",
+    pagination: "التنقل بين الصفحات",
+    back: "رجوع",
+    continue: "متابعة",
+    submit: "إرسال",
+    step: "الخطوة {current} من {total}",
+    optional: "اختياري",
+    all: "الكل",
+    none: "لا شيء",
+    retry: "إعادة المحاولة",
+    goHome: "العودة للرئيسية",
+  },
+  account: {
+    title: "حسابي",
+    subtitle: "إدارة بياناتك ولوحاتك ومزايداتك",
+    navProfile: "الملف الشخصي",
+    navPlates: "لوحاتي",
+    navBids: "مزايداتي",
+    navSecurity: "الأمان",
+    profileTitle: "الملف الشخصي",
+    profileSubtitle: "بياناتك المسجلة في المنصة",
+    securityTitle: "الأمان",
+    securitySubtitle: "إعدادات الحماية والجلسة",
+    securityHint: "جلستك محمية ومشفّرة، وتنتهي تلقائيًا بعد سبعة أيام من آخر تسجيل دخول.",
+    fieldName: "الاسم",
+    fieldPhone: "رقم الجوال",
+    fieldEmail: "البريد الإلكتروني",
+    fieldRole: "نوع الحساب",
+    memberSince: "عضو منذ",
+    platesTitle: "لوحاتي",
+    platesSubtitle: "اللوحات التي أضفتها إلى المنصة",
+    plateTabAll: "جميع اللوحات",
+    plateTabInAuction: "في المزاد",
+    plateTabReview: "قيد المراجعة",
+    plateTabSold: "مباعة",
+    plateTabInactive: "غير نشطة",
+    noPlates: "لا توجد لوحات في هذا القسم",
+    noPlatesHint: "أضف لوحتك الأولى لتظهر هنا",
+    bidsTitle: "مزايداتي",
+    bidsSubtitle: "المزادات التي شاركت بها",
+    bidTabAll: "الكل",
+    bidTabWinning: "أعلى مزايدة",
+    bidTabOutbid: "تم تجاوز مزايدتي",
+    bidTabWon: "مزادات فزت بها",
+    bidTabEnded: "مزادات انتهت",
+    noBids: "لا توجد مزايدات في هذا القسم",
+    noBidsHint: "شارك في مزاد مباشر لتظهر مزايداتك هنا",
+    statusWinning: "أنت الأعلى",
+    statusOutbid: "تم تجاوزك",
+    statusWon: "فزت",
+    statusLost: "لم تفز",
+    statusEnded: "انتهى",
+    yourBid: "مزايدتك",
+    statPlates: "لوحاتي",
+    statActiveBids: "مزادات نشطة",
+    statWon: "مزادات فزت بها",
+  },
+  errors: {
+    notFoundTitle: "الصفحة غير موجودة",
+    notFoundHint: "الرابط الذي فتحته غير صحيح أو تم نقل الصفحة.",
+    forbiddenTitle: "لا تملك صلاحية الوصول",
+    forbiddenHint: "هذه الصفحة مخصصة لحسابات ذات صلاحيات أعلى.",
+    serverTitle: "حدث خطأ في الخادم",
+    serverHint: "تعذر إكمال العملية. حاول مرة أخرى بعد قليل.",
+    networkTitle: "انقطع الاتصال",
+    networkHint: "تحقق من اتصالك بالإنترنت ثم أعد المحاولة.",
   },
   pages: {
     auctionsTitle: "المزادات",
@@ -615,6 +851,26 @@ const ar: MessageCatalog = {
     lettersEnLabel: "الأحرف (إنجليزي)",
     numbersLabel: "الأرقام",
     pleaseSelectImage: "الرجاء اختيار صورة",
+    stepPlateInfo: "بيانات اللوحة",
+    stepPlateInfoHint: "أدخل الأحرف والأرقام كما تظهر على اللوحة",
+    stepAppearance: "شكل اللوحة",
+    stepAppearanceHint: "اختر نوع اللوحة والشعار المناسب",
+    stepReview: "المراجعة والإرسال",
+    stepReviewHint: "تأكد من صحة البيانات قبل الإرسال",
+    reviewPlateType: "نوع اللوحة",
+    reviewLetters: "الأحرف",
+    reviewNumbers: "الأرقام",
+    reviewLogo: "الشعار",
+    livePreviewHint: "تتحدث المعاينة فورًا أثناء الكتابة",
+    auctionsResultCount: "{count} مزاد",
+    sortLabel: "الترتيب",
+    sortEndingSoon: "الأقرب انتهاءً",
+    sortNewest: "الأحدث",
+    sortPriceAsc: "السعر: من الأقل",
+    sortPriceDesc: "السعر: من الأعلى",
+    vipHeroTagline: "لوحات نادرة لأصحاب الاختيار المميز",
+    exclusiveEyebrow: "حصري",
+    adsEyebrow: "السوق",
   },
   admin: {
     navOverview: "نظرة عامة",

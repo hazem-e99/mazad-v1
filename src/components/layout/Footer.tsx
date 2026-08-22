@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Headphones, Mail, Instagram, MessageCircle } from "lucide-react";
+import { Headphones, Mail, MessageCircle } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { MazadLogo } from "@/components/layout/MazadLogo";
 import { AppStoreBadge, GooglePlayBadge } from "@/components/layout/StoreBadges";
@@ -9,7 +9,7 @@ import { AppStoreBadge, GooglePlayBadge } from "@/components/layout/StoreBadges"
 const socials = [
   { key: "whatsapp", href: "https://wa.me/", icon: MessageCircle, label: "WhatsApp" },
   { key: "x", href: "https://x.com/", icon: XGlyph, label: "X" },
-  { key: "instagram", href: "https://instagram.com/", icon: Instagram, label: "Instagram" },
+  { key: "instagram", href: "https://instagram.com/", icon: InstagramGlyph, label: "Instagram" },
   { key: "email", href: "mailto:support@mazad.sa", icon: Mail, label: "Email" },
 ] as const;
 
@@ -93,13 +93,35 @@ export function Footer() {
   );
 }
 
-/** lucide-react has no X (Twitter) mark, and mixing in a second icon pack
- * for one glyph would break the single-library rule — so it is drawn here
+/** lucide-react carries no brand marks, and mixing in a second icon pack
+ * for two glyphs would break the single-library rule — so they are drawn here
  * against the same 24px grid and stroke conventions. */
-function XGlyph({ className }: { className?: string }) {
+type GlyphProps = { className?: string; strokeWidth?: number };
+
+function XGlyph({ className }: GlyphProps) {
   return (
     <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true" focusable="false">
       <path d="M13.72 10.47 20.5 2.5h-1.9l-5.9 6.93L8 2.5H2.5l7.13 10.4-7.13 8.6h1.9l6.24-7.33 4.98 7.33H21l-7.4-11.03Zm-2.2 2.59-.72-1.04L5.1 3.94h2.5l4.65 6.7.72 1.04 6.05 8.72h-2.5l-4.93-7.1Z" />
+    </svg>
+  );
+}
+
+function InstagramGlyph({ className, strokeWidth = 2 }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      className={className}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" />
+      <path d="M17.5 6.5h.01" />
     </svg>
   );
 }

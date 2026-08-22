@@ -1,9 +1,7 @@
-"use client";
-
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowLeft, ArrowRight, type LucideIcon } from "lucide-react";
-import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { getServerTranslator } from "@/lib/i18n-server";
 import { cn } from "@/lib/cn";
 
 interface SectionHeaderProps {
@@ -20,7 +18,14 @@ interface SectionHeaderProps {
   className?: string;
 }
 
-export function SectionHeader({
+/**
+ * A server component like its siblings `PageHeader` and `EmptyState`: the
+ * `icon` prop is a component reference, which cannot cross the RSC
+ * boundary, so the pages that pass `icon={Crown}` need this to render on
+ * the server. The locale switcher calls `router.refresh()`, so reading the
+ * translation from the cookie here still updates on a language change.
+ */
+export async function SectionHeader({
   title,
   subtitle,
   href,
@@ -30,7 +35,7 @@ export function SectionHeader({
   actions,
   className,
 }: SectionHeaderProps) {
-  const { t, locale } = useTranslations();
+  const { t, locale } = await getServerTranslator();
   // The "view all" arrow must point *away* from the text in both
   // directions, so it flips with the locale rather than being mirrored by
   // the browser (which would also mirror the glyph's optical weight).

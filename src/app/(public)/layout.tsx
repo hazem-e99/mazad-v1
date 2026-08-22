@@ -20,7 +20,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
-      <VipTicker plates={vipPlates} />
+      {/* <VipTicker plates={vipPlates} /> */}
       <Header viewer={viewer} />
       <main className="flex-1">{children}</main>
       <Footer />

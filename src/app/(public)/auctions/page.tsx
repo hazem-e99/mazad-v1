@@ -1,12 +1,12 @@
-import Link from "next/link";
-import { Gavel, X } from "lucide-react";
+import { Gavel } from "lucide-react";
 import { getAuctionsList } from "@/lib/queries";
 import { getServerTranslator } from "@/lib/i18n-server";
-import { AuctionCard } from "@/components/auction/AuctionCard";
+import { AuctionGrid } from "@/components/auction/AuctionGrid";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { SectionHeader } from "@/components/layout/SectionHeader";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { Pagination } from "@/components/ui/Pagination";
+import { LinkButton } from "@/components/ui/Button";
 import { PLATE_TYPES, plateTypeLabel } from "@/lib/constants";
 
 export const revalidate = 0;
@@ -18,6 +18,7 @@ interface Props {
     vip?: string;
     plateType?: string;
     search?: string;
+    sort?: string;
     page?: string;
   }>;
 }
@@ -31,69 +32,80 @@ export default async function AuctionsPage({ searchParams }: Props) {
       vip: params.vip === "true",
       plateType: params.plateType,
       search: params.search,
+      sort: params.sort,
       page: params.page ? Number(params.page) : 1,
     }),
     getServerTranslator(),
   ]);
 
   const hasActiveFilters = Boolean(
-    params.status || params.category || params.vip || params.plateType || params.search
+    params.status || params.category || params.vip || params.plateType || params.search || params.sort
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-      <SectionHeader title={t("pages.auctionsTitle")} subtitle={t("pages.auctionsSubtitle")} />
+    <div className="mz-container py-10">
+      <PageHeader
+        icon={Gavel}
+        title={t("pages.auctionsTitle")}
+        subtitle={t("pages.auctionsSubtitle")}
+        actions={
+          <LinkButton href="/plates/new" variant="secondary" size="md">
+            {t("nav.addPlate")}
+          </LinkButton>
+        }
+      >
+        <span className="tnum text-sm text-(--color-text-faint)">
+          {t("pages.auctionsResultCount", { count: total })}
+        </span>
+      </PageHeader>
 
-      <div className="flex flex-wrap items-center gap-3 mb-6">
-        <FilterBar
-          searchPlaceholder={t("common.search")}
-          selects={[
-            {
-              key: "status",
-              label: t("pages.filterStatus"),
-              options: [
-                { value: "live", label: t("auction.live") },
-                { value: "scheduled", label: t("auction.scheduled") },
-                { value: "completed", label: t("pages.statusCompleted") },
-              ],
-            },
-            {
-              key: "category",
-              label: t("pages.filterCategory"),
-              options: [{ value: "exclusive", label: t("pages.exclusiveOnlyFilter") }],
-            },
-            {
-              key: "vip",
-              label: t("auction.vipBadge"),
-              options: [{ value: "true", label: t("pages.vipOnlyFilter") }],
-            },
-            {
-              key: "plateType",
-              label: t("pages.filterPlateType"),
-              options: PLATE_TYPES.map((type) => ({ value: type, label: plateTypeLabel(type, locale) })),
-            },
-          ]}
-        />
-        {hasActiveFilters && (
-          <Link
-            href="/auctions"
-            className="flex items-center gap-1 text-sm font-medium text-(--color-text-muted) hover:text-(--color-danger) transition-colors"
-          >
-            <X className="h-3.5 w-3.5" aria-hidden="true" />
-            {t("pages.clearFilters")}
-          </Link>
-        )}
-      </div>
+      <FilterBar
+        className="mb-8"
+        searchPlaceholder={t("common.search")}
+        clearHref="/auctions"
+        selects={[
+          {
+            key: "status",
+            label: t("pages.filterStatus"),
+            options: [
+              { value: "live", label: t("auction.live") },
+              { value: "scheduled", label: t("auction.scheduled") },
+              { value: "completed", label: t("pages.statusCompleted") },
+            ],
+          },
+          {
+            key: "category",
+            label: t("pages.filterCategory"),
+            options: [{ value: "exclusive", label: t("pages.exclusiveOnlyFilter") }],
+          },
+          {
+            key: "vip",
+            label: t("auction.vipBadge"),
+            options: [{ value: "true", label: t("pages.vipOnlyFilter") }],
+          },
+          {
+            key: "plateType",
+            label: t("pages.filterPlateType"),
+            options: PLATE_TYPES.map((type) => ({ value: type, label: plateTypeLabel(type, locale) })),
+          },
+          {
+            key: "sort",
+            label: t("pages.sortLabel"),
+            options: [
+              { value: "ending", label: t("pages.sortEndingSoon") },
+              { value: "newest", label: t("pages.sortNewest") },
+              { value: "price_asc", label: t("pages.sortPriceAsc") },
+              { value: "price_desc", label: t("pages.sortPriceDesc") },
+            ],
+          },
+        ]}
+      />
 
       {auctions.length > 0 ? (
         <>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,300px))] justify-center gap-4">
-            {auctions.map((a) => (
-              <AuctionCard key={a._id} auction={a} />
-            ))}
-          </div>
-          <div className="mt-6">
-            <Pagination page={page} pages={pages} total={total} />
+          <AuctionGrid auctions={auctions} />
+          <div className="mt-8 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface)">
+            <Pagination page={page} pages={pages} total={total} className="border-t-0" />
           </div>
         </>
       ) : (
@@ -103,13 +115,14 @@ export default async function AuctionsPage({ searchParams }: Props) {
           description={t("pages.noMatchingAuctionsHint")}
           action={
             hasActiveFilters ? (
-              <Link
-                href="/auctions"
-                className="text-sm font-medium text-(--color-gold) hover:text-(--color-gold-hover)"
-              >
+              <LinkButton href="/auctions" variant="secondary" size="md">
                 {t("pages.clearFilters")}
-              </Link>
-            ) : undefined
+              </LinkButton>
+            ) : (
+              <LinkButton href="/vip" variant="secondary" size="md">
+                {t("home.vipPlates")}
+              </LinkButton>
+            )
           }
         />
       )}

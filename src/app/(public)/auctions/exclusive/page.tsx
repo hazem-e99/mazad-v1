@@ -1,26 +1,39 @@
 import { Sparkles } from "lucide-react";
 import { getExclusiveAuctions } from "@/lib/queries";
 import { getServerTranslator } from "@/lib/i18n-server";
-import { AuctionCard } from "@/components/auction/AuctionCard";
+import { AuctionGrid } from "@/components/auction/AuctionGrid";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { SectionHeader } from "@/components/layout/SectionHeader";
+import { LinkButton } from "@/components/ui/Button";
 
 export const revalidate = 0;
 
 export default async function ExclusiveAuctionsPage() {
-  const [auctions, { t }] = await Promise.all([getExclusiveAuctions(50), getServerTranslator()]);
+  const [auctions, { t }] = await Promise.all([getExclusiveAuctions(60), getServerTranslator()]);
 
   return (
-    <div className="mx-auto max-w-7xl px-4 sm:px-6 py-8">
-      <SectionHeader title={t("pages.exclusiveTitle")} subtitle={t("pages.exclusiveSubtitle")} />
+    <div className="mz-container py-10">
+      <PageHeader
+        premium
+        icon={Sparkles}
+        eyebrow={t("pages.exclusiveEyebrow")}
+        title={t("pages.exclusiveTitle")}
+        subtitle={t("pages.exclusiveSubtitle")}
+      />
+
       {auctions.length > 0 ? (
-        <div className="grid grid-cols-[repeat(auto-fit,minmax(260px,300px))] justify-center gap-4">
-          {auctions.map((a) => (
-            <AuctionCard key={a._id} auction={a} />
-          ))}
-        </div>
+        <AuctionGrid auctions={auctions} />
       ) : (
-        <EmptyState icon={Sparkles} title={t("pages.noExclusiveAuctions")} />
+        <EmptyState
+          icon={Sparkles}
+          title={t("pages.noExclusiveAuctions")}
+          description={t("home.noUpcomingAuctionsHint")}
+          action={
+            <LinkButton href="/auctions" variant="secondary" size="md">
+              {t("home.browseAuctions")}
+            </LinkButton>
+          }
+        />
       )}
     </div>
   );
