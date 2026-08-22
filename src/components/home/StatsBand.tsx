@@ -27,14 +27,11 @@ export function StatsBand({ stats }: { stats: PlatformStats }) {
   return (
     <section
       aria-label={t("home.statsLabel")}
-      className="mz-edge-gold relative overflow-hidden rounded-(--radius-xl) border border-(--color-gold)/20 bg-(--color-bg-elevated)"
+      className="relative overflow-hidden border-y border-(--color-border) bg-(--color-bg-elevated)"
     >
-      <span aria-hidden="true" className="mz-pattern-lines pointer-events-none absolute inset-0" />
-      <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-x-0 -bottom-32 h-64 opacity-70" />
-
-      <dl className="relative grid grid-cols-1 gap-px bg-(--color-gold)/12 sm:grid-cols-3">
+      <dl className="relative grid grid-cols-1 divide-y divide-(--color-border) sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         {items.map((item) => (
-          <div key={item.label} className="flex flex-col items-center gap-2 bg-(--color-bg-elevated) px-6 py-10">
+          <div key={item.label} className="flex flex-col items-center gap-2 px-6 py-10">
             <dt className="sr-only">{item.label}</dt>
             <dd className="tnum text-3xl font-bold tracking-tight text-(--color-gold) sm:text-4xl">{item.value}</dd>
             <p className="text-sm text-(--color-text-muted)" aria-hidden="true">

@@ -26,9 +26,9 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
   return (
     <article
       className={cn(
-        "group relative flex flex-col overflow-hidden rounded-(--radius-lg) border shadow-(--shadow-card)",
-        "transition-[transform,border-color,box-shadow] duration-(--duration-base) ease-(--ease-out-expo)",
-        "hover:-translate-y-1 hover:border-(--color-gold)/45 hover:shadow-(--shadow-gold-glow)",
+        "group relative flex flex-col overflow-hidden rounded-(--radius-lg) border",
+        "transition-[transform,border-color,background-color] duration-(--duration-base) ease-(--ease-out-expo)",
+        "hover:-translate-y-0.5 hover:border-(--color-gold)/45 hover:bg-(--color-surface-hover)",
         "focus-within:border-(--color-gold)/45",
         isVip ? "border-(--color-vip-border) bg-(--color-vip-surface)" : "border-(--color-border) bg-(--color-surface)",
         className
@@ -40,8 +40,7 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
         href={`/auctions/${auction._id}`}
         className="flex flex-1 flex-col focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-(--color-gold)"
       >
-        <div className={cn("relative flex flex-col gap-4 p-5 pt-5", isVip ? "bg-transparent" : "bg-(--color-bg-elevated)")}>
-          {isVip && <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-0 opacity-80" />}
+        <div className={cn("relative flex flex-col gap-4 p-4 pt-5", isVip ? "bg-transparent" : "bg-(--color-bg-elevated)")}>
 
           <div className="relative flex flex-wrap items-center justify-between gap-1.5">
             <div className="flex flex-wrap items-center gap-1.5">
@@ -75,7 +74,7 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
           </div>
         </div>
 
-        <div className="flex flex-1 flex-col gap-3 p-5">
+        <div className="flex flex-1 flex-col gap-3 p-4">
           <div className="flex items-center justify-between gap-2 text-xs">
             <span className="truncate text-(--color-text-muted)">{plateTypeLabel(auction.plate.type, locale)}</span>
             {auction.bidCount > 0 && (
@@ -95,7 +94,7 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
         </div>
       </Link>
 
-      <div className="flex items-center justify-between gap-3 border-t border-(--color-border) bg-black/20 px-5 py-3.5 text-xs">
+      <div className="flex items-center justify-between gap-3 border-t border-(--color-border) bg-(--color-bg-elevated) px-4 py-3 text-xs">
         {isLive ? (
           <>
             <span className="flex items-center gap-1.5 text-(--color-text-muted)">

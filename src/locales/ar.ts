@@ -35,6 +35,11 @@ export interface MessageCatalog {
     titleHighlight: string;
     titleLine2: string;
     subtitle: string;
+    heroEyebrow: string;
+    heroHeadline: string;
+    heroDescription: string;
+    heroPrimaryCta: string;
+    heroSecondaryCta: string;
     viewAuction: string;
     browseUpcoming: string;
     trustLabel: string;
@@ -684,6 +689,11 @@ const ar: MessageCatalog = {
     titleHighlight: "تعبّر عنك",
     titleLine2: "وتبقى لك",
     subtitle: "تصفح آلاف اللوحات المميزة وشارك في المزادات المباشرة، أو استخدم الشراء الفوري لامتلاك لوحتك الآن.",
+    heroEyebrow: "مزادات لوحات المركبات",
+    heroHeadline: "لوحتك المميزة تبدأ من هنا",
+    heroDescription: "اكتشف لوحات مميزة، زايد بثقة، وامتلك الرقم الذي يعكس تميزك.",
+    heroPrimaryCta: "استكشف المزادات",
+    heroSecondaryCta: "عرض اللوحات",
     viewAuction: "عرض المزاد",
     browseUpcoming: "تصفح المزادات القادمة",
     trustLabel: "لماذا مزاد",

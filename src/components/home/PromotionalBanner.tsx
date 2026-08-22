@@ -6,13 +6,13 @@ import { LinkButton } from "@/components/ui/Button";
 export function PromotionalBanner() {
   return (
     <section
-      className="mz-reveal relative isolate mb-16 aspect-[2/1] w-full overflow-hidden rounded-none border-y border-(--color-gold)/25 bg-center bg-no-repeat shadow-[0_12px_36px_-20px_rgba(236,189,51,0.45)] sm:mb-20 sm:rounded-[24px] sm:border lg:aspect-auto lg:h-[380px]"
+      className="mz-reveal relative isolate mb-16 aspect-[2/1] w-full overflow-hidden border-y border-(--color-gold)/25 bg-center bg-no-repeat sm:mb-20 sm:border lg:aspect-auto lg:h-[380px]"
       style={{ backgroundImage: `url(${bannerImage.src})`, backgroundSize: "100% 100%" }}
       dir="rtl"
       aria-labelledby="promotional-banner-title"
     >
       <div
-        className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_center,rgba(3,9,15,0.2)_0%,rgba(3,9,15,0.05)_45%,transparent_75%)]"
+        className="pointer-events-none absolute inset-0 -z-10 bg-black/20"
         aria-hidden="true"
       />
 

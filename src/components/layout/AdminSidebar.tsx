@@ -96,7 +96,7 @@ export function AdminNavList({ onNavigate, className }: { onNavigate?: () => voi
                   className={cn(
                     "group relative flex items-center gap-3 rounded-(--radius-md) border px-2.5 py-2.5 text-sm font-medium transition-all duration-(--duration-fast)",
                     active
-                      ? "border-(--color-gold)/20 bg-[rgba(236,189,51,0.08)] text-(--color-gold) shadow-[inset_0_0_0_1px_rgba(236,189,51,0.08)]"
+                      ? "border-(--color-gold)/25 bg-(--color-gold-tint) text-(--color-gold)"
                       : "border-transparent text-(--color-text-muted) hover:border-(--color-border) hover:bg-(--color-surface) hover:text-(--color-text)"
                   )}
                 >
@@ -118,10 +118,10 @@ export function AdminSidebar() {
 
   return (
     <aside
-      className="hidden w-[260px] shrink-0 overflow-hidden rounded-[1.5rem] border border-(--color-border) bg-[linear-gradient(180deg,rgba(17,24,34,0.96),rgba(10,16,22,0.96))] p-4 shadow-(--shadow-elevated) lg:block"
+      className="hidden w-[248px] shrink-0 overflow-hidden rounded-(--radius-xl) border border-(--color-border) bg-(--color-surface) p-4 lg:block"
       aria-label={t("admin.navLabel")}
     >
-      <div className="mb-5 flex items-center gap-3 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg)/60 p-3">
+      <div className="mb-5 flex items-center gap-3 border-b border-(--color-border) p-3 pb-5">
         <div className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) bg-(--color-gold) text-lg font-black text-(--color-gold-foreground)">م</div>
         <div className="min-w-0">
           <div className="text-sm font-bold text-(--color-text)">{t("admin.navLabel")}</div>

@@ -30,8 +30,6 @@ export function VipPlateCard({
 
   const body = (
     <>
-      <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-x-0 -top-8 h-40 opacity-70" />
-
       <div className="relative flex items-center justify-between gap-2">
         {plate.isVip ? <VipBadge /> : <span className="text-xs text-(--color-text-faint)">{plateTypeLabel(plate.type, locale)}</span>}
       </div>
@@ -59,10 +57,10 @@ export function VipPlateCard({
   );
 
   const shell = cn(
-    "group relative flex min-w-0 flex-col overflow-hidden rounded-(--radius-lg) border p-5 shadow-(--shadow-card)",
+    "group relative flex min-w-0 flex-col overflow-hidden rounded-(--radius-lg) border p-5",
     "border-(--color-vip-border) bg-(--color-vip-surface)",
     "transition-[transform,border-color,box-shadow] duration-(--duration-base) ease-(--ease-out-expo)",
-    "hover:-translate-y-1 hover:border-(--color-gold)/60 hover:shadow-(--shadow-gold-glow)",
+    "hover:-translate-y-0.5 hover:border-(--color-gold)/60 hover:bg-(--color-surface-hover)",
     className
   );
 

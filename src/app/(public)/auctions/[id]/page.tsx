@@ -109,18 +109,14 @@ export default async function AuctionDetailPage({ params }: Props) {
         <div className="flex flex-col gap-6">
           <div
             className={
-              "mz-edge-gold relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-(--radius-xl) border bg-cover bg-center px-6 py-12 sm:py-16 " +
+              "relative flex flex-col items-center justify-center gap-5 overflow-hidden rounded-(--radius-xl) border bg-cover bg-center px-6 py-12 sm:py-16 " +
               (isVip
-                ? "border-(--color-vip-border) bg-(--color-vip-surface) shadow-(--shadow-gold-glow)"
+                ? "border-(--color-vip-border) bg-(--color-vip-surface)"
                 : "border-(--color-border) bg-(--color-bg-elevated)")
             }
             style={auction.backgroundImage ? { backgroundImage: `url(${auction.backgroundImage})` } : undefined}
           >
-            {auction.backgroundImage ? (
-              <span className="absolute inset-0 bg-black/55" aria-hidden="true" />
-            ) : (
-              <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-0 opacity-80" />
-            )}
+            {auction.backgroundImage && <span className="absolute inset-0 bg-black/55" aria-hidden="true" />}
 
             <div className="relative flex flex-wrap items-center justify-center gap-1.5">
               <AuctionStatusBadge status={auction.status} />

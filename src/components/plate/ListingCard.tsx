@@ -20,7 +20,7 @@ export function ListingCard({ listing }: { listing: PlateDTO }) {
   const { t, locale } = useTranslations();
 
   return (
-    <Card className={cn("group flex flex-col overflow-hidden transition-all duration-(--duration-base) hover:-translate-y-1 hover:shadow-(--shadow-elevated)", listing.isVip && "border-(--color-vip-border) bg-(--color-vip-surface)")}>
+    <Card className={cn("group flex flex-col overflow-hidden transition-[transform,border-color,background-color] duration-(--duration-base) hover:-translate-y-0.5 hover:border-(--color-gold)/35 hover:bg-(--color-surface-hover)", listing.isVip && "border-(--color-vip-border) bg-(--color-vip-surface)")}>
       <Link href={`/listings/${listing._id}`} className="flex flex-col flex-1">
         <div className="relative aspect-[4/3] bg-(--color-bg-elevated) overflow-hidden">
           {listing.image ? (
@@ -29,7 +29,7 @@ export function ListingCard({ listing }: { listing: PlateDTO }) {
           ) : (
             <div className="h-full w-full flex items-center justify-center text-(--color-text-faint) text-xs">{t("pages.noImage")}</div>
           )}
-          <div className="absolute top-2 inset-x-2 flex items-center justify-between gap-1.5">
+          <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-1.5">
             <Badge tone="neutral" className="gap-1 bg-(--color-surface)/90">
               <Tag className="h-3 w-3" aria-hidden="true" />
               {t("pages.forSaleBadge")}

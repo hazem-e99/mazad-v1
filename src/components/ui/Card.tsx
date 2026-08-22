@@ -12,12 +12,12 @@ export function Card({ className, vip, interactive, ...props }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-(--radius-lg) border shadow-(--shadow-card)",
+        "rounded-(--radius-lg) border",
         vip
-          ? "border-(--color-vip-border) bg-(--color-vip-surface) shadow-(--shadow-gold-glow)"
+          ? "border-(--color-vip-border) bg-(--color-vip-surface)"
           : "border-(--color-border) bg-(--color-surface)",
         interactive &&
-          "transition-[transform,border-color,box-shadow] duration-(--duration-base) ease-(--ease-out-expo) hover:-translate-y-1 hover:border-(--color-gold)/45 hover:shadow-(--shadow-gold-glow)",
+          "transition-[transform,border-color,background-color] duration-(--duration-base) ease-(--ease-out-expo) hover:-translate-y-0.5 hover:border-(--color-gold)/45 hover:bg-(--color-surface-hover)",
         className
       )}
       {...props}
@@ -34,5 +34,5 @@ export function CardBody({ className, ...props }: HTMLAttributes<HTMLDivElement>
 }
 
 export function CardFooter({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("border-t border-(--color-border) bg-black/20 p-5", className)} {...props} />;
+  return <div className={cn("border-t border-(--color-border) bg-(--color-bg-elevated) p-5", className)} {...props} />;
 }

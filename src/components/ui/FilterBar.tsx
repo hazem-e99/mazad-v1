@@ -52,7 +52,7 @@ export function FilterBar({ searchKey = "search", searchPlaceholder, selects = [
   return (
     <div
       className={cn(
-        "flex flex-wrap items-center gap-3 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-3",
+        "flex flex-wrap items-center gap-3 border-b border-(--color-border) pb-4",
         className
       )}
     >
@@ -78,7 +78,7 @@ export function FilterBar({ searchKey = "search", searchPlaceholder, selects = [
           onChange={(e) => updateParam(filter.key, e.target.value)}
           aria-label={filter.label}
           className={cn(
-            "h-10 w-auto min-w-36",
+            "h-11 w-auto min-w-36",
             searchParams.get(filter.key) && "border-(--color-gold)/45 text-(--color-gold)"
           )}
         >
@@ -95,7 +95,7 @@ export function FilterBar({ searchKey = "search", searchPlaceholder, selects = [
         <button
           type="button"
           onClick={() => startTransition(() => router.push(clearHref ?? pathname))}
-          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-(--radius-md) px-3 text-sm font-medium text-(--color-text-muted) transition-colors hover:bg-(--color-danger)/10 hover:text-(--color-danger) focus-visible:outline focus-visible:outline-2 focus-visible:outline-(--color-gold)"
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-(--radius-md) px-3 text-sm font-medium text-(--color-text-muted) transition-colors hover:bg-(--color-danger)/10 hover:text-(--color-danger) focus-visible:outline focus-visible:outline-2 focus-visible:outline-(--color-gold)"
         >
           <X className="h-3.5 w-3.5" aria-hidden="true" />
           {t("pages.clearFilters")}
@@ -129,7 +129,7 @@ export function SearchInput({
   return (
     <div
       className={cn(
-        "flex h-10 min-w-52 flex-1 items-center gap-2 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) px-3",
+        "flex h-11 min-w-52 flex-1 items-center gap-2 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3",
         "transition-[border-color,box-shadow] duration-(--duration-fast) focus-within:border-(--color-gold)/60 focus-within:ring-2 focus-within:ring-(--color-gold)/25",
         className
       )}

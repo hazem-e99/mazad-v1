@@ -24,7 +24,7 @@ export function TabRail({ tabs, param = "tab", label }: { tabs: TabDefinition[];
     <div
       role="tablist"
       aria-label={label}
-      className="mz-scroller mb-6 flex gap-1.5 overflow-x-auto rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-2"
+      className="mz-scroller mb-6 flex gap-1.5 overflow-x-auto border-b border-(--color-border) pb-2"
     >
       {tabs.map((tab) => {
         const isActive = tab.key === active;

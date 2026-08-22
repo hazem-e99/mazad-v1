@@ -4,7 +4,7 @@ import type { PlateLogoDTO } from "@/types/dto";
 import type { Locale } from "@/lib/i18n";
 import { getPlateImageAsset } from "@/components/plate/plateImage";
 
-export type PlateSize = "xs" | "sm" | "md" | "lg" | "xl";
+export type PlateSize = "xs" | "sm" | "md" | "lg" | "xl" | "spotlight";
 
 interface SaudiPlateProps {
   type: PlateType;
@@ -37,6 +37,7 @@ const sizeWidth: Record<PlateSize, string> = {
   md: "w-56",
   lg: "w-72",
   xl: "w-full max-w-[28rem]",
+  spotlight: "w-full max-w-[42rem]",
 };
 
 /* Real Saudi plate stock comes in a few physical formats; the aspect ratio

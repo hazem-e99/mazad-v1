@@ -56,8 +56,12 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
   // Any navigation closes both overlays; without this the account menu
   // survives a route change and hangs over the new page.
   useEffect(() => {
-    setMenuOpen(false);
-    setAccountOpen(false);
+    const reset = window.setTimeout(() => {
+      setMenuOpen(false);
+      setAccountOpen(false);
+    }, 0);
+
+    return () => window.clearTimeout(reset);
   }, [pathname]);
 
   const navItems = [
@@ -96,11 +100,11 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
       className={cn(
         "sticky top-0 z-40 transition-[background-color,border-color,box-shadow] duration-(--duration-base)",
         scrolled
-          ? "border-b border-(--color-border) bg-(--color-bg)/80 shadow-[0_8px_24px_-16px_rgba(0,0,0,.9)] backdrop-blur-xl"
+          ? "border-b border-(--color-border) bg-(--color-bg)/90 shadow-[0_12px_30px_-24px_rgba(0,0,0,.9)] backdrop-blur-xl"
           : "border-b border-transparent bg-(--color-bg)"
       )}
     >
-      <div className="mz-container flex h-18 items-center justify-between gap-4">
+      <div className="mz-container flex h-20 items-center justify-between gap-5">
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-2.5 rounded-(--radius-sm) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-gold)"
@@ -109,7 +113,7 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
           <span className="text-xl font-bold tracking-tight text-(--color-text)">مزاد</span>
         </Link>
 
-        <nav className="hidden items-center gap-0.5 xl:flex" aria-label={t("nav.mainNav")}>
+        <nav className="hidden items-center gap-1 xl:flex" aria-label={t("nav.mainNav")}>
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -118,11 +122,11 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "relative rounded-(--radius-sm) px-3.5 py-2 text-sm font-medium transition-colors duration-(--duration-fast)",
+                  "relative rounded-(--radius-sm) px-3 py-2.5 text-sm font-medium transition-colors duration-(--duration-fast)",
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
                   active
-                    ? "bg-(--color-gold-tint) text-(--color-gold)"
-                    : "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-text)"
+                    ? "text-(--color-gold) after:absolute after:inset-x-3 after:-bottom-2 after:h-px after:bg-(--color-gold)"
+                    : "text-(--color-text-muted) hover:text-(--color-text)"
                 )}
               >
                 {item.label}
@@ -165,7 +169,7 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
                   />
                   <div
                     role="menu"
-                    className="absolute end-0 top-full z-20 mt-2 w-56 overflow-hidden rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) p-1.5 shadow-(--shadow-elevated)"
+                    className="absolute end-0 top-full z-20 mt-3 w-56 overflow-hidden rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) p-1.5 shadow-(--shadow-elevated)"
                   >
                     {accountItems.map((item) => (
                       <Link

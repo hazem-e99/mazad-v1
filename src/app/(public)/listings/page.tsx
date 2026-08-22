@@ -1,4 +1,5 @@
 import { connectDB } from "@/lib/db";
+import { Store } from "lucide-react";
 import { Plate } from "@/models/Plate";
 import "@/models/PlateLogo";
 import "@/models/PlateCategory";
@@ -7,6 +8,7 @@ import { ListingCard } from "@/components/plate/ListingCard";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { Pagination } from "@/components/ui/Pagination";
 import { EmptyState } from "@/components/layout/EmptyState";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { PLATE_CLASSIFICATIONS, plateClassificationLabel, USAGE_TYPES, usageTypeLabel } from "@/lib/constants";
 import { toPlateDTOList, toPlateCategoryDTOList, type LeanPlate, type LeanPlateCategory } from "@/lib/dto";
@@ -61,13 +63,10 @@ export default async function ListingsPage({ searchParams }: Props) {
   const pages = Math.max(1, Math.ceil(total / limit));
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-10">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-(--color-text)">{t("pages.marketplaceTitle")}</h1>
-        <p className="text-sm text-(--color-text-muted) mt-1">{t("pages.marketplaceSubtitle")}</p>
-      </div>
+    <div className="mz-container py-10 sm:py-12">
+      <PageHeader icon={Store} title={t("pages.marketplaceTitle")} subtitle={t("pages.marketplaceSubtitle")} />
 
-      <div className="mb-6">
+      <div className="mb-10">
         <FilterBar
           searchPlaceholder={t("pages.searchListingsPlaceholder")}
           selects={[
@@ -95,7 +94,7 @@ export default async function ListingsPage({ searchParams }: Props) {
         <EmptyState title={t("pages.noMatchingListings")} />
       ) : (
         <>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {listings.map((listing) => (
               <ListingCard key={listing._id} listing={listing} />
             ))}

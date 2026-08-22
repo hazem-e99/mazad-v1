@@ -16,7 +16,6 @@ export default async function ExclusiveAuctionsPage() {
       <PageHeader
         premium
         icon={Sparkles}
-        eyebrow={t("pages.exclusiveEyebrow")}
         title={t("pages.exclusiveTitle")}
         subtitle={t("pages.exclusiveSubtitle")}
       />

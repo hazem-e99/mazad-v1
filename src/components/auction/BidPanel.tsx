@@ -134,13 +134,11 @@ export function BidPanel({
       {/* ── Price + countdown ──────────────────────────────────────── */}
       <section
         className={cn(
-          "mz-edge-gold relative overflow-hidden rounded-(--radius-xl) border p-5 sm:p-6",
+          "relative overflow-hidden rounded-(--radius-xl) border p-5 sm:p-6",
           isLive ? "border-(--color-gold)/30 bg-(--color-bg-elevated)" : "border-(--color-border) bg-(--color-surface)"
         )}
         aria-label={t("auction.auctionDetails")}
       >
-        {isLive && <span aria-hidden="true" className="mz-glow-gold pointer-events-none absolute inset-x-0 -top-20 h-48" />}
-
         <div className="relative mb-5 flex items-center justify-between gap-3">
           <AuctionStatusBadge status={auction.status} className="px-3 py-1.5 text-sm" />
           <span
@@ -204,8 +202,8 @@ export function BidPanel({
       {isLive && (
         <div
           className={cn(
-            "z-20 flex flex-col gap-3 rounded-(--radius-xl) border border-(--color-border) bg-(--color-bg)/95 p-4 shadow-(--shadow-elevated) backdrop-blur",
-            "sticky bottom-3 lg:static lg:border-(--color-border) lg:bg-(--color-surface) lg:shadow-(--shadow-card) lg:backdrop-blur-none"
+            "z-20 flex flex-col gap-3 rounded-(--radius-xl) border border-(--color-border) bg-(--color-bg)/95 p-4",
+            "sticky bottom-3 lg:static lg:border-(--color-border) lg:bg-(--color-surface)"
           )}
           aria-label={t("auction.stickyBidLabel")}
         >

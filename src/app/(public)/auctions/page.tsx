@@ -43,7 +43,7 @@ export default async function AuctionsPage({ searchParams }: Props) {
   );
 
   return (
-    <div className="mz-container py-10">
+    <div className="mz-container py-10 sm:py-12">
       <PageHeader
         icon={Gavel}
         title={t("pages.auctionsTitle")}
@@ -104,7 +104,7 @@ export default async function AuctionsPage({ searchParams }: Props) {
       {auctions.length > 0 ? (
         <>
           <AuctionGrid auctions={auctions} />
-          <div className="mt-8 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface)">
+          <div className="mt-10 border-t border-(--color-border)">
             <Pagination page={page} pages={pages} total={total} className="border-t-0" />
           </div>
         </>

@@ -34,8 +34,8 @@ export function AdminHeader({ role }: { role: UserRole }) {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-(--color-border) bg-[rgba(8,13,20,0.88)] backdrop-blur-xl">
-      <div className="mx-auto flex h-20 max-w-[1680px] items-center justify-between gap-4 px-3 sm:px-5 lg:px-6">
+    <header className="sticky top-0 z-40 border-b border-(--color-border) bg-(--color-bg)/92 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-[1440px] items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <div className="flex items-center gap-3">
           <button
             type="button"

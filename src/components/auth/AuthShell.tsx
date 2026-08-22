@@ -70,9 +70,6 @@ export function AuthShell({
         aria-hidden="true"
         className="relative hidden overflow-hidden border-s border-(--color-border) bg-(--color-bg-elevated) lg:flex lg:flex-col lg:items-center lg:justify-center"
       >
-        <span className="mz-pattern-lines pointer-events-none absolute inset-0" />
-        <span className="mz-glow-gold pointer-events-none absolute inset-x-0 top-1/4 h-96" />
-
         <div className="relative flex flex-col items-center gap-8 px-10">
           <div className="flex flex-col items-center gap-5">
             {SHOWCASE_PLATES.map((plate, i) => (

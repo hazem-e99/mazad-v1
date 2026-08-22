@@ -71,7 +71,7 @@ export function Drawer({ open, onClose, title, children, footer, side = "start",
 
         <div className="min-h-0 flex-1 overflow-y-auto p-4">{children}</div>
 
-        {footer && <div className="shrink-0 border-t border-(--color-border) bg-black/20 p-4">{footer}</div>}
+        {footer && <div className="shrink-0 border-t border-(--color-border) bg-(--color-bg-elevated) p-4">{footer}</div>}
       </div>
     </dialog>
   );

@@ -22,7 +22,7 @@ export function AccountNav() {
       aria-label={t("account.title")}
       // Below lg this becomes a horizontal, scrollable tab rail rather
       // than a stacked list that would push the content off-screen.
-      className="mz-scroller flex gap-1.5 overflow-x-auto rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-2 lg:sticky lg:top-24 lg:flex-col lg:overflow-visible"
+      className="mz-scroller flex gap-1.5 overflow-x-auto border-b border-(--color-border) pb-2 lg:sticky lg:top-24 lg:flex-col lg:overflow-visible lg:border-b-0 lg:border-s lg:pb-0 lg:ps-4"
     >
       {items.map((item) => {
         const active = pathname === item.href;

@@ -2,6 +2,7 @@
 
 import { ShieldCheck, Zap, Crown, Clock4, type LucideIcon } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { cn } from "@/lib/cn";
 
 /**
  * One strip, four claims, thin rules between them — not four cards. The
@@ -24,10 +25,10 @@ export function TrustBar() {
 
   return (
     <section aria-label={t("home.trustLabel")}>
-      <ul className="grid grid-cols-1 gap-px overflow-hidden rounded-(--radius-xl) border border-(--color-border) bg-(--color-border) sm:grid-cols-2 lg:grid-cols-4">
-        {items.map((item) => (
-          <li key={item.title} className="group flex items-center gap-4 bg-(--color-bg-elevated) p-5 sm:p-6">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-gold)/20 bg-(--color-gold-tint) text-(--color-gold) transition-colors duration-(--duration-base) group-hover:border-(--color-gold)/45">
+      <ul className="grid grid-cols-1 border-y border-(--color-border) sm:grid-cols-2 lg:grid-cols-4">
+        {items.map((item, index) => (
+          <li key={item.title} className={cn("group flex items-center gap-4 py-5 sm:p-6", index > 0 && "border-t border-(--color-border) sm:border-s") }>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) text-(--color-gold) transition-colors duration-(--duration-base) group-hover:border-(--color-gold)/45">
               <item.icon className="h-5 w-5" aria-hidden="true" strokeWidth={1.75} />
             </span>
             <span className="min-w-0">

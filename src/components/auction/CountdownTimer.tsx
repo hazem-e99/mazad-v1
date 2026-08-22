@@ -52,15 +52,16 @@ export function CountdownTimer({
   variant = "inline",
   size = "md",
 }: CountdownTimerProps) {
-  const { t } = useTranslations();
+  const { t, locale } = useTranslations();
   const [now, setNow] = useState<number | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    setIsMounted(true);
-    setNow(Date.now() + serverNowOffsetMs);
+    const firstTick = setTimeout(() => setNow(Date.now() + serverNowOffsetMs), 0);
     const id = setInterval(() => setNow(Date.now() + serverNowOffsetMs), 1000);
-    return () => clearInterval(id);
+    return () => {
+      clearTimeout(firstTick);
+      clearInterval(id);
+    };
   }, [serverNowOffsetMs]);
 
   useEffect(() => {
@@ -69,15 +70,20 @@ export function CountdownTimer({
     }
   }, [endAt, now, onExpire]);
 
-  const renderPlaceholder = !isMounted || now === null;
-  const safeNow = now ?? Date.now() + serverNowOffsetMs;
-  const remainingMs = new Date(endAt).getTime() - safeNow;
+  const renderPlaceholder = now === null;
+  const remainingMs = now === null ? 0 : new Date(endAt).getTime() - now;
   const { d, h, m, s, expired } = formatRemaining(remainingMs);
 
   if (renderPlaceholder) {
     if (variant === "blocks") {
       return (
-        <div className={cn("flex items-start gap-1.5", className)} role="timer" aria-live="off" suppressHydrationWarning>
+        <div
+          className={cn("flex items-start gap-1.5", className)}
+          dir={locale === "ar" ? "rtl" : "ltr"}
+          role="timer"
+          aria-live="off"
+          suppressHydrationWarning
+        >
           <Segment value="00" label={t("auction.unitHours")} sz={blockSize[size]} critical={false} urgent={false} />
           <Separator sz={blockSize[size]} />
           <Segment value="00" label={t("auction.unitMinutes")} sz={blockSize[size]} critical={false} urgent={false} />
@@ -116,6 +122,7 @@ export function CountdownTimer({
     return (
       <div
         className={cn("flex items-start gap-1.5", className)}
+        dir={locale === "ar" ? "rtl" : "ltr"}
         role="timer"
         aria-live="off"
         suppressHydrationWarning
@@ -183,20 +190,22 @@ function Segment({
   urgent: boolean;
 }) {
   return (
-    <span className="flex flex-col items-center gap-1.5">
+    <span className="flex min-w-12 flex-col items-center gap-1.5">
       <span
         // Keyed on the value so React swaps the node each tick, letting the
         // digit fade in rather than mutating text in place.
         key={value}
+        dir="ltr"
+        style={{ unicodeBidi: "isolate" }}
         className={cn(
-          "tnum flex items-center justify-center rounded-(--radius-md) border font-bold leading-none tabular-nums",
-          "animate-rise-in bg-(--color-bg-elevated)",
+          "tnum flex items-center justify-center font-bold leading-none tabular-nums",
+          "animate-rise-in",
           sz.box,
           critical
-            ? "border-(--color-live)/40 text-(--color-live)"
+            ? "text-(--color-live)"
             : urgent
-              ? "border-(--color-warning)/40 text-(--color-warning)"
-              : "border-(--color-border-strong) text-(--color-text)"
+              ? "text-(--color-warning)"
+              : "text-(--color-text)"
         )}
       >
         {value}

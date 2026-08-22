@@ -18,11 +18,6 @@ export function Footer() {
 
   return (
     <footer className="relative mt-24 overflow-hidden border-t border-(--color-border) bg-(--color-bg-elevated)">
-      <span
-        aria-hidden="true"
-        className="mz-glow-gold pointer-events-none absolute -top-40 start-1/2 h-80 w-[48rem] -translate-x-1/2 opacity-50"
-      />
-
       <div className="mz-container relative grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="mb-4 flex items-center gap-2.5">
@@ -74,7 +69,7 @@ export function Footer() {
                   target="_blank"
                   rel="noreferrer noopener"
                   aria-label={social.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+                  className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
                 >
                   <social.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
                 </a>

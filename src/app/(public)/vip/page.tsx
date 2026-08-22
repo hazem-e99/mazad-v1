@@ -16,7 +16,6 @@ export default async function VipPage() {
       <PageHeader
         premium
         icon={Crown}
-        eyebrow={t("auction.vipBadge")}
         title={t("pages.vipTitle")}
         subtitle={t("pages.vipHeroTagline")}
       >

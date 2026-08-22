@@ -27,12 +27,8 @@ export function EmptyState({
         className
       )}
     >
-      <span
-        aria-hidden="true"
-        className="mz-glow-gold pointer-events-none absolute -top-20 start-1/2 h-48 w-96 -translate-x-1/2 opacity-40"
-      />
       {Icon && (
-        <span className="relative mb-4 flex h-14 w-14 items-center justify-center rounded-full border border-(--color-border) bg-(--color-surface) text-(--color-text-faint)">
+        <span className="relative mb-4 flex h-14 w-14 items-center justify-center rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) text-(--color-text-faint)">
           <Icon className="h-6 w-6" aria-hidden="true" strokeWidth={1.5} />
         </span>
       )}
