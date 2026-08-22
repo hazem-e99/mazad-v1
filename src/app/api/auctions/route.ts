@@ -46,6 +46,14 @@ export async function POST(req: NextRequest) {
     const plate = await Plate.findById(body.plate);
     if (!plate) throw Errors.notFound("اللوحة");
 
+    // The moderation gate applies to every publication path, not just the
+    // marketplace feed: a user's plate that is still awaiting review (or
+    // was rejected) must not reach the public site by being wrapped in an
+    // auction. Approve the request first, then create the auction.
+    if (plate.moderationStatus === "pending" || plate.moderationStatus === "rejected") {
+      throw Errors.conflict("لا يمكن إنشاء مزاد للوحة لم تتم الموافقة عليها بعد");
+    }
+
     const now = new Date();
     const status = body.startAt <= now ? "live" : "scheduled";
 

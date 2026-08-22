@@ -7,9 +7,17 @@ import { Button } from "@/components/ui/Button";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { MODERATION_TRANSITIONS } from "@/lib/constants";
 import type { PlateDTO } from "@/types/dto";
 
-export function ListingModerationActions({ listing }: { listing: PlateDTO }) {
+interface Props {
+  listing: PlateDTO;
+  /** The queue rows link through to the full offer; the detail page itself
+   * doesn't need a link back to where the reader already is. */
+  showDetailsLink?: boolean;
+}
+
+export function ListingModerationActions({ listing, showDetailsLink = false }: Props) {
   const router = useRouter();
   const push = useToastStore((s) => s.push);
   const { t } = useTranslations();
@@ -56,26 +64,32 @@ export function ListingModerationActions({ listing }: { listing: PlateDTO }) {
     );
   }
 
+  // Which buttons render is derived from the same transition table the
+  // backend enforces (MODERATION_TRANSITIONS) — the UI never offers a
+  // decision the API would reject with a 409.
+  const status = listing.moderationStatus ?? "pending";
+  const allowed = MODERATION_TRANSITIONS[status] ?? [];
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      {listing.moderationStatus === "pending" && (
-        <>
-          <Button size="sm" variant="gold" loading={loading} onClick={() => decide("approved")}>
-            {t("admin.approveAction")}
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => setRejecting(true)}>
-            {t("admin.rejectAction")}
-          </Button>
-        </>
+      {allowed.includes("approved") && (
+        <Button size="sm" variant="gold" loading={loading} onClick={() => decide("approved")}>
+          {t("admin.approveAction")}
+        </Button>
       )}
-      {listing.moderationStatus === "approved" && (
-        <Button size="sm" variant="ghost" onClick={() => setRejecting(true)}>
+      {allowed.includes("rejected") && (
+        <Button size="sm" variant={status === "pending" ? "danger" : "ghost"} onClick={() => setRejecting(true)}>
           {t("admin.rejectAction")}
         </Button>
       )}
-      {listing.moderationStatus === "approved" && listing.submissionType === "auction_request" && (
+      {status === "approved" && listing.submissionType === "auction_request" && (
         <Link href={`/admin/auctions/new?plateId=${listing._id}`} className="text-sm text-(--color-gold) hover:text-(--color-gold-hover) whitespace-nowrap">
           {t("admin.createAuctionFromRequest")}
+        </Link>
+      )}
+      {showDetailsLink && (
+        <Link href={`/admin/listings/${listing._id}`} className="text-sm text-(--color-text-muted) hover:text-(--color-gold) whitespace-nowrap">
+          {t("admin.viewListingDetails")}
         </Link>
       )}
     </div>

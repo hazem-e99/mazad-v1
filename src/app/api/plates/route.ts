@@ -64,14 +64,27 @@ export async function POST(req: NextRequest) {
       if (!logo || !logo.isActive) throw Errors.badRequest("شعار اللوحة المحدد غير متاح");
     }
 
-    const plate = await Plate.create({ ...body, createdBy: session.sub });
+    // A plate created by someone without plate:manage is a *user*
+    // submission, no matter which endpoint it arrived through — so it
+    // enters the same moderation queue as /api/listings rather than going
+    // live. Without this, this route would be a way around the review
+    // step: GET above only hides pending/rejected, and a plate created
+    // here would otherwise carry moderationStatus: null and be public
+    // immediately. Staff-authored plates skip moderation because the
+    // author is the approving authority.
+    const isStaff = hasPermission(session, "plate:manage");
+    const submissionFields = isStaff
+      ? {}
+      : { ownerUser: session.sub, submissionType: "marketplace" as const, moderationStatus: "pending" as const };
+
+    const plate = await Plate.create({ ...body, ...submissionFields, createdBy: session.sub });
 
     await AuditLog.create({
       actor: session.sub,
-      action: "plate.created",
+      action: isStaff ? "plate.created" : "listing.submitted",
       entityType: "Plate",
       entityId: plate._id,
-      metadata: { type: plate.type, isVip: plate.isVip },
+      metadata: { type: plate.type, isVip: plate.isVip, moderationStatus: plate.moderationStatus ?? null },
     });
 
     return jsonOk(plate, 201);

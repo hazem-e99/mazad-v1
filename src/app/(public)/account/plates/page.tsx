@@ -26,6 +26,7 @@ type PlateTab = "all" | "auction" | "review" | "sold" | "inactive";
 function tabFor(plate: PlateDTO, auction: AuctionSummary | undefined): Exclude<PlateTab, "all"> {
   if (auction && (auction.status === "live" || auction.status === "scheduled")) return "auction";
   if (auction && (auction.status === "sold" || auction.status === "purchased")) return "sold";
+  if (plate.moderationStatus === "pending" || plate.moderationStatus === "rejected") return "review";
   if (!plate.isVisible) return "review";
   return "inactive";
 }

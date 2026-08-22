@@ -45,10 +45,22 @@ export function Hero() {
       >
         <div
           className={cn(
-            "mz-hero-content flex w-full max-w-[620px] -translate-y-[clamp(2rem,5vh,3.125rem)] flex-col items-stretch lg:w-[38vw]",
+            "mz-hero-content flex max-w-[620px] -translate-y-[clamp(2rem,5vh,3.125rem)] flex-col items-stretch",
             locale === "ar" ? "ml-auto mr-0 text-right" : "text-left"
           )}
           dir={locale === "ar" ? "rtl" : "ltr"}
+          style={
+            locale === "ar"
+              ? {
+                  alignItems: "stretch",
+                  direction: "rtl",
+                  marginLeft: "auto",
+                  marginRight: 0,
+                  textAlign: "right",
+                  width: "min(620px, 100%)",
+                }
+              : undefined
+          }
         >
           <p className={cn("mz-hero-reveal w-full text-[clamp(0.8125rem,0.9vw,0.9375rem)] font-medium uppercase tracking-[0.08em] text-(--color-gold)", locale === "ar" ? "text-right" : "text-left")}>
             {t("home.heroEyebrow")}
@@ -61,14 +73,36 @@ export function Hero() {
               locale === "ar" ? "ml-auto mr-0 text-right" : "text-left"
             )}
             dir={locale === "ar" ? "rtl" : "ltr"}
-            style={locale === "ar" ? { marginLeft: "auto", marginRight: 0, textAlign: "right" } : undefined}
+            style={
+              locale === "ar"
+                ? {
+                    alignItems: "stretch",
+                    direction: "rtl",
+                    display: "flex",
+                    flexDirection: "column",
+                    marginLeft: "auto",
+                    marginRight: 0,
+                    maxWidth: "620px",
+                    textAlign: "right",
+                    width: "100%",
+                  }
+                : undefined
+            }
           >
             {arabicHeadlineParts ? (
               <>
-                <span className="hero-title-line block w-full text-right" dir="rtl" style={{ margin: 0, padding: 0, textAlign: "right" }}>
+                <span
+                  className="hero-title-line block w-full text-right"
+                  dir="rtl"
+                  style={{ direction: "rtl", display: "block", margin: 0, padding: 0, textAlign: "right", width: "100%" }}
+                >
                   {arabicHeadlineParts[0]}
                 </span>
-                <span className="hero-title-line block w-full text-right" dir="rtl" style={{ margin: 0, padding: 0, textAlign: "right" }}>
+                <span
+                  className="hero-title-line block w-full text-right"
+                  dir="rtl"
+                  style={{ direction: "rtl", display: "block", margin: 0, padding: 0, textAlign: "right", width: "100%" }}
+                >
                   {arabicHeadlineParts[1]}
                 </span>
               </>
@@ -93,6 +127,7 @@ export function Hero() {
               locale === "ar" ? "self-end" : "self-start"
             )}
             dir={locale === "ar" ? "rtl" : "ltr"}
+            style={locale === "ar" ? { direction: "rtl", justifyContent: "flex-start" } : undefined}
           >
             <LinkButton
               href="/auctions"

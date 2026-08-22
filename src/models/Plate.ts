@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 import { PLATE_TYPES, PLATE_CLASSIFICATIONS, USAGE_TYPES, PLATE_SHAPES, PLATE_SIZES, SUBMISSION_TYPES, MODERATION_STATUSES } from "@/lib/constants";
 
 const plateSchema = new Schema(
@@ -78,4 +79,4 @@ plateSchema.index({ category: 1 });
 plateSchema.index({ ownerUser: 1, createdAt: -1 });
 
 export type PlateDoc = InferSchemaType<typeof plateSchema>;
-export const Plate: Model<PlateDoc> = models.Plate ?? model<PlateDoc>("Plate", plateSchema);
+export const Plate: Model<PlateDoc> = registerModel<PlateDoc>("Plate", plateSchema);

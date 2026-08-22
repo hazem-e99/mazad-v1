@@ -4,29 +4,20 @@ import { Auction } from "@/models/Auction";
 import "@/models/Plate";
 import "@/models/PlateLogo";
 import { TableContainer, Table, Thead, Th, Td, Tr } from "@/components/ui/Table";
-import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { LinkButton } from "@/components/ui/Button";
 import { FilterBar } from "@/components/ui/FilterBar";
 import { Pagination } from "@/components/ui/Pagination";
 import { Card } from "@/components/ui/Card";
 import { getServerTranslator } from "@/lib/i18n-server";
-import { formatSar, formatDateTime } from "@/lib/format";
+import { formatDateTime } from "@/lib/format";
 import { AUCTION_STATUSES, AUCTION_CATEGORIES } from "@/lib/constants";
 import { toAuctionDTOList, type LeanAuction } from "@/lib/dto";
+import { LivePrice, LiveStatusBadge, LiveEndAt, AdminRealtimeStatus } from "@/components/admin/LiveAuctionCells";
+import { AdminLiveRefresher } from "@/components/admin/AdminLiveRefresher";
+import type { AuctionStatus } from "@/lib/constants";
 
 export const revalidate = 0;
-
-const statusTone: Record<string, "live" | "scheduled" | "sold" | "unsold" | "neutral"> = {
-  draft: "neutral",
-  scheduled: "scheduled",
-  live: "live",
-  ended: "unsold",
-  sold: "sold",
-  unsold: "unsold",
-  purchased: "sold",
-  cancelled: "neutral",
-};
 
 interface Props {
   searchParams: Promise<{ status?: string; category?: string; page?: string }>;
@@ -68,14 +59,22 @@ export default async function AdminAuctionsPage({ searchParams }: Props) {
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
+      {/* Rows below carry their own live price/status; this additionally
+          re-reads the paginated result set so newly-matching auctions and
+          the total count stay correct too. */}
+      <AdminLiveRefresher />
+
+      <div className="flex items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-(--color-text)">{t("admin.auctionsTitle")}</h1>
           <p className="text-sm text-(--color-text-muted) mt-1">{t("admin.auctionsSubtitle")}</p>
         </div>
-        <LinkButton href="/admin/auctions/new" variant="gold" size="md">
-          {t("admin.createAuctionButton")}
-        </LinkButton>
+        <div className="flex items-center gap-3">
+          <AdminRealtimeStatus className="hidden sm:inline-flex" />
+          <LinkButton href="/admin/auctions/new" variant="gold" size="md">
+            {t("admin.createAuctionButton")}
+          </LinkButton>
+        </div>
       </div>
 
       <FilterBar
@@ -107,12 +106,20 @@ export default async function AdminAuctionsPage({ searchParams }: Props) {
                   <p className="font-mono font-semibold text-(--color-text)">
                     {a.plate.lettersAr} {a.plate.numbers}
                   </p>
-                  <Badge tone={statusTone[a.status] ?? "neutral"}>{statusLabelMap[a.status] ?? a.status}</Badge>
+                  <LiveStatusBadge auctionId={a._id} status={a.status as AuctionStatus} />
                 </div>
-                <p className="tnum text-lg font-bold text-(--color-gold)">{formatSar(a.currentPrice, locale)}</p>
+                <p className="text-lg font-bold text-(--color-gold)">
+                  <LivePrice
+                    auctionId={a._id}
+                    currentPrice={a.currentPrice}
+                    finalPrice={a.finalPrice}
+                    status={a.status as AuctionStatus}
+                    locale={locale}
+                  />
+                </p>
                 <div className="flex justify-between text-xs text-(--color-text-faint)">
                   <span>{formatDateTime(a.startAt, locale)}</span>
-                  <span>{formatDateTime(a.endAt, locale)}</span>
+                  <LiveEndAt auctionId={a._id} endAt={a.endAt} locale={locale} />
                 </div>
                 <Link href={`/admin/auctions/${a._id}`} className="text-sm text-(--color-gold) hover:text-(--color-gold-hover) pt-1">
                   {t("admin.manageAction")}
@@ -144,11 +151,22 @@ export default async function AdminAuctionsPage({ searchParams }: Props) {
                         {a.plate.lettersAr} {a.plate.numbers}
                       </Td>
                       <Td>
-                        <Badge tone={statusTone[a.status] ?? "neutral"}>{statusLabelMap[a.status] ?? a.status}</Badge>
+                        <LiveStatusBadge auctionId={a._id} status={a.status as AuctionStatus} />
                       </Td>
-                      <Td className="tnum">{formatSar(a.currentPrice, locale)}</Td>
+                      <Td>
+                        <LivePrice
+                          auctionId={a._id}
+                          currentPrice={a.currentPrice}
+                          finalPrice={a.finalPrice}
+                          status={a.status as AuctionStatus}
+                          locale={locale}
+                          className="font-semibold text-(--color-gold)"
+                        />
+                      </Td>
                       <Td className="hidden lg:table-cell text-xs text-(--color-text-faint)">{formatDateTime(a.startAt, locale)}</Td>
-                      <Td className="hidden lg:table-cell text-xs text-(--color-text-faint)">{formatDateTime(a.endAt, locale)}</Td>
+                      <Td className="hidden lg:table-cell text-xs text-(--color-text-faint)">
+                        <LiveEndAt auctionId={a._id} endAt={a.endAt} locale={locale} />
+                      </Td>
                       <Td>
                         <Link href={`/admin/auctions/${a._id}`} className="text-sm text-(--color-gold) hover:text-(--color-gold-hover)">
                           {t("admin.manageAction")}

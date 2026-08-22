@@ -137,18 +137,14 @@ export default function NewPlatePage() {
       const imageForm = new FormData();
       imageForm.append("file", imageFile!);
       imageForm.append("subdir", "plates");
-      const imageRes = await fetch("/api/uploads", { method: "POST", body: imageForm, credentials: "same-origin" });
-      const imageBody = await imageRes.json();
-      if (!imageRes.ok || !imageBody.ok) throw new ApiClientError(imageBody.code ?? "upload_failed", imageBody.message ?? t("common.error"));
+      const imageData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: imageForm });
 
       let ownershipDocument: string | undefined;
       if (docFile) {
         const docForm = new FormData();
         docForm.append("file", docFile);
-        const docRes = await fetch("/api/uploads/ownership-document", { method: "POST", body: docForm, credentials: "same-origin" });
-        const docBody = await docRes.json();
-        if (!docRes.ok || !docBody.ok) throw new ApiClientError(docBody.code ?? "upload_failed", docBody.message ?? t("common.error"));
-        ownershipDocument = docBody.data.ref;
+        const docData = await apiFetch<{ ref: string }>("/api/uploads/ownership-document", { method: "POST", body: docForm });
+        ownershipDocument = docData.ref;
       }
 
       await apiFetch("/api/listings", {
@@ -167,7 +163,7 @@ export default function NewPlatePage() {
           title,
           description: description || undefined,
           price: submissionType === "marketplace" ? Number(price) : null,
-          image: imageBody.data.url,
+          image: imageData.url,
           ownershipDocument,
           contactPhone,
           contactEmail: contactEmail || undefined,

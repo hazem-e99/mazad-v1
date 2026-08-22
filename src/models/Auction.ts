@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 import { AUCTION_CATEGORIES, AUCTION_STATUSES } from "@/lib/constants";
 
 const auctionSchema = new Schema(
@@ -51,4 +52,4 @@ auctionSchema.index({ status: 1, startAt: 1 });
 auctionSchema.index({ status: 1, endAt: 1 });
 
 export type AuctionDoc = InferSchemaType<typeof auctionSchema>;
-export const Auction: Model<AuctionDoc> = models.Auction ?? model<AuctionDoc>("Auction", auctionSchema);
+export const Auction: Model<AuctionDoc> = registerModel<AuctionDoc>("Auction", auctionSchema);

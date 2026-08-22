@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { connectDB } from "@/lib/db";
 import { Plate } from "@/models/Plate";
 import "@/models/User";
@@ -83,15 +84,19 @@ export default async function AdminListingsPage({ searchParams }: Props) {
             {listings.map((listing) => (
               <Card key={listing._id} className="p-4 flex flex-col gap-2">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold text-(--color-text)">{listing.title}</p>
+                  <p className="font-semibold text-(--color-text)">{listing.title || `${listing.lettersAr} ${listing.numbers}`}</p>
                   <Badge tone={statusTone[listing.moderationStatus ?? "pending"]}>{t(`pages.moderationStatus_${listing.moderationStatus ?? "pending"}`)}</Badge>
                 </div>
                 <p className="text-xs text-(--color-text-muted)">
                   {listing.submissionType === "auction_request" ? t("pages.submissionTypeAuctionRequest") : t("pages.submissionTypeMarketplace")}
                   {listing.price != null ? ` · ${formatSar(listing.price, locale)}` : ""}
                 </p>
+                <p className="text-xs text-(--color-text-muted)">
+                  {t("admin.colSubmitter")}: {listing.owner?.name || "—"}
+                  {listing.owner?.phone ? ` · ${listing.owner.phone}` : ""}
+                </p>
                 <p className="text-xs text-(--color-text-faint)">{formatDateTime(listing.createdAt, locale)}</p>
-                <ListingModerationActions listing={listing} />
+                <ListingModerationActions listing={listing} showDetailsLink />
               </Card>
             ))}
             <Card>
@@ -105,6 +110,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                 <Thead>
                   <Tr>
                     <Th>{t("admin.colTitle")}</Th>
+                    <Th className="hidden lg:table-cell">{t("admin.colSubmitter")}</Th>
                     <Th>{t("pages.howToListQuestion")}</Th>
                     <Th>{t("admin.colPrice")}</Th>
                     <Th>{t("admin.filterStatus")}</Th>
@@ -115,7 +121,15 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                 <tbody>
                   {listings.map((listing) => (
                     <Tr key={listing._id}>
-                      <Td className="max-w-[220px] truncate">{listing.title}</Td>
+                      <Td className="max-w-[220px] truncate">
+                        <Link href={`/admin/listings/${listing._id}`} className="hover:text-(--color-gold)">
+                          {listing.title || `${listing.lettersAr} ${listing.numbers}`}
+                        </Link>
+                      </Td>
+                      <Td className="hidden lg:table-cell text-xs text-(--color-text-muted)">
+                        {listing.owner?.name || "—"}
+                        {listing.owner?.phone ? <span className="tnum block text-(--color-text-faint)">{listing.owner.phone}</span> : null}
+                      </Td>
                       <Td>{listing.submissionType === "auction_request" ? t("pages.submissionTypeAuctionRequest") : t("pages.submissionTypeMarketplace")}</Td>
                       <Td className="tnum">{listing.price != null ? formatSar(listing.price, locale) : "—"}</Td>
                       <Td>
@@ -123,7 +137,7 @@ export default async function AdminListingsPage({ searchParams }: Props) {
                       </Td>
                       <Td className="hidden lg:table-cell text-xs text-(--color-text-faint)">{formatDateTime(listing.createdAt, locale)}</Td>
                       <Td>
-                        <ListingModerationActions listing={listing} />
+                        <ListingModerationActions listing={listing} showDetailsLink />
                       </Td>
                     </Tr>
                   ))}

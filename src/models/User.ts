@@ -1,4 +1,5 @@
-import { Schema, model, models, type InferSchemaType, type Model } from "mongoose";
+import { Schema, type InferSchemaType, type Model } from "mongoose";
+import { registerModel } from "@/models/registerModel";
 import { USER_ROLES, PERMISSIONS } from "@/lib/constants";
 
 const userSchema = new Schema(
@@ -19,4 +20,4 @@ const userSchema = new Schema(
 userSchema.index({ role: 1 });
 
 export type UserDoc = InferSchemaType<typeof userSchema>;
-export const User: Model<UserDoc> = models.User ?? model<UserDoc>("User", userSchema);
+export const User: Model<UserDoc> = registerModel<UserDoc>("User", userSchema);
