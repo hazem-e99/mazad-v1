@@ -16,7 +16,8 @@ import {
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { MazadLogo } from "@/components/layout/MazadLogo";
-import { InstagramGlyph, SnapchatGlyph, XGlyph } from "@/components/layout/SocialGlyphs";
+import { SocialIcon } from "@/components/layout/SocialGlyphs";
+import { localizedText, type SiteSettingsDTO } from "@/lib/siteSettings";
 
 /**
  * The footer: a full-bleed dark band under a gold hairline. It runs the
@@ -44,9 +45,10 @@ const QUICK_LINKS: { href: string; labelKey: string }[] = [
   { href: "/chat", labelKey: "nav.chat" },
 ];
 
-/** Contact channels. These are brand details, not records — the platform
- * has no site-settings collection — so they live in the message catalog,
- * where they are edited once and translate with everything else. */
+/** Contact channels. Site settings model links, not contact details, so
+ * these stay in the message catalog where they are written once and
+ * translate with everything else. The tagline, socials, copyright and
+ * footer logo do come from site settings — see the props below. */
 const CONTACT: { icon: LucideIcon; key: string; href?: (value: string) => string }[] = [
   { icon: Headphones, key: "footer.phone", href: (v) => `tel:${v.replace(/\s+/g, "")}` },
   { icon: Mail, key: "footer.email", href: (v) => `mailto:${v}` },
@@ -54,16 +56,20 @@ const CONTACT: { icon: LucideIcon; key: string; href?: (value: string) => string
   { icon: Clock, key: "footer.hours" },
 ];
 
-const SOCIALS = [
-  { key: "email", href: "mailto:info@lawhati.sa", icon: Mail, label: "Email" },
-  { key: "x", href: "https://x.com/", icon: XGlyph, label: "X" },
-  { key: "instagram", href: "https://instagram.com/", icon: InstagramGlyph, label: "Instagram" },
-  { key: "snapchat", href: "https://snapchat.com/", icon: SnapchatGlyph, label: "Snapchat" },
-] as const;
-
-export function Footer() {
+export function Footer({ settings }: { settings: SiteSettingsDTO }) {
   const { t, locale } = useTranslations();
   const Chevron = locale === "ar" ? ChevronLeft : ChevronRight;
+
+  // The same list the header renders, so the two can never advertise
+  // different accounts.
+  const socials = settings.footer.socials
+    .filter((social) => social.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  // An admin who clears a field gets the catalog copy back rather than a
+  // blank line.
+  const tagline = localizedText(locale, settings.footer.taglineAr, settings.footer.taglineEn) || t("footer.tagline");
+  const copyright = localizedText(locale, settings.footer.copyrightAr, settings.footer.copyrightEn) || t("footer.rights");
 
   return (
     <footer className="relative isolate mt-16 overflow-hidden border-t border-(--color-gold)/35 text-(--color-on-charcoal)">
@@ -85,8 +91,8 @@ export function Footer() {
         <div className="mz-container grid gap-10 py-12 sm:py-14 lg:grid-cols-[1.15fr_0.85fr_1.15fr] lg:gap-0">
           {/* ── Brand ─────────────────────────────────────────────────── */}
           <div className="lg:px-10 lg:first:ps-0">
-            <MazadLogo className="h-20 w-[7rem]" />
-            <p className="mt-4 max-w-xs text-sm leading-7 text-(--color-on-charcoal-muted)">{t("footer.tagline")}</p>
+            <MazadLogo src={settings.brand.footerLogoUrl || settings.brand.logoUrl} className="h-20 w-[7rem]" />
+            <p className="mt-4 max-w-xs text-sm leading-7 text-(--color-on-charcoal-muted)">{tagline}</p>
           </div>
 
           {/* ── Quick links ───────────────────────────────────────────── */}
@@ -155,21 +161,23 @@ export function Footer() {
               })}
             </ul>
 
-            <ul className="mt-7 flex items-center gap-2.5" aria-label={t("footer.socialsLabel")}>
-              {SOCIALS.map((social) => (
-                <li key={social.key}>
-                  <a
-                    href={social.href}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    aria-label={social.label}
-                    className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-(--color-on-charcoal-muted) transition-colors duration-(--duration-fast) hover:border-(--color-gold)/60 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
-                  >
-                    <social.icon className="h-4 w-4" strokeWidth={1.8} />
-                  </a>
-                </li>
-              ))}
-            </ul>
+            {socials.length > 0 && (
+              <ul className="mt-7 flex items-center gap-2.5" aria-label={t("footer.socialsLabel")}>
+                {socials.map((social) => (
+                  <li key={social.id}>
+                    <a
+                      href={social.href}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      aria-label={social.label}
+                      className="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 text-(--color-on-charcoal-muted) transition-colors duration-(--duration-fast) hover:border-(--color-gold)/60 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+                    >
+                      <SocialIcon platform={social.platform} className="h-4 w-4" />
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         </div>
 
@@ -181,7 +189,7 @@ export function Footer() {
           <p className="flex items-center gap-2 text-center text-xs text-(--color-on-charcoal-muted)">
             <ShieldCheck className="h-4 w-4 shrink-0 text-(--color-gold)" aria-hidden="true" strokeWidth={1.9} />
             <span>
-              {t("footer.rights")} © {new Date().getFullYear()} لوحتي
+              {copyright} © {new Date().getFullYear()} لوحتي
             </span>
           </p>
 

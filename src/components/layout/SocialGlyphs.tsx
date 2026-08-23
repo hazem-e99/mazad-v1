@@ -7,7 +7,26 @@
  * stroke width so they sit correctly beside the lucide icons they share a
  * row with.
  */
+import { Link as LinkIcon, Mail, MessageCircle } from "lucide-react";
+import type { SiteSocialPlatform } from "@/lib/siteSettings";
+
 export type GlyphProps = { className?: string; strokeWidth?: number };
+
+/**
+ * Resolves a configured social link's platform to its mark. Header and
+ * footer both render the same `settings.footer.socials` list, so the
+ * mapping lives here rather than being restated in each — two copies drift,
+ * and a platform added to only one of them renders as a bare link there.
+ */
+export function SocialIcon({ platform, className }: { platform: SiteSocialPlatform; className?: string }) {
+  if (platform === "whatsapp") return <MessageCircle className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "instagram") return <InstagramGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "snapchat") return <SnapchatGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "tiktok") return <TikTokGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "x") return <XGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "email") return <Mail className={className} aria-hidden="true" strokeWidth={1.75} />;
+  return <LinkIcon className={className} aria-hidden="true" strokeWidth={1.75} />;
+}
 
 export function XGlyph({ className }: GlyphProps) {
   return (

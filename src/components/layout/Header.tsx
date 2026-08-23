@@ -3,16 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  Link as LinkIcon,
-  Mail,
-  MessageCircle,
-  Plus,
-  Menu,
-  UserRound,
-  LogOut,
-  ChevronDown,
-} from "lucide-react";
+import { Plus, Menu, UserRound, LogOut, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
@@ -20,11 +11,11 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { MazadLogo } from "@/components/layout/MazadLogo";
-import { InstagramGlyph, SnapchatGlyph, TikTokGlyph, XGlyph } from "@/components/layout/SocialGlyphs";
+import { SocialIcon } from "@/components/layout/SocialGlyphs";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
 import { accountNavItems, isNavItemActive, mainNavItems, navLabel, type HeaderViewer } from "@/lib/navItems";
-import type { SiteSettingsDTO, SiteSocialLink } from "@/lib/siteSettings";
+import type { SiteSettingsDTO } from "@/lib/siteSettings";
 
 // Re-exported so existing importers keep working; the definition itself
 // lives with the nav data it describes.
@@ -321,14 +312,4 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
       {pathname !== "/" && <div className="h-20 shrink-0" aria-hidden="true" />}
     </>
   );
-}
-
-function SocialIcon({ platform, className }: { platform: SiteSocialLink["platform"]; className: string }) {
-  if (platform === "whatsapp") return <MessageCircle className={className} aria-hidden="true" strokeWidth={1.75} />;
-  if (platform === "instagram") return <InstagramGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
-  if (platform === "snapchat") return <SnapchatGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
-  if (platform === "tiktok") return <TikTokGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
-  if (platform === "x") return <XGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
-  if (platform === "email") return <Mail className={className} aria-hidden="true" strokeWidth={1.75} />;
-  return <LinkIcon className={className} aria-hidden="true" strokeWidth={1.75} />;
 }
