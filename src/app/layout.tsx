@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import { IBM_Plex_Sans_Arabic, Inter, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/Toaster";
 import { LocaleProvider } from "@/components/i18n/LocaleProvider";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { getServerLocale } from "@/lib/i18n-server";
+import { getServerTheme } from "@/lib/theme-server";
 import { dirForLocale } from "@/lib/i18n";
 import "./globals.css";
 
@@ -37,19 +39,26 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
-  const locale = await getServerLocale();
+  const [locale, theme] = await Promise.all([getServerLocale(), getServerTheme()]);
 
   return (
+    // `data-theme` is resolved server-side so the very first paint is already
+    // in the visitor's theme — see src/app/globals.css for the token blocks.
+    // `body` takes its canvas from --page-background (a gradient on light),
+    // which a `bg-*` utility could not express.
     <html
       lang={locale}
       dir={dirForLocale(locale)}
+      data-theme={theme}
       className={`${ibmPlexArabic.variable} ${inter.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-(--color-bg) text-(--color-text)">
-        <LocaleProvider initialLocale={locale}>
-          {children}
-          <Toaster />
-        </LocaleProvider>
+      <body className="min-h-full flex flex-col text-(--color-text)">
+        <ThemeProvider initialTheme={theme}>
+          <LocaleProvider initialLocale={locale}>
+            {children}
+            <Toaster />
+          </LocaleProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

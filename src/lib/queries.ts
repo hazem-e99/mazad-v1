@@ -1,13 +1,24 @@
+import { cache } from "react";
 import { connectDB } from "@/lib/db";
 import { Auction } from "@/models/Auction";
 import { Plate } from "@/models/Plate";
 import { Bid } from "@/models/Bid";
-import "@/models/User";
+import { User } from "@/models/User";
 import "@/models/PlateLogo";
 import "@/models/PlateCategory";
-import { toAuctionDTOList, toPlateDTO, toPlateDTOList, type LeanAuction, type LeanPlate } from "@/lib/dto";
+import {
+  toAuctionDTOList,
+  toAuctionSummaryDTOList,
+  toPlateDTO,
+  toPlateDTOList,
+  type LeanAuction,
+  type LeanPlate,
+} from "@/lib/dto";
 
-export async function getMarketplaceListings(limit = 8) {
+/** The statuses that mean "this auction is over", however it ended. */
+const COMPLETED_STATUSES = ["sold", "unsold", "purchased"];
+
+export const getMarketplaceListings = cache(async (limit = 8) => {
   await connectDB();
   const plates = await Plate.find({ submissionType: "marketplace", moderationStatus: "approved", isVisible: true })
     .sort({ isFeatured: -1, createdAt: -1 })
@@ -15,52 +26,76 @@ export async function getMarketplaceListings(limit = 8) {
     .populate("logo")
     .lean<LeanPlate[]>();
   return toPlateDTOList(plates);
-}
-
-/** Brand claim, not a measured figure — the platform has no satisfaction
- * survey, so it is stated here rather than dressed up as a query result. */
-const SATISFACTION_CLAIM = 98;
+});
 
 /**
- * The three figures behind the home page's proof band. Counts come from
- * the same collections the admin dashboard reads, so the public number
- * and the internal number can never disagree.
+ * The three figures behind the home page's proof band.
+ *
+ * Every one of them is a count over the same collections the admin
+ * dashboard reads, so the public number and the internal number can never
+ * disagree. Nothing here is a stated claim: an earlier revision shipped a
+ * hardcoded `satisfaction: 98` percent, which the platform has no way to
+ * measure and which therefore had no business sitting between two real
+ * figures as though it were one.
  */
-export async function getPlatformStats() {
+export const getPlatformStats = cache(async () => {
   await connectDB();
 
-  const [totalBids, soldPlates] = await Promise.all([
+  const [totalBids, totalUsers, soldPlates] = await Promise.all([
     Bid.countDocuments({ accepted: true }),
+    User.countDocuments({}),
     Auction.countDocuments({ status: { $in: ["sold", "purchased"] } }),
   ]);
 
-  return { totalBids, soldPlates, satisfaction: SATISFACTION_CLAIM };
-}
+  return { totalBids, totalUsers, soldPlates };
+});
 
-export async function getHomeAuctions() {
+/** Populate spec shared by every auction card query — the plate and its
+ * logo are what the card actually draws. */
+const withPlate = { path: "plate", populate: { path: "logo" } } as const;
+
+/**
+ * The auctions running right now, soonest to end first.
+ *
+ * Each home section owns its own query so one failing collection can only
+ * take out its own section (the page renders each inside its own Suspense
+ * + error boundary) instead of turning the whole page into a 500.
+ */
+export const getLiveAuctions = cache(async (limit = 8) => {
   await connectDB();
+  const auctions = await Auction.find({ status: "live" })
+    .sort({ endAt: 1 })
+    .limit(limit)
+    .populate(withPlate)
+    .populate("highestBidder", "name")
+    .lean<LeanAuction[]>();
+  return toAuctionSummaryDTOList(auctions);
+});
 
-  const [live, endingSoon, upcoming, recentlyCompleted] = await Promise.all([
-    Auction.find({ status: "live" }).sort({ endAt: 1 }).limit(8).populate({ path: "plate", populate: { path: "logo" } }).populate("highestBidder", "name").lean<LeanAuction[]>(),
-    Auction.find({ status: "live" }).sort({ endAt: 1 }).limit(4).populate({ path: "plate", populate: { path: "logo" } }).lean<LeanAuction[]>(),
-    Auction.find({ status: "scheduled" }).sort({ startAt: 1 }).limit(8).populate({ path: "plate", populate: { path: "logo" } }).lean<LeanAuction[]>(),
-    Auction.find({ status: { $in: ["sold", "unsold", "purchased"] } })
-      .sort({ finalizedAt: -1 })
-      .limit(6)
-      .populate({ path: "plate", populate: { path: "logo" } })
-      .populate("winner", "name")
-      .lean<LeanAuction[]>(),
-  ]);
+/** Scheduled auctions, soonest to open first. */
+export const getUpcomingAuctions = cache(async (limit = 6) => {
+  await connectDB();
+  const auctions = await Auction.find({ status: "scheduled" })
+    .sort({ startAt: 1 })
+    .limit(limit)
+    .populate(withPlate)
+    .lean<LeanAuction[]>();
+  return toAuctionSummaryDTOList(auctions);
+});
 
-  return {
-    live: toAuctionDTOList(live),
-    endingSoon: toAuctionDTOList(endingSoon),
-    upcoming: toAuctionDTOList(upcoming),
-    recentlyCompleted: toAuctionDTOList(recentlyCompleted),
-  };
-}
+/** Most recently finalised auctions — the results strip. */
+export const getCompletedAuctions = cache(async (limit = 6) => {
+  await connectDB();
+  const auctions = await Auction.find({ status: { $in: COMPLETED_STATUSES } })
+    .sort({ finalizedAt: -1 })
+    .limit(limit)
+    .populate(withPlate)
+    .populate("winner", "name")
+    .lean<LeanAuction[]>();
+  return toAuctionSummaryDTOList(auctions);
+});
 
-export async function getVipPlates(limit = 12) {
+export const getVipPlates = cache(async (limit = 12) => {
   await connectDB();
   // A submission still in (or rejected by) review is never public, even if
   // it also carries the VIP flag — the moderation gate outranks every
@@ -72,7 +107,7 @@ export async function getVipPlates(limit = 12) {
     .populate("logo")
     .lean<LeanPlate[]>();
   return plates.map(toPlateDTO);
-}
+});
 
 export async function getExclusiveAuctions(limit = 12) {
   await connectDB();
@@ -84,7 +119,6 @@ export async function getExclusiveAuctions(limit = 12) {
   return toAuctionDTOList(auctions);
 }
 
-const COMPLETED_STATUSES = ["sold", "unsold", "purchased"];
 
 /**
  * Sort orders offered to the listing UI. Whitelisted rather than passed

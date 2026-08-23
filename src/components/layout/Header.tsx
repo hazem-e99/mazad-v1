@@ -25,6 +25,7 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { Drawer } from "@/components/ui/Drawer";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { MazadLogo } from "@/components/layout/MazadLogo";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
@@ -136,6 +137,7 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
         </nav>
 
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
+          <ThemeToggle />
           <LanguageSwitcher />
           <LinkButton href="/plates/new" variant="secondary" size="sm">
             <Plus className="h-4 w-4" aria-hidden="true" />
@@ -261,7 +263,8 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
         </nav>
 
         <div className="mt-4 flex flex-col gap-2.5 border-t border-(--color-border) pt-4">
-          <div className="flex justify-center pb-1">
+          <div className="flex items-center justify-center gap-2 pb-1">
+            <ThemeToggle />
             <LanguageSwitcher />
           </div>
           <LinkButton href="/plates/new" variant="secondary" size="md" className="w-full" onClick={() => setMenuOpen(false)}>

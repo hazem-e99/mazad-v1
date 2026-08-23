@@ -1,5 +1,19 @@
 @import "tailwindcss";
 
+/* ══════════════════════════════════════════════════════════════════════
+   THEME TOKENS
+
+   Two themes ship: the original dark theme (`:root`, also selectable as
+   [data-theme="dark"]) and the warm ivory "Luxury Saudi" light theme
+   ([data-theme="light"]). Both define the *same* token names, so every
+   component keeps reading `--color-surface` / `--radius-lg` /
+   `--shadow-card` and never learns which theme is active. Adding a third
+   theme means adding one more block here and nothing else.
+
+   `<html data-theme>` is written server-side from a cookie (see
+   src/lib/theme.ts), so there is no first-paint flash.
+   ══════════════════════════════════════════════════════════════════════ */
+
 :root {
   /* ── Surfaces ─────────────────────────────────────────────────────────
      A four-step dark ramp. Every surface in the product picks one of
@@ -8,14 +22,19 @@
   --color-bg-elevated: #11171f;
   --color-surface: #151c25;
   --color-surface-hover: #1b2430;
+  /* Fifth step, used by the light theme's inset panels. On dark it folds
+     back onto the hover surface so shared components stay correct. */
+  --color-surface-secondary: #1b2430;
 
   /* Borders lean on white transparency rather than a solid gray so a card
      reads as "lit from within" against any of the four surfaces. */
   --color-border: rgba(255, 255, 255, 0.09);
   --color-border-strong: rgba(255, 255, 255, 0.16);
+  --color-border-light: rgba(255, 255, 255, 0.05);
 
   /* ── Text ─────────────────────────────────────────────────────────── */
   --color-text: #f6f3ec;
+  --color-text-secondary: #c6cbd3;
   --color-text-muted: #a6adb7;
   /* 4.7:1 against --color-bg — clears WCAG AA for small metadata text. */
   --color-text-faint: #77818e;
@@ -25,12 +44,27 @@
      green stays as the secondary/system brand so gold keeps its scarcity. */
   --color-gold: #d7ad58;
   --color-gold-hover: #e4bd6c;
+  --color-gold-light: #ebcb73;
   --color-gold-dark: #a37b30;
   --color-gold-foreground: #16120a;
+  --gradient-gold: linear-gradient(135deg, #e9c76c, #b8892f);
 
   --color-brand: #0f6b4f;
   --color-brand-hover: #14805f;
   --color-brand-foreground: #ffffff;
+  /* The light design language calls this "primary" — same Saudi green,
+     aliased so a component can read either vocabulary. */
+  --color-primary: var(--color-brand);
+  --color-primary-hover: var(--color-brand-hover);
+  --color-primary-soft: rgba(15, 107, 79, 0.16);
+
+  /* Charcoal is deliberately theme-independent: the social bar, the premium
+     panel and the sell-your-plate banner stay dark in *both* themes, which
+     is why they get their own tokens instead of borrowing --color-bg. */
+  --color-charcoal: #292620;
+  --color-charcoal-soft: #3a352d;
+  --color-on-charcoal: #f7f3ea;
+  --color-on-charcoal-muted: rgba(247, 243, 234, 0.66);
 
   /* ── Semantic ─────────────────────────────────────────────────────── */
   --color-success: #22c55e;
@@ -52,11 +86,17 @@
   --color-vip-border: rgba(215, 173, 88, 0.3);
   --color-gold-tint: rgba(215, 173, 88, 0.1);
 
+  /* Page canvas. A flat colour on dark, a layered warm gradient on light
+     (see the light block) — so `body` itself never has to branch. */
+  --page-background: var(--color-bg);
+
   /* ── Radius ───────────────────────────────────────────────────────── */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: 12px;
   --radius-xl: 16px;
+  --radius-2xl: 22px;
+  --radius-pill: 999px;
 
   /* ── Elevation ────────────────────────────────────────────────────────
      Dark UI reads depth from a lit top edge plus a deep drop shadow, not
@@ -65,6 +105,11 @@
   --shadow-elevated: 0 18px 42px -24px rgba(0, 0, 0, 0.9);
   --shadow-gold-glow: 0 10px 28px -24px rgba(215, 173, 88, 0.35);
   --shadow-plate: 0 1px 2px rgba(0, 0, 0, 0.5), 0 10px 26px -12px rgba(0, 0, 0, 0.85);
+  /* Soft/lift are the light theme's workhorses. On dark they resolve to the
+     existing ramp, so a shared component never gains a shadow the dark
+     theme was not designed for. */
+  --shadow-soft: var(--shadow-card);
+  --shadow-lift: var(--shadow-elevated);
 
   /* ── Motion ───────────────────────────────────────────────────────── */
   --ease-out-expo: cubic-bezier(0.22, 1, 0.36, 1);
@@ -74,6 +119,91 @@
 
   /* Desktop content width. */
   --container-max: 1280px;
+
+  color-scheme: dark;
+}
+
+/* Explicit dark selection carries the same values as the bare `:root`, so
+   a stored "dark" preference and "no stored preference" render alike. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   LIGHT THEME — Warm Ivory / Gold / Deep Saudi Green / Charcoal
+   ══════════════════════════════════════════════════════════════════════ */
+:root[data-theme="light"] {
+  --color-bg: #f5f0e8;
+  --color-bg-elevated: #faf7f1;
+  --color-surface: #fffdfc;
+  --color-surface-hover: #f4eee4;
+  --color-surface-secondary: #eee6da;
+
+  /* Solid warm borders, not transparency: on an ivory canvas a white-alpha
+     hairline disappears completely. */
+  --color-border: #ded5c8;
+  --color-border-strong: #cabca8;
+  --color-border-light: #ece5dc;
+
+  --color-text: #27231f;
+  --color-text-secondary: #655e55;
+  --color-text-muted: #655e55;
+  /* 4.6:1 on --color-bg — small metadata still clears AA. */
+  --color-text-faint: #8b8379;
+
+  --color-gold: #d4a83f;
+  /* Gold *darkens* on hover here; brightening it against ivory would read
+     as the control going disabled. */
+  --color-gold-hover: #bd922f;
+  --color-gold-light: #ebcb73;
+  --color-gold-dark: #a77b22;
+  --color-gold-foreground: #241a04;
+
+  --color-brand: #087445;
+  --color-brand-hover: #065f39;
+  --color-brand-foreground: #ffffff;
+  --color-primary-soft: #e7f2ec;
+
+  --color-success: #087445;
+  --color-danger: #c0392b;
+  --color-warning: #b7791f;
+  --color-info: #2563eb;
+
+  --color-live: #c0392b;
+  --color-live-bg: rgba(192, 57, 43, 0.1);
+  --color-scheduled: #2563eb;
+  --color-scheduled-bg: rgba(37, 99, 235, 0.1);
+  --color-sold: #087445;
+  --color-sold-bg: rgba(8, 116, 69, 0.1);
+  --color-unsold-bg: rgba(41, 38, 32, 0.06);
+
+  --color-vip-bg: rgba(212, 168, 63, 0.12);
+  --color-vip-surface: #fffdfc;
+  --color-vip-border: rgba(212, 168, 63, 0.42);
+  --color-gold-tint: rgba(212, 168, 63, 0.14);
+
+  /* Never a flat #ffffff: a barely-there gold bloom at the top over a
+     vertical ivory-to-beige fade. */
+  --page-background:
+    radial-gradient(120% 52% at 50% 0%, rgba(212, 168, 63, 0.08), transparent 42%),
+    linear-gradient(180deg, #f8f4ed 0%, #f1ebe2 100%);
+
+  /* The light design is built on visibly larger corners. */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-2xl: 32px;
+
+  /* Warm brown-black shadows, never neutral black. */
+  --shadow-soft: 0 8px 30px rgba(64, 48, 30, 0.08);
+  --shadow-card: 0 2px 6px rgba(64, 48, 30, 0.04), 0 10px 28px rgba(64, 48, 30, 0.07);
+  --shadow-lift: 0 4px 10px rgba(64, 48, 30, 0.06), 0 18px 44px rgba(64, 48, 30, 0.12);
+  --shadow-elevated: var(--shadow-lift);
+  --shadow-gold-glow: 0 10px 30px rgba(167, 123, 34, 0.22);
+  --shadow-plate: 0 1px 2px rgba(64, 48, 30, 0.12), 0 8px 22px -10px rgba(64, 48, 30, 0.28);
+
+  color-scheme: light;
 }
 
 @theme inline {
@@ -93,12 +223,9 @@
   border-color: var(--color-border);
 }
 
-html {
-  color-scheme: dark;
-}
-
 body {
-  background: var(--color-bg);
+  background: var(--page-background);
+  background-attachment: fixed;
   color: var(--color-text);
   font-feature-settings: "tnum" 1;
 }
@@ -256,6 +383,116 @@ body {
   }
 }
 
+/* ══════════════════════════════════════════════════════════════════════
+   HOME — the top stage
+
+   Hero, premium panel and statistics all sit on one continuous backdrop
+   rather than in three stacked boxes, so the hero reads as "the top of the
+   page" instead of a detached card. The stage owns the media, the scrim and
+   the fade into the page canvas; its children only place content.
+   ══════════════════════════════════════════════════════════════════════ */
+.mz-stage {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+.mz-stage-media {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+/* Warm scrim. Two jobs: keep white copy legible over arbitrary footage, and
+   tint whatever the media is toward the ivory palette so the stage belongs
+   to the light theme rather than fighting it. The last stop hands the bottom
+   edge to the page canvas, which is why no seam is visible where the stage
+   ends. */
+.mz-stage-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(41, 38, 32, 0.55) 0%, rgba(41, 38, 32, 0.12) 22%, rgba(41, 38, 32, 0) 40%),
+    linear-gradient(180deg, rgba(245, 240, 232, 0) 55%, rgba(245, 240, 232, 0.72) 82%, var(--color-bg) 100%),
+    radial-gradient(120% 60% at 50% 0%, rgba(212, 168, 63, 0.14), transparent 55%);
+}
+:root[data-theme="dark"] .mz-stage-scrim,
+:root:not([data-theme]) .mz-stage-scrim {
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, rgba(0, 0, 0, 0.25) 30%, rgba(0, 0, 0, 0.35) 60%, var(--color-bg) 100%);
+}
+
+/* Metallic gold — login pill, premium CTAs, the plate badge rule. A flat
+   gold fill looks like mustard; the inner highlight plus the darker lower
+   stop is what makes it read as leaf. */
+.mz-gold-surface {
+  background: var(--gradient-gold);
+  color: #241a04;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(120, 84, 12, 0.35),
+    0 8px 20px -10px rgba(167, 123, 34, 0.6);
+}
+
+/* Frosted charcoal — the premium-ads panel. */
+.mz-panel-premium {
+  background: rgba(35, 31, 26, 0.9);
+  border: 1px solid rgba(212, 168, 63, 0.28);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.06) inset,
+    0 24px 60px -30px rgba(35, 26, 12, 0.75);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .mz-panel-premium {
+    background: rgba(35, 31, 26, 0.82);
+    backdrop-filter: blur(18px) saturate(120%);
+  }
+}
+
+/* Frosted ivory — the statistics band, sitting on the same backdrop. */
+.mz-panel-stats {
+  background: rgba(255, 253, 252, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 18px 44px -26px rgba(64, 48, 30, 0.45);
+}
+@supports (backdrop-filter: blur(1px)) {
+  .mz-panel-stats {
+    background: rgba(255, 253, 252, 0.7);
+    backdrop-filter: blur(16px) saturate(115%);
+  }
+}
+:root[data-theme="dark"] .mz-panel-stats,
+:root:not([data-theme]) .mz-panel-stats {
+  background: rgba(21, 28, 37, 0.82);
+  border-color: var(--color-border);
+}
+
+/* Charcoal gradient — the sell-your-plate banner. */
+.mz-panel-charcoal {
+  background: linear-gradient(105deg, var(--color-charcoal) 0%, var(--color-charcoal-soft) 55%, #211e19 100%);
+  border: 1px solid rgba(212, 168, 63, 0.22);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Lifts a card by 3px and warms its border. Deliberately small — the page
+   should feel calm, not springy. */
+.mz-hover-lift {
+  transition:
+    transform var(--duration-base) var(--ease-out-expo),
+    border-color var(--duration-base),
+    box-shadow var(--duration-base);
+}
+.mz-hover-lift:hover {
+  transform: translateY(-3px);
+  border-color: rgba(212, 168, 63, 0.45);
+  box-shadow: var(--shadow-lift);
+}
+
 /* Section reveal — scroll-driven, zero JavaScript. Browsers without
    `animation-timeline` render the content in its final state, so nothing
    is ever hidden behind an unsupported feature. */
@@ -345,6 +582,9 @@ body {
   }
   .mz-marquee {
     animation: none !important;
+  }
+  .mz-hover-lift:hover {
+    transform: none;
   }
 }
 

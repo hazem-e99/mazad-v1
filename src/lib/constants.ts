@@ -207,3 +207,93 @@ export const AUCTION_EXTENSION_SECONDS = 60;
 // Riyadh observes no daylight saving, so this offset is fixed year-round.
 export const STATS_TIMEZONE = "Asia/Riyadh";
 export const STATS_TIMEZONE_OFFSET = "+03:00";
+
+// ---- Audit log actions -----------------------------------------------
+//
+// Every string an AuditLog document can carry in `action`, written by the
+// API routes and the auction service. The audit table showed these raw
+// (`auction.direct_purchase`), which reads as a debug dump rather than a
+// record a supervisor can scan — so each one gets a sentence-shaped label
+// here, in both languages, next to the plate/usage/shape labels that
+// already work this way.
+//
+// The keys stay the source of truth: they remain what the page filters
+// on and what it exposes on hover, so nothing about search changes.
+export const AUDIT_ACTIONS = [
+  "auction.created",
+  "auction.status_changed",
+  "auction.finalized",
+  "auction.direct_purchase",
+  "listing.submitted",
+  "listing.updated",
+  "listing.approved",
+  "listing.rejected",
+  "listing.archived",
+  "listing.deleted",
+  "plate.updated",
+  "plate.hidden",
+  "plate_category.created",
+  "plate_category.updated",
+  "plate_category.deleted",
+  "plate_logo.created",
+  "plate_logo.updated",
+  "plate_logo.deleted",
+  "user.updated",
+] as const;
+export type AuditAction = (typeof AUDIT_ACTIONS)[number];
+
+export const AUDIT_ACTION_LABELS_AR: Record<AuditAction, string> = {
+  "auction.created": "إنشاء مزاد",
+  "auction.status_changed": "تغيير حالة المزاد",
+  "auction.finalized": "إنهاء المزاد",
+  "auction.direct_purchase": "شراء مباشر",
+  "listing.submitted": "تقديم لوحة للعرض",
+  "listing.updated": "تعديل اللوحة المعروضة",
+  "listing.approved": "قبول اللوحة المعروضة",
+  "listing.rejected": "رفض اللوحة المعروضة",
+  "listing.archived": "أرشفة اللوحة المعروضة",
+  "listing.deleted": "حذف اللوحة المعروضة",
+  "plate.updated": "تعديل لوحة",
+  "plate.hidden": "إخفاء لوحة",
+  "plate_category.created": "إضافة تصنيف لوحات",
+  "plate_category.updated": "تعديل تصنيف لوحات",
+  "plate_category.deleted": "حذف تصنيف لوحات",
+  "plate_logo.created": "إضافة شعار لوحة",
+  "plate_logo.updated": "تعديل شعار لوحة",
+  "plate_logo.deleted": "حذف شعار لوحة",
+  "user.updated": "تعديل بيانات مستخدم",
+};
+
+export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
+  "auction.created": "Auction created",
+  "auction.status_changed": "Auction status changed",
+  "auction.finalized": "Auction finalized",
+  "auction.direct_purchase": "Direct purchase",
+  "listing.submitted": "Listing submitted",
+  "listing.updated": "Listing updated",
+  "listing.approved": "Listing approved",
+  "listing.rejected": "Listing rejected",
+  "listing.archived": "Listing archived",
+  "listing.deleted": "Listing deleted",
+  "plate.updated": "Plate updated",
+  "plate.hidden": "Plate hidden",
+  "plate_category.created": "Plate category created",
+  "plate_category.updated": "Plate category updated",
+  "plate_category.deleted": "Plate category deleted",
+  "plate_logo.created": "Plate logo created",
+  "plate_logo.updated": "Plate logo updated",
+  "plate_logo.deleted": "Plate logo deleted",
+  "user.updated": "User updated",
+};
+
+/**
+ * A readable name for an audit entry's action.
+ *
+ * Falls back to the raw key rather than to a generic "unknown": a log
+ * line that records something this table has no label for yet must still
+ * say *what* it recorded.
+ */
+export function auditActionLabel(action: string, locale: "ar" | "en" = "ar"): string {
+  const labels = locale === "en" ? AUDIT_ACTION_LABELS_EN : AUDIT_ACTION_LABELS_AR;
+  return labels[action as AuditAction] ?? action;
+}

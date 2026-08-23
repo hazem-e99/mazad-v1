@@ -18,6 +18,12 @@ export interface MessageCatalog {
     myPlates: string;
     myBids: string;
     dashboard: string;
+    featured: string;
+    bottomNav: string;
+  };
+  theme: {
+    switchToDark: string;
+    switchToLight: string;
   };
   footer: {
     tagline: string;
@@ -81,6 +87,43 @@ export interface MessageCatalog {
     featuredNow: string;
     nextAuction: string;
     exploreVip: string;
+    followUs: string;
+    notifications: string;
+    brandTagline: string;
+    searchLabel: string;
+    searchPlaceholder: string;
+    searchAction: string;
+    premiumTitle: string;
+    premiumSubtitle: string;
+    featuredBadge: string;
+    currentPrice: string;
+    statsUsers: string;
+    statsUsersHint: string;
+    statsPlates: string;
+    statsPlatesHint: string;
+    statsPremium: string;
+    statsPremiumHint: string;
+    statsAuctions: string;
+    statsAuctionsHint: string;
+    categoriesTitle: string;
+    categoriesSubtitle: string;
+    categoriesViewAll: string;
+    categoryCars: string;
+    categoryBikes: string;
+    categoryPublicTransport: string;
+    categoryPrivateTransport: string;
+    categorySpecialNumbers: string;
+    categoryRare: string;
+    categoryHeritage: string;
+    categoryArchive: string;
+    categoryAuctions: string;
+    sellTitle: string;
+    sellSubtitle: string;
+    sellCta: string;
+    latestTitle: string;
+    latestBadge: string;
+    latestSubtitle: string;
+    latestCta: string;
   };
   auth: {
     loginTitle: string;
@@ -767,6 +810,12 @@ const ar: MessageCatalog = {
     myPlates: "لوحاتي",
     myBids: "مزايداتي",
     dashboard: "لوحة التحكم",
+    featured: "المميزة",
+    bottomNav: "التنقل السريع",
+  },
+  theme: {
+    switchToDark: "التبديل إلى الوضع الداكن",
+    switchToLight: "التبديل إلى الوضع الفاتح",
   },
   footer: {
     tagline: "منصة مزاد للوحات السيارات المميزة في المملكة العربية السعودية.",
@@ -830,6 +879,43 @@ const ar: MessageCatalog = {
     featuredNow: "مباشر الآن",
     nextAuction: "المزاد القادم",
     exploreVip: "استكشف لوحات VIP",
+    followUs: "تابع حساباتنا عشان ما تفوتك اللوحات المميزة!",
+    notifications: "الإشعارات",
+    brandTagline: "أكبر منصة بيع وشراء لوحات",
+    searchLabel: "البحث عن لوحة",
+    searchPlaceholder: "ابحث عن رقم اللوحة أو الحروف..",
+    searchAction: "بحث",
+    premiumTitle: "الإعلانات المميزة",
+    premiumSubtitle: "لوحات حصرية ونادرة",
+    featuredBadge: "مميز",
+    currentPrice: "السعر الحالي",
+    statsUsers: "المستخدمين",
+    statsUsersHint: "مستخدم موثوق",
+    statsPlates: "إجمالي اللوحات",
+    statsPlatesHint: "لوحة معروضة",
+    statsPremium: "اللوحات المميزة",
+    statsPremiumHint: "لوحة مميزة",
+    statsAuctions: "المزادات",
+    statsAuctionsHint: "مزاد نشط",
+    categoriesTitle: "الأقسام الرئيسية",
+    categoriesSubtitle: "تصفح الأقسام واكتشف ما يناسبك",
+    categoriesViewAll: "عرض جميع الأقسام",
+    categoryCars: "لوحات السيارات",
+    categoryBikes: "لوحات الدراجات",
+    categoryPublicTransport: "نقل عام",
+    categoryPrivateTransport: "نقل خاص",
+    categorySpecialNumbers: "أرقام مميزة",
+    categoryRare: "لوحات نادرة",
+    categoryHeritage: "لوحات تراثية",
+    categoryArchive: "أرشيف اللوحات",
+    categoryAuctions: "المزادات",
+    sellTitle: "أضف لوحتك الآن",
+    sellSubtitle: "بيع لوحتك بسهولة وأمان مع منصة مزاد",
+    sellCta: "إضافة لوحة",
+    latestTitle: "أحدث اللوحات",
+    latestBadge: "جديد",
+    latestSubtitle: "أحدث الإعلانات المضافة",
+    latestCta: "عرض اللوحات",
   },
   auth: {
     loginTitle: "تسجيل الدخول",

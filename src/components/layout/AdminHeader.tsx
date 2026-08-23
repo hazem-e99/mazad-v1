@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Menu, X, ExternalLink, LogOut, Bell } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
+import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { useToastStore } from "@/hooks/useToast";
 import { apiFetch } from "@/lib/api-client";
@@ -71,6 +72,7 @@ export function AdminHeader({ role }: { role: UserRole }) {
           >
             <Bell className="h-4 w-4" aria-hidden="true" />
           </button>
+          <ThemeToggle className="h-10 w-10 rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) hover:border-(--color-gold)/40 hover:text-(--color-gold)" />
           <LanguageSwitcher className="hidden h-10 items-center justify-center rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) px-3 text-sm font-medium text-(--color-text) transition-colors hover:border-(--color-gold)/40 sm:inline-flex" />
           <Link
             href="/"
@@ -98,6 +100,7 @@ export function AdminHeader({ role }: { role: UserRole }) {
         >
           <AdminNavList onNavigate={() => setDrawerOpen(false)} />
           <div className="mt-4 flex items-center gap-2 border-t border-(--color-border) pt-4">
+            <ThemeToggle className="h-10 w-10 rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) hover:border-(--color-gold)/40 hover:text-(--color-gold)" />
             <LanguageSwitcher className="flex-1 justify-center h-10 items-center gap-1.5 rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) px-3 text-sm font-medium text-(--color-text)" />
             <Link
               href="/"

@@ -1,33 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Bell, ChevronLeft, ChevronRight, Crown, Gavel, UserRound } from "lucide-react";
 import { CountdownTimer } from "@/components/auction/CountdownTimer";
 import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { IconButton } from "@/components/ui/Button";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { plateTypeLabel } from "@/lib/constants";
+import { plateDisplayName } from "@/lib/plateLabel";
 import { cn } from "@/lib/cn";
 import type { AuctionSummary } from "@/types/auction";
 
-const buildShowcase = (auctions: AuctionSummary[]) => {
-  if (auctions.length === 0) return [];
-
-  const padded: AuctionSummary[] = [...auctions];
-  while (padded.length < 5) {
-    const source = auctions[padded.length % auctions.length];
-    padded.push({ ...source, _id: `${source._id}-${padded.length}` });
-  }
-
-  return padded;
-};
-
+/**
+ * The stage shows the auctions that are actually running — one slide per
+ * live auction and no more.
+ *
+ * An earlier revision padded this list up to five by re-pushing the same
+ * auctions under synthesised ids (`${_id}-3`), so a single live auction
+ * read as five and every duplicate slide's "bid now" link pointed at an
+ * auction id that does not exist. The carousel chrome already adapts to
+ * the real count, so there is nothing to pad for.
+ */
 export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] }) {
   const { t, locale } = useTranslations();
   const [index, setIndex] = useState(0);
   const isArabic = locale === "ar";
 
-  const showcase = useMemo(() => buildShowcase(auctions), [auctions]);
+  const showcase = auctions;
   if (showcase.length === 0) return null;
 
   const auction = showcase[index % showcase.length];
@@ -118,7 +118,7 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                 />
               </Link>
               <p className="max-w-full truncate text-xs tracking-[0.14em] text-(--color-text-faint)">
-                {auction.plate.title}
+                {plateDisplayName(auction.plate, locale)}
               </p>
             </div>
 
@@ -187,10 +187,10 @@ export function LiveAuctionSpotlight({ auctions }: { auctions: AuctionSummary[] 
                   <span>{auction.plate.isVip ? "VIP" : t("auction.auction")}</span>
                 </span>
               </div>
-              <p className="mt-4 text-sm font-medium text-(--color-text-faint)">{auction.plate.type}</p>
+              <p className="mt-4 text-sm font-medium text-(--color-text-faint)">{plateTypeLabel(auction.plate.type, locale)}</p>
 
               <h3 className="mt-3 text-2xl font-bold leading-tight text-(--color-text) sm:text-[2rem]">
-                {auction.plate.title}
+                {plateDisplayName(auction.plate, locale)}
               </h3>
 
               <div className="mt-8 border-t border-(--color-border) pt-7">

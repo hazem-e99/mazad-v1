@@ -15,6 +15,7 @@ import type {
   ChatMessageDTO,
   AuditLogDTO,
 } from "@/types/dto";
+import type { AuctionSummary, PlateSummary } from "@/types/auction";
 import type {
   PlateType,
   UserRole,
@@ -320,6 +321,63 @@ export function toAuctionDTO(auction: LeanAuction): AuctionDTO {
 
 export function toAuctionDTOList(auctions: LeanAuction[]): AuctionDTO[] {
   return auctions.map(toAuctionDTO);
+}
+
+/**
+ * Card-sized view of a plate: exactly the fields a public card draws.
+ *
+ * This is not a micro-optimisation. A server component that hands data to
+ * a `"use client"` component serialises the whole object into the RSC
+ * payload, so anything merely *unrendered* is still shipped to every
+ * visitor — and the full PlateDTO carries the seller's phone, email and
+ * social handles plus the moderation trail. Narrowing here means those
+ * fields are not in the object to begin with.
+ */
+export function toPlateSummaryDTO(plate: LeanPlate): PlateSummary {
+  return {
+    _id: idToString(plate._id),
+    type: plate.type,
+    lettersAr: plate.lettersAr,
+    lettersEn: plate.lettersEn,
+    numbers: plate.numbers,
+    logo:
+      plate.logo != null && isPopulated<LeanPlateLogo>(plate.logo as LeanPlateLogo)
+        ? toPlateLogoDTO(plate.logo as LeanPlateLogo)
+        : null,
+    isVip: plate.isVip,
+    image: plate.image ?? null,
+    title: plate.title ?? null,
+  };
+}
+
+export function toPlateSummaryDTOList(plates: LeanPlate[]): PlateSummary[] {
+  return plates.map(toPlateSummaryDTO);
+}
+
+/**
+ * Auction + narrowed plate, for the public cards and the home stage.
+ * Bidder/winner refs are reduced to a display name: the public rooms and
+ * the public payload never carry contact details, only the staff feed
+ * does (see realtimeEvents.ts `AdminEventExtras`).
+ */
+export function toAuctionSummaryDTO(auction: LeanAuction): AuctionSummary {
+  // Delegate first so the "plate must be populated" guard and every scalar
+  // mapping stay defined in exactly one place; the wide plate/contact
+  // fields are then replaced before anything leaves this function.
+  const full = toAuctionDTO(auction);
+  const publicRef = (ref: UserContactRefDTO | null): UserContactRefDTO | null =>
+    ref && { _id: ref._id, name: ref.name, phone: "" };
+
+  return {
+    ...full,
+    plate: toPlateSummaryDTO(auction.plate as LeanPlate),
+    highestBidder: publicRef(full.highestBidder),
+    winner: publicRef(full.winner),
+  };
+}
+
+export function toAuctionSummaryDTOList(auctions: LeanAuction[]): AuctionSummary[] {
+  return auctions.map(toAuctionSummaryDTO);
 }
 
 // ---- Bid --------------------------------------------------------------

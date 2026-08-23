@@ -1,8 +1,9 @@
 import { cn } from "@/lib/cn";
 import type { PlateType } from "@/lib/constants";
+import { PlateLogoIcon } from "@/components/plate/PlateLogoIcon";
+import { SaudiEmblem } from "@/components/plate/SaudiEmblem";
 import type { PlateLogoDTO } from "@/types/dto";
 import type { Locale } from "@/lib/i18n";
-import { getPlateImageAsset } from "@/components/plate/plateImage";
 
 export type PlateSize = "xs" | "sm" | "md" | "lg" | "xl" | "spotlight";
 
@@ -13,7 +14,7 @@ interface SaudiPlateProps {
   numbers: string;
   logo: PlateLogoDTO | null;
   /** xs = navbar chip · sm = tables/search · md = auction cards ·
-   *  lg = auction details · xl = featured/hero. */
+   *  lg = auction details · xl = featured/hero · spotlight = home stage. */
   size?: PlateSize;
   className?: string;
   /** Adds the gold presentation ring reserved for VIP listings. */
@@ -68,9 +69,20 @@ function toArabicIndic(value: string): string {
  * Inputs arrive either already spaced ("أ ب ج") or not ("ABC"), so
  * normalise to a single form and let CSS own the tracking. */
 function spaced(value: string): string {
-  return value.replace(/\s+/g, "").split("").join(" ");
+  return value.replace(/\s+/g, "").split("").join(" ");
 }
 
+/**
+ * Draws the plate from the record's own letters, numbers and logo.
+ *
+ * It renders the *data*, never a stock photograph: an earlier revision
+ * picked one of five `/images/License*.png` files by hashing the letters,
+ * which meant every plate on the site displayed characters belonging to
+ * some other plate. A record's real uploaded photo is a separate thing —
+ * callers that have one show it instead of this component (see
+ * ListingCard / the home page's PlateVisual), and this is what renders
+ * when there is none.
+ */
 export function SaudiPlate({
   type,
   lettersAr,
@@ -85,21 +97,66 @@ export function SaudiPlate({
 }: SaudiPlateProps) {
   const logoName = logo ? (locale === "en" ? logo.nameEn : logo.nameAr) : NO_LOGO_WORD[locale];
   const label = `${PLATE_WORD[locale]} ${lettersAr} ${numbers} — ${logoName}`;
-  const imageSrc = getPlateImageAsset(lettersAr || lettersEn || "THN", numbers || "970");
 
   return (
     <div className={cn("@container shrink-0", sizeWidth[size], className)}>
-      <img
-        src={imageSrc}
-        alt={label}
+      <div
+        dir="ltr"
+        role="img"
+        aria-label={label}
         className={cn(
-          "block h-auto w-full select-none object-contain drop-shadow-[0_2px_12px_rgba(0,0,0,0.18)]",
+          "saudi-plate relative grid w-full select-none overflow-hidden rounded-[0.32em] border-[0.065em] border-black bg-[#f4f4f4] text-[#121212] shadow-(--shadow-plate)",
+          "grid-cols-[minmax(0,1.25fr)_minmax(70px,0.82fr)_minmax(0,1.25fr)_2.5rem]",
+          "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
           typeAspect[type],
           vip && "ring-[0.05em] ring-(--color-gold)/70",
           selected && "ring-[0.08em] ring-(--color-gold)"
         )}
-        draggable={false}
-      />
+      >
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 rounded-[0.3em] shadow-[inset_0_0.06em_0_rgba(255,255,255,.95),inset_0_-0.09em_0.18em_rgba(0,0,0,.2)]"
+        />
+
+        <div className="saudi-plate__numbers relative z-10 flex min-w-0 flex-col items-center justify-center border-e border-black/35 px-[0.2em] py-[0.1em] text-center">
+          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.8rem,2.1cqi,3rem)] text-black">
+            {toArabicIndic(numbers)}
+          </span>
+          <span className="mt-[0.08em] block font-mono text-[clamp(0.44rem,1.1cqi,1.7rem)] font-black leading-none tracking-[0.08em] text-black/85">
+            {numbers}
+          </span>
+        </div>
+
+        <div className="saudi-plate__emblem relative z-10 flex items-center justify-center border-e border-black/35 py-[0.12em]">
+          {logo ? (
+            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(1.2rem,2.5cqi,2.8rem)] w-[clamp(1.2rem,2.5cqi,2.8rem)] object-contain text-[#0d5d4a]" />
+          ) : (
+            <SaudiEmblem className="h-[clamp(1.4rem,2.9cqi,3.2rem)] w-[clamp(1.4rem,2.9cqi,3.2rem)] text-[#1a6a59]" />
+          )}
+        </div>
+
+        <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
+          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.9rem,2.2cqi,3.1rem)] text-black">
+            {spaced(lettersAr)}
+          </span>
+          <span className="mt-[0.08em] block font-mono text-[clamp(0.48rem,1.15cqi,1.8rem)] font-black leading-none tracking-[0.1em] text-black/85">
+            {spaced(lettersEn)}
+          </span>
+        </div>
+
+        <div className="saudi-plate__ksa relative z-10 flex flex-col items-center justify-center gap-[0.04em] border-s border-black/35 bg-[#f3f3f3] py-[0.08em] text-center">
+          <div className="flex h-[clamp(0.9rem,1.7cqi,1.8rem)] w-[clamp(0.9rem,1.7cqi,1.8rem)] items-center justify-center text-[#1a6a59]">
+            {logo ? (
+              <PlateLogoIcon logo={logo} locale={locale} className="h-full w-full object-contain" />
+            ) : (
+              <SaudiEmblem className="h-full w-full" />
+            )}
+          </div>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">K</span>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">S</span>
+          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">A</span>
+        </div>
+      </div>
     </div>
   );
 }

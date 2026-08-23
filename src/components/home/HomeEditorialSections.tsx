@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/Badge";
 import { LinkButton } from "@/components/ui/Button";
 import { formatDateTime, formatSar } from "@/lib/format";
 import { plateTypeLabel } from "@/lib/constants";
+import { plateDisplayName } from "@/lib/plateLabel";
 import type { Locale } from "@/lib/i18n";
 import type { AuctionSummary } from "@/types/auction";
 import type { PlateDTO } from "@/types/dto";
@@ -107,7 +108,7 @@ export function CuratedVipSection({ plates, locale, t }: { plates: PlateDTO[]; l
               </div>
               <div className="flex items-end justify-between gap-4 border-t border-(--color-border) pt-5">
                 <div className="min-w-0">
-                  <p className="truncate text-xl font-semibold text-(--color-text)">{featured.title ?? t("home.vipPlates")}</p>
+                  <p className="truncate text-xl font-semibold text-(--color-text)">{plateDisplayName(featured, locale)}</p>
                   <p className="mt-1 text-sm text-(--color-text-muted)">{plateTypeLabel(featured.type, locale)}</p>
                 </div>
                 <span className="shrink-0 text-sm font-semibold text-(--color-gold)">{t("home.exploreVip")}</span>
@@ -126,7 +127,7 @@ export function CuratedVipSection({ plates, locale, t }: { plates: PlateDTO[]; l
                   <PlateVisual plate={plate} locale={locale} size="sm" className="max-h-12 transition-transform duration-(--duration-base) group-hover:scale-[1.03]" />
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-(--color-text)">{plate.title ?? t("home.vipPlates")}</p>
+                  <p className="truncate text-sm font-semibold text-(--color-text)">{plateDisplayName(plate, locale)}</p>
                   <p className="mt-1 text-xs text-(--color-text-muted)">{plateTypeLabel(plate.type, locale)}</p>
                 </div>
                 <span className="text-(--color-text-faint) transition-colors group-hover:text-(--color-gold)">
@@ -167,7 +168,7 @@ export function DirectSaleSection({ listings, locale, t }: { listings: PlateDTO[
               </div>
               <div className="flex items-end justify-between gap-4">
                 <div className="min-w-0">
-                  <p className="truncate text-lg font-semibold text-(--color-text)">{listing.title ?? t("home.marketplaceListings")}</p>
+                  <p className="truncate text-lg font-semibold text-(--color-text)">{plateDisplayName(listing, locale)}</p>
                   <p className="mt-1 text-sm text-(--color-text-muted)">{plateTypeLabel(listing.type, locale)}</p>
                 </div>
                 <span className="tnum shrink-0 text-lg font-bold text-(--color-gold)">{listing.price != null ? formatSar(listing.price, locale) : "-"}</span>
@@ -260,7 +261,7 @@ export function UpcomingSchedule({ auctions, locale, t }: { auctions: AuctionSum
                     <Badge tone="scheduled">{t("auction.scheduled")}</Badge>
                   </div>
                   <p className="truncate text-xl font-bold leading-tight text-(--color-text)">
-                    {auction.plate.title ?? plateTypeLabel(auction.plate.type, locale)}
+                    {plateDisplayName(auction.plate, locale)}
                   </p>
                   <p className="mt-2 text-sm font-medium text-(--color-text-muted)">
                     {plateTypeLabel(auction.plate.type, locale)}
@@ -308,7 +309,7 @@ export function CompletedResults({ auctions, locale, t }: { auctions: AuctionSum
                 <PlateVisual plate={auction.plate} locale={locale} size="sm" className="max-h-10 transition-transform duration-(--duration-base) group-hover:scale-[1.03]" />
               </div>
               <div className="min-w-0">
-                <p className="truncate font-semibold text-(--color-text)">{auction.plate.title ?? plateTypeLabel(auction.plate.type, locale)}</p>
+                <p className="truncate font-semibold text-(--color-text)">{plateDisplayName(auction.plate, locale)}</p>
                 <p className="mt-1 text-sm text-(--color-text-muted)">{formatDateTime(auction.finalizedAt ?? auction.endAt, locale)}</p>
               </div>
               <div className="text-start sm:text-end">

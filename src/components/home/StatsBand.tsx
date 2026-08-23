@@ -5,22 +5,25 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 
 export interface PlatformStats {
   totalBids: number;
+  totalUsers: number;
   soldPlates: number;
-  satisfaction: number;
 }
 
 /**
- * The proof band. Figures come from the same counts the dashboard reads,
- * so this is never a decorative number that drifts from reality — the one
- * exception is the satisfaction percentage, which the platform does not
- * measure and which the caller supplies as a stated brand claim.
+ * The proof band. All three figures are counts over the same collections
+ * the admin dashboard reads, so nothing here can drift from reality.
+ *
+ * The middle slot used to show a hardcoded "98% satisfied customers" — a
+ * number the platform has no way to measure, sitting between two real
+ * ones. It is the registered-member count now: a figure the database
+ * actually holds, and one that grows as the platform does.
  */
 export function StatsBand({ stats }: { stats: PlatformStats }) {
   const { t, locale } = useTranslations();
 
   const items = [
     { value: `+${formatNumber(stats.totalBids, locale)}`, label: t("home.statBids") },
-    { value: `${formatNumber(stats.satisfaction, locale)}%`, label: t("home.statSatisfaction") },
+    { value: `+${formatNumber(stats.totalUsers, locale)}`, label: t("home.statsUsers") },
     { value: `+${formatNumber(stats.soldPlates, locale)}`, label: t("home.statSold") },
   ];
 
