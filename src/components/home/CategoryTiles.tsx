@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
-import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
+import { useRef, useState } from "react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
 import type { HomeCategory } from "@/lib/queries";
@@ -27,7 +27,24 @@ import type { HomeCategory } from "@/lib/queries";
  */
 export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
   const { t, locale } = useTranslations();
-  const Arrow = locale === "ar" ? ArrowLeft : ArrowRight;
+  const scroller = useRef<HTMLUListElement>(null);
+  const isArabic = locale === "ar";
+  const Arrow = isArabic ? ArrowLeft : ArrowRight;
+
+  // The track scrolls in the document's own direction: in RTL, advancing
+  // to the next tile *decreases* scrollLeft. Flipping the sign here keeps
+  // "next" meaning next in both directions.
+  const step = (direction: -1 | 1) => {
+    const node = scroller.current;
+    if (!node) return;
+    const amount = Math.max(200, node.clientWidth * 0.6) * direction * (isArabic ? -1 : 1);
+    node.scrollBy({ left: amount, behavior: "smooth" });
+  };
+
+  // "Previous" points back the way the text runs — a right chevron in
+  // Arabic, a left one in English.
+  const PrevIcon = isArabic ? ChevronRight : ChevronLeft;
+  const NextIcon = isArabic ? ChevronLeft : ChevronRight;
 
   return (
     <section aria-labelledby="categories-title">
@@ -38,18 +55,41 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
           </h2>
           <p className="mt-1.5 text-sm text-(--color-text-muted)">{t("home.categoriesSubtitle")}</p>
         </div>
-        <Link
-          href="/listings"
-          className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--color-border-strong) px-4 text-sm font-semibold text-(--color-text-muted) transition-colors hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
-        >
-          {t("home.categoriesViewAll")}
-          <Arrow className="h-4 w-4" aria-hidden="true" />
-        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/listings"
+            className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--color-border-strong) px-4 text-sm font-semibold text-(--color-text-muted) transition-colors hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+          >
+            {t("home.categoriesViewAll")}
+            <Arrow className="h-4 w-4" aria-hidden="true" />
+          </Link>
+
+          {/* Beside the heading rather than over the tiles: unlike the
+              featured panel, this row sits on the page canvas, where a
+              floating disc would have nothing to float above. */}
+          {categories.length > 1 && (
+            <div className="hidden items-center gap-1.5 sm:flex">
+              <StepButton onClick={() => step(-1)} label={t("common.previous")}>
+                <PrevIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
+              </StepButton>
+              <StepButton onClick={() => step(1)} label={t("common.next")}>
+                <NextIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
+              </StepButton>
+            </div>
+          )}
+        </div>
       </div>
 
-      <ul className="mz-scroller -mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-5">
+      {/* One scrolling track at every width — never a wrapping grid, which
+          left a ragged second row whenever the admin's category count was
+          not an exact multiple of the column count. */}
+      <ul ref={scroller} className="mz-scroller -mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:gap-4">
         {categories.map((category) => (
-          <li key={category._id} className="mz-snap w-36 shrink-0 sm:w-auto">
+          <li
+            key={category._id}
+            className="mz-snap w-36 shrink-0 sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-4rem)/5)]"
+          >
             <Link
               href={`/listings?category=${category._id}`}
               className="mz-hover-lift flex h-full flex-col items-center gap-2.5 rounded-(--radius-lg) border border-(--color-border-light) bg-(--color-surface-secondary) px-3 py-5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
@@ -69,6 +109,27 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+function StepButton({
+  onClick,
+  label,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-(--color-border-strong) text-(--color-text-muted) transition-colors duration-(--duration-fast) hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+    >
+      {children}
+    </button>
   );
 }
 

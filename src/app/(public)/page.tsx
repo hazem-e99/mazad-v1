@@ -18,7 +18,6 @@ import {
   CategoryTilesSkeleton,
   FeaturedAdsSkeleton,
   SectionError,
-  SellBannerSkeleton,
   StatsPanelSkeleton,
 } from "@/components/home/HomeSectionFallbacks";
 
@@ -71,12 +70,10 @@ export default async function HomePage() {
       </section>
 
       <section className="mz-container pt-12 sm:pt-16">
-        <Suspense fallback={<SellBannerSkeleton />}>
-          <SellBlock />
-        </Suspense>
+        <SellBlock />
       </section>
 
-      <section className="mz-container pb-10 pt-12 sm:pb-14 sm:pt-16">
+      <section className="mz-container pb-10 pt-8 sm:pb-12 sm:pt-10">
         <Suspense fallback={<CardRowSkeleton count={4} />}>
           <LatestBlock />
         </Suspense>
@@ -127,11 +124,10 @@ async function CategoriesBlock() {
   return <CategoryTiles categories={categories} />;
 }
 
-async function SellBlock() {
-  // Same argument as the latest-plates section, so React's per-request
-  // cache serves this from that read rather than querying twice.
-  const plates = await section("sell-banner", () => getLatestPlates(4));
-  return <SellPlateBanner plates={plates ?? []} />;
+function SellBlock() {
+  // No query: the banner is one photograph plus two links into the
+  // existing /plates/new flow, so there is nothing to read.
+  return <SellPlateBanner />;
 }
 
 async function LatestBlock() {
