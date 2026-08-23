@@ -29,27 +29,27 @@ async function waitForPageAssets() {
   );
 }
 
+/**
+ * Runs once during the initial render (not in an effect) so the "already
+ * seen this session" case never mounts the splash at all — no flash, no
+ * later setState needed to hide it.
+ */
+function wasAlreadySeenThisSession(): boolean {
+  if (typeof window === "undefined") return true;
+  try {
+    if (window.sessionStorage.getItem(SEEN_KEY) === "1") return true;
+    window.sessionStorage.setItem(SEEN_KEY, "1");
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function SplashScreen() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [shouldRender] = useState(() => !wasAlreadySeenThisSession());
   const [leaving, setLeaving] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
-
-  useEffect(() => {
-    let alreadySeen = true;
-    try {
-      alreadySeen = window.sessionStorage.getItem(SEEN_KEY) === "1";
-      if (!alreadySeen) window.sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      alreadySeen = false;
-    }
-
-    if (alreadySeen) {
-      setHidden(true);
-    } else {
-      setShouldRender(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (!shouldRender) return;
@@ -77,7 +77,7 @@ export function SplashScreen() {
       cancelled = true;
       document.documentElement.classList.remove("overflow-hidden");
     };
-  }, []);
+  }, [shouldRender]);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = VIDEO_PLAYBACK_RATE;
