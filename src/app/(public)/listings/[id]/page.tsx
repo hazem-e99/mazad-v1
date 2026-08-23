@@ -30,8 +30,27 @@ export default async function ListingDetailPage({ params }: Props) {
   const { t, locale } = await getServerTranslator();
 
   const doc = await Plate.findById(id).populate("logo").populate("category").lean<LeanPlate>();
-  if (!doc || doc.submissionType !== "marketplace" || doc.moderationStatus !== "approved" || !doc.isVisible) notFound();
+
+  // The public-plate rule, the same one getVipPlates and GET /api/plates
+  // apply: visible, and not sitting in (or rejected by) review. It is
+  // deliberately wider than "is a marketplace listing" — the home page and
+  // /vip both publish admin-created VIP plates, which carry no
+  // `submissionType` at all, and requiring one here meant every one of
+  // those cards led to a 404.
+  //
+  // Nothing new becomes public: a pending or rejected submission is still
+  // refused, as is a hidden plate.
+  if (!doc || !doc.isVisible || doc.moderationStatus === "pending" || doc.moderationStatus === "rejected") {
+    notFound();
+  }
+
   const listing = toPlateDTO(doc);
+
+  // Only a real marketplace submission is *for sale*; an admin-created VIP
+  // plate is a catalogue entry with no price and no seller to contact, so
+  // the commerce parts of this page are gated on that rather than rendered
+  // empty.
+  const isForSale = listing.submissionType === "marketplace";
 
   const specs: { label: string; value: string | null }[] = [
     { label: t("pages.classificationLabel"), value: listing.classification ? plateClassificationLabel(listing.classification, locale) : null },
