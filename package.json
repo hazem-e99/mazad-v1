@@ -2,10 +2,14 @@
   "name": "mazad",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "tsx --env-file=.env server/index.ts",
-    "build": "next build",
-    "start": "cross-env NODE_ENV=production tsx --env-file=.env server/index.ts",
+    "build": "cross-env NODE_ENV=production next build",
+    "start": "cross-env NODE_ENV=production tsx server/index.ts",
+    "start:local": "cross-env NODE_ENV=production tsx --env-file=.env server/index.ts",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "seed": "tsx --env-file=.env server/seed.ts",
@@ -31,6 +35,7 @@
     "sharp": "^0.35.3",
     "socket.io": "^4.8.3",
     "socket.io-client": "^4.8.3",
+    "tsx": "^4.23.12",
     "zod": "^4.4.3",
     "zustand": "^5.0.15"
   },
@@ -45,7 +50,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.2",
     "tailwindcss": "^4",
-    "tsx": "^4.23.12",
     "typescript": "^5",
     "vitest": "^4.1.11"
   }

@@ -23,6 +23,8 @@ import {
 
 export const revalidate = 0;
 
+const HOME_SECTION_TIMEOUT_MS = 5_000;
+
 /**
  * The home page.
  *
@@ -88,7 +90,16 @@ export default async function HomePage() {
  */
 async function section<T>(name: string, load: () => Promise<T>): Promise<T | null> {
   try {
-    return await load();
+    return await Promise.race([
+      load(),
+      new Promise<T>((_, reject) => {
+        const timeout = setTimeout(
+          () => reject(new Error(`home: "${name}" timed out after ${HOME_SECTION_TIMEOUT_MS}ms`)),
+          HOME_SECTION_TIMEOUT_MS
+        );
+        if (typeof timeout === "object" && "unref" in timeout) timeout.unref();
+      }),
+    ]);
   } catch (err) {
     console.error(`home: "${name}" section failed to load:`, err);
     return null;
