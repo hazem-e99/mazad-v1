@@ -17,6 +17,8 @@ import {
 import { toPlateDTO, type LeanPlate } from "@/lib/dto";
 import { WhatsAppContactButton } from "@/components/plate/WhatsAppContactButton";
 import { PlatePhoto } from "@/components/plate/PlatePhoto";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
+import { plateDisplayName } from "@/lib/plateLabel";
 
 export const revalidate = 0;
 
@@ -64,8 +66,8 @@ export default async function ListingDetailPage({ params }: Props) {
 
   const message =
     locale === "en"
-      ? `Hi, I'm reaching out about the plate "${listing.title}" listed on Mazad.`
-      : `مرحبًا، أتواصل بخصوص اللوحة "${listing.title}" المعروضة على منصة مزاد.`;
+      ? `Hi, I'm reaching out about the plate "${plateDisplayName(listing, locale)}" listed on Mazad.`
+      : `مرحبًا، أتواصل بخصوص اللوحة "${plateDisplayName(listing, locale)}" المعروضة على منصة مزاد.`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -74,9 +76,22 @@ export default async function ListingDetailPage({ params }: Props) {
           <div className="aspect-[4/3] bg-(--color-bg-elevated)">
             <PlatePhoto
               src={listing.image}
-              alt={listing.title ?? ""}
+              alt={plateDisplayName(listing, locale)}
               className="h-full w-full object-contain p-4"
-              fallback={null}
+              fallback={
+                <div className="flex h-full w-full items-center justify-center p-5">
+                  <SaudiPlate
+                    type={listing.type}
+                    lettersAr={listing.lettersAr}
+                    lettersEn={listing.lettersEn}
+                    numbers={listing.numbers}
+                    logo={listing.logo}
+                    size="xl"
+                    vip={listing.isVip}
+                    locale={locale}
+                  />
+                </div>
+              }
             />
           </div>
         </Card>
@@ -85,15 +100,19 @@ export default async function ListingDetailPage({ params }: Props) {
           <div>
             <div className="flex items-center gap-2 flex-wrap mb-1">
               {listing.isVip && <Badge tone="vip">VIP</Badge>}
-              <Badge tone="neutral">{t("pages.forSaleBadge")}</Badge>
+              {isForSale && <Badge tone="neutral">{t("pages.forSaleBadge")}</Badge>}
             </div>
-            <h1 className="text-2xl font-bold text-(--color-text)">{listing.title}</h1>
-            <p className="tnum text-3xl font-bold text-(--color-gold) mt-2">{listing.price != null ? formatSar(listing.price, locale) : "—"}</p>
+            {/* A plate that was never a listing has no title of its own —
+                its letters and numbers are its name. */}
+            <h1 className="text-2xl font-bold text-(--color-text)">{plateDisplayName(listing, locale)}</h1>
+            {listing.price != null && (
+              <p className="tnum text-3xl font-bold text-(--color-gold) mt-2">{formatSar(listing.price, locale)}</p>
+            )}
           </div>
 
           {listing.description && <p className="text-sm text-(--color-text-muted) whitespace-pre-line">{listing.description}</p>}
 
-          <WhatsAppContactButton contactPhone={listing.contactPhone} message={message} />
+          {isForSale && <WhatsAppContactButton contactPhone={listing.contactPhone} message={message} />}
 
           <p className="text-xs text-(--color-text-faint)">{formatDateTime(listing.createdAt, locale)}</p>
         </div>

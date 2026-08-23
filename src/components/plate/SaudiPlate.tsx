@@ -128,7 +128,7 @@ export function SaudiPlate({
           // the width where the real thing gives the crest ~17%, squeezing
           // the characters either side. 2rem holds the smallest render
           // without distorting the larger ones.
-          "grid-cols-[minmax(0,1.25fr)_minmax(2rem,0.82fr)_minmax(0,1.25fr)_2.5rem]",
+          "grid-cols-[minmax(0,1.25fr)_minmax(2rem,0.82fr)_minmax(0,1.25fr)_clamp(1.5rem,9cqi,4.5rem)]",
           "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
           typeAspect[type],
           vip && "ring-[0.05em] ring-(--color-gold)/70",
@@ -162,23 +162,26 @@ export function SaudiPlate({
               the share of the face the real crest occupies — at 2.5cqi it
               read as a speck next to 7cqi characters. */}
           {logo ? (
-            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(0.85rem,11cqi,5rem)] w-[clamp(0.85rem,11cqi,5rem)] object-contain text-[#0d5d4a]" />
+            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(0.9rem,14cqi,6rem)] w-[clamp(0.9rem,14cqi,6rem)] object-contain text-[#0d5d4a]" />
           ) : (
-            <SaudiEmblem className="h-[clamp(0.9rem,12cqi,5.4rem)] w-[clamp(0.9rem,12cqi,5.4rem)] text-[#1a6a59]" />
+            <SaudiEmblem className="h-[clamp(0.95rem,15cqi,6.4rem)] w-[clamp(0.95rem,15cqi,6.4rem)] text-[#1a6a59]" />
           )}
         </div>
 
         <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
-          <span className="block whitespace-nowrap font-[900] leading-[1.35] tracking-[0.16em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
+          {/* The negative inline-end margin cancels the trailing
+              letter-spacing that follows the last glyph — without it the
+              run sits visibly off-centre in its cell. */}
+          <span className="-me-[0.3em] block whitespace-nowrap font-[900] leading-[1.35] tracking-[0.3em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
             {isolatedArabic(lettersAr)}
           </span>
-          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block whitespace-nowrap font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.16em] text-black/85">
+          <span className="-me-[0.18em] mt-[clamp(0.05rem,1.2cqi,0.6rem)] block whitespace-nowrap font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.18em] text-black/85">
             {isolatedLatin(lettersEn)}
           </span>
         </div>
 
         <div className="saudi-plate__ksa relative z-10 flex flex-col items-center justify-center gap-[0.04em] border-s border-black/35 bg-[#f3f3f3] py-[0.08em] text-center">
-          <div className="flex h-[clamp(0.55rem,4.4cqi,2.4rem)] w-[clamp(0.55rem,4.4cqi,2.4rem)] items-center justify-center text-[#1a6a59]">
+          <div className="flex h-[clamp(0.6rem,6.5cqi,3rem)] w-[clamp(0.6rem,6.5cqi,3rem)] items-center justify-center text-[#1a6a59]">
             {logo ? (
               <PlateLogoIcon logo={logo} locale={locale} className="h-full w-full object-contain" />
             ) : (
@@ -187,9 +190,9 @@ export function SaudiPlate({
           </div>
           {/* cqi, not em: an `em` size here resolved against the inherited
               16px and so stayed identical on a 96px chip and a 672px hero. */}
-          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">K</span>
-          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">S</span>
-          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">A</span>
+          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">K</span>
+          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">S</span>
+          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">A</span>
         </div>
       </div>
     </div>
