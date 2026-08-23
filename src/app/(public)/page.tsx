@@ -24,7 +24,7 @@ import {
 
 export const revalidate = 0;
 
-const HOME_SECTION_TIMEOUT_MS = 5_000;
+const HOME_SECTION_TIMEOUT_MS = 20_000;
 
 const getCachedHomeData = unstable_cache(
   async () => {

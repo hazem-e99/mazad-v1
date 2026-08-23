@@ -1,10 +1,11 @@
 "use client";
 
 import Image from "next/image";
+import { useState } from "react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { MazadLogo } from "@/components/layout/MazadLogo";
 import { HeroSearch } from "@/components/home/HeroSearch";
-import { localizedText, type SiteSettingsDTO } from "@/lib/siteSettings";
+import { DEFAULT_SITE_SETTINGS, localizedText, type SiteSettingsDTO } from "@/lib/siteSettings";
 
 /**
  * The stage. One full-bleed photograph with the mark and the tagline
@@ -22,15 +23,7 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
 
   return (
     <section className="mz-stage flex min-h-[clamp(36rem,84vh,52rem)] flex-col" aria-labelledby="hero-title">
-      <Image
-        src={settings.hero.backgroundImage}
-        alt=""
-        fill
-        preload
-        sizes="100vw"
-        unoptimized
-        className="mz-stage-media"
-      />
+      <HeroBackground key={settings.hero.backgroundImage} src={settings.hero.backgroundImage} />
       <span className="mz-stage-scrim" aria-hidden="true" />
 
       {/* The lower padding is the heavier of the two: the featured panel
@@ -50,5 +43,22 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
         <HeroSearch />
       </div>
     </section>
+  );
+}
+
+function HeroBackground({ src }: { src: string }) {
+  const [backgroundImage, setBackgroundImage] = useState(src);
+
+  return (
+    <Image
+      src={backgroundImage}
+      alt=""
+      fill
+      preload
+      sizes="100vw"
+      unoptimized
+      onError={() => setBackgroundImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage)}
+      className="mz-stage-media"
+    />
   );
 }
