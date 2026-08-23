@@ -352,6 +352,7 @@ export interface MessageCatalog {
     imageRequired: string;
     plateImageRequired: string;
     logoImageRequired: string;
+    categoryImageInvalid: string;
     fileTypeInvalid: string;
     documentTypeInvalid: string;
     fileTooLarge: string;
@@ -601,6 +602,11 @@ export interface MessageCatalog {
     saveLogoButton: string;
     uploadImageAction: string;
     replaceImageAction: string;
+    categoryImageLabel: string;
+    categoryImageHint: string;
+    categoryImageChoose: string;
+    removeImageAction: string;
+    colImage: string;
     showAction: string;
     hideAction: string;
     vipAction: string;
@@ -1142,6 +1148,7 @@ const ar: MessageCatalog = {
     imageRequired: "يرجى اختيار صورة.",
     plateImageRequired: "صورة اللوحة الفعلية مطلوبة.",
     logoImageRequired: "صورة الشعار مطلوبة.",
+    categoryImageInvalid: "صورة الفئة غير صالحة.",
     fileTypeInvalid: "نوع الملف غير مدعوم، يُسمح فقط بـ JPEG أو PNG أو WEBP.",
     documentTypeInvalid: "نوع الملف غير مدعوم، يُسمح فقط بـ JPEG أو PNG أو WEBP أو PDF.",
     fileTooLarge: "حجم الملف يتجاوز الحد المسموح به ({max} ميجابايت).",
@@ -1386,6 +1393,11 @@ const ar: MessageCatalog = {
     saveLogoButton: "حفظ الشعار",
     uploadImageAction: "رفع صورة",
     replaceImageAction: "استبدال الصورة",
+    categoryImageLabel: "صورة الفئة",
+    categoryImageHint: "اسحب الصورة هنا",
+    categoryImageChoose: "أو اختر صورة من الجهاز",
+    removeImageAction: "حذف",
+    colImage: "الصورة",
     showAction: "إظهار",
     hideAction: "إخفاء",
     vipAction: "تمييز VIP",

@@ -143,9 +143,16 @@ export function buildSchemas(t: Translate) {
     notes: z.string().trim().max(500, v("tooLong", { max: 500 })).optional(),
   });
 
+  /* A category's artwork is optional, unlike a plate logo's: categories
+     predate the field, and the home tiles fall back to a default icon. The
+     value is the public path returned by /api/uploads — `null` explicitly
+     clears it, which is how the admin's "remove image" control works. */
+  const categoryImage = z.string().trim().min(1, v("categoryImageInvalid")).nullable().optional();
+
   const plateCategoryCreateSchema = z.object({
     nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")),
     nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")),
+    image: categoryImage,
     isActive: z.boolean().default(true),
     sortOrder: sortOrder.default(0),
   });
@@ -153,6 +160,7 @@ export function buildSchemas(t: Translate) {
   const plateCategoryUpdateSchema = z.object({
     nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")).optional(),
     nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")).optional(),
+    image: categoryImage,
     isActive: z.boolean().optional(),
     sortOrder: sortOrder.optional(),
   });

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
@@ -19,10 +20,10 @@ import type { HomeCategory } from "@/lib/queries";
  * already implements server-side, so the destination is a real filtered
  * query rather than a page that ignores the parameter.
  *
- * The plate count is what makes one tile differ from another. The records
- * carry no artwork field, so no per-category image is invented here — a
- * stock picture chosen by hashing the name would be exactly the kind of
- * decorative fiction this page is meant to be free of.
+ * The artwork is the admin's own upload, carried on the category record
+ * and served straight from `category.image`. Nothing here maps a name to a
+ * picture: a category the admin has not given artwork to falls back to the
+ * shared tag icon rather than borrowing someone else's image.
  */
 export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
   const { t, locale } = useTranslations();
@@ -53,12 +54,7 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
               href={`/listings?category=${category._id}`}
               className="mz-hover-lift flex h-full flex-col items-center gap-2.5 rounded-(--radius-lg) border border-(--color-border-light) bg-(--color-surface-secondary) px-3 py-5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
             >
-              <span
-                className="flex h-12 w-12 items-center justify-center rounded-(--radius-md) bg-(--color-surface) text-(--color-gold-dark) shadow-(--shadow-soft)"
-                aria-hidden="true"
-              >
-                <Tag className="h-5 w-5" strokeWidth={1.9} />
-              </span>
+              <CategoryArtwork src={category.image} />
               <span className="text-sm font-semibold leading-snug text-(--color-text)">
                 {locale === "en" ? category.nameEn : category.nameAr}
               </span>
@@ -73,5 +69,43 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+/**
+ * The tile's visual. `object-contain` on a fixed-height, full-width box:
+ * category uploads are arbitrary aspect ratios, and `cover` would crop the
+ * subject out of a wide or tall image. The height is fixed but the width is
+ * not, so nothing is ever squashed.
+ *
+ * Decorative — the tile's own label names the category — hence the empty
+ * alt on both branches.
+ */
+function CategoryArtwork({ src }: { src: string | null }) {
+  // A stored path is not proof the file is there: uploads live on local
+  // disk outside git, so a database shared between machines can carry a
+  // path whose file this one never received. Falling back on error keeps
+  // the tile intact instead of showing a broken image.
+  const [failed, setFailed] = useState(false);
+
+  if (!src || failed) {
+    return (
+      <span
+        className="flex h-16 w-16 items-center justify-center rounded-(--radius-md) bg-(--color-surface) text-(--color-gold-dark) shadow-(--shadow-soft)"
+        aria-hidden="true"
+      >
+        <Tag className="h-6 w-6" strokeWidth={1.9} />
+      </span>
+    );
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={src}
+      alt=""
+      onError={() => setFailed(true)}
+      className="h-16 w-full object-contain sm:h-20"
+    />
   );
 }

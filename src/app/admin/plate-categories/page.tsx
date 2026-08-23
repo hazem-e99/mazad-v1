@@ -67,6 +67,7 @@ export default async function AdminPlateCategoriesPage() {
               <Table>
                 <Thead>
                   <Tr>
+                    <Th>{t("admin.colImage")}</Th>
                     <Th>{t("admin.colNameAr")}</Th>
                     <Th>{t("admin.colNameEn")}</Th>
                     <Th>{t("admin.filterStatus")}</Th>
@@ -79,6 +80,18 @@ export default async function AdminPlateCategoriesPage() {
                 <tbody>
                   {categories.map((c) => (
                     <Tr key={c._id}>
+                      <Td>
+                        {c.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={c.image}
+                            alt=""
+                            className="h-10 w-14 rounded-(--radius-sm) border border-(--color-border) bg-(--color-bg-elevated) object-contain p-1"
+                          />
+                        ) : (
+                          <span className="text-xs text-(--color-text-faint)">—</span>
+                        )}
+                      </Td>
                       <Td>{c.nameAr}</Td>
                       <Td>{c.nameEn}</Td>
                       <Td>{c.isActive ? <Badge tone="sold">{t("common.active")}</Badge> : <Badge tone="neutral">{t("common.suspended")}</Badge>}</Td>

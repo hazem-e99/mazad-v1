@@ -26,10 +26,19 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
   const dir = path.join(/* turbopackIgnore: true */ UPLOAD_DIR, subdir);
   await mkdir(dir, { recursive: true });
 
-  const optimized = await sharp(buffer)
-    .resize({ width: 1920, withoutEnlargement: true })
-    .webp({ quality: 82 })
-    .toBuffer();
+  // The declared MIME type is caller-supplied and trivially forged, so the
+  // real check is whether sharp can decode the bytes at all. Its own
+  // failure text is English and internal ("Input buffer contains
+  // unsupported image format"), which is not something to show a user.
+  let optimized: Buffer;
+  try {
+    optimized = await sharp(buffer)
+      .resize({ width: 1920, withoutEnlargement: true })
+      .webp({ quality: 82 })
+      .toBuffer();
+  } catch {
+    throw new Error("تعذر قراءة الملف كصورة صالحة، يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP");
+  }
 
   await writeFile(path.join(dir, filename), optimized);
 

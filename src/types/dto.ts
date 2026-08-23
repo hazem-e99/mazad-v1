@@ -56,6 +56,10 @@ export interface PlateCategoryDTO {
   _id: string;
   nameAr: string;
   nameEn: string;
+  /** Public path to the admin-uploaded artwork, or `null` for a category
+   * that has none — the UI falls back to its default icon rather than
+   * rendering a broken image. */
+  image: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: string;

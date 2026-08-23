@@ -124,6 +124,9 @@ export interface LeanPlateCategory {
   _id: ObjectIdLike;
   nameAr: string;
   nameEn: string;
+  // Absent on documents written before the field existed, hence optional
+  // here and normalised to null by the mapper below.
+  image?: string | null;
   isActive: boolean;
   sortOrder: number;
   createdAt: Date | string;
@@ -135,6 +138,7 @@ export function toPlateCategoryDTO(category: LeanPlateCategory): PlateCategoryDT
     _id: idToString(category._id),
     nameAr: category.nameAr,
     nameEn: category.nameEn,
+    image: category.image ?? null,
     isActive: category.isActive,
     sortOrder: category.sortOrder,
     createdAt: dateToISOString(category.createdAt),
