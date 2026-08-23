@@ -1,4 +1,6 @@
+import type { PipelineStage } from "mongoose";
 import { connectDB } from "@/lib/db";
+import { STATS_TIMEZONE, STATS_TIMEZONE_OFFSET } from "@/lib/constants";
 import { Plate } from "@/models/Plate";
 import { Auction } from "@/models/Auction";
 import { Bid } from "@/models/Bid";
@@ -19,6 +21,7 @@ export async function getDashboardStats() {
     completedAuctions,
     soldAuctions,
     unsoldAuctions,
+    purchasedAuctions,
     totalBids,
     totalPurchases,
   ] = await Promise.all([
@@ -30,6 +33,7 @@ export async function getDashboardStats() {
     Auction.countDocuments({ status: { $in: ["sold", "unsold", "purchased"] } }),
     Auction.countDocuments({ status: "sold" }),
     Auction.countDocuments({ status: "unsold" }),
+    Auction.countDocuments({ status: "purchased" }),
     Bid.countDocuments({ accepted: true }),
     Purchase.countDocuments({}),
   ]);
@@ -43,9 +47,82 @@ export async function getDashboardStats() {
     completedAuctions,
     soldAuctions,
     unsoldAuctions,
+    purchasedAuctions,
     totalBids,
     totalPurchases,
   };
+}
+
+/** One calendar day's activity, in the timezone STATS_TIMEZONE names. */
+export interface StatsDailyPoint {
+  /** Local calendar day as `YYYY-MM-DD`. */
+  date: string;
+  bids: number;
+  auctions: number;
+  purchases: number;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: STATS_TIMEZONE,
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/**
+ * Daily activity buckets for the stats page's time-series charts —
+ * accepted bids, auctions opened and direct purchases per day over the
+ * trailing `days` window.
+ *
+ * Grouped in the database rather than by pulling documents and counting
+ * in JS: these collections are append-only and grow without bound, so the
+ * only part that should ever cross the wire is one row per day.
+ */
+export async function getStatsTimeSeries(days = 7): Promise<StatsDailyPoint[]> {
+  await connectDB();
+
+  // Riyadh has no daylight saving, so stepping back in exact 24h hops
+  // never skips or repeats a local day.
+  const now = Date.now();
+  const dayKeys: string[] = [];
+  for (let i = days - 1; i >= 0; i--) dayKeys.push(dayKeyFormatter.format(new Date(now - i * DAY_MS)));
+
+  const since = new Date(`${dayKeys[0]}T00:00:00${STATS_TIMEZONE_OFFSET}`);
+
+  const dailyCounts = (match: Record<string, unknown> = {}): PipelineStage[] => [
+    { $match: { ...match, createdAt: { $gte: since } } },
+    {
+      $group: {
+        _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt", timezone: STATS_TIMEZONE } },
+        count: { $sum: 1 },
+      },
+    },
+  ];
+
+  type DayCount = { _id: string; count: number };
+  const [bidRows, auctionRows, purchaseRows] = await Promise.all([
+    // `accepted: true` mirrors how the totalBids card counts them, so the
+    // chart and the card can never disagree.
+    Bid.aggregate<DayCount>(dailyCounts({ accepted: true })),
+    Auction.aggregate<DayCount>(dailyCounts()),
+    Purchase.aggregate<DayCount>(dailyCounts()),
+  ]);
+
+  const indexByDay = (rows: DayCount[]) => new Map(rows.map((row) => [row._id, row.count]));
+  const bids = indexByDay(bidRows);
+  const auctions = indexByDay(auctionRows);
+  const purchases = indexByDay(purchaseRows);
+
+  // Days with no activity produce no group at all; the charts need every
+  // day present or the axis silently collapses to however many were busy.
+  return dayKeys.map((date) => ({
+    date,
+    bids: bids.get(date) ?? 0,
+    auctions: auctions.get(date) ?? 0,
+    purchases: purchases.get(date) ?? 0,
+  }));
 }
 
 export async function getRecentAuditLogs(limit = 20) {

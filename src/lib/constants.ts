@@ -199,3 +199,11 @@ export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
 export const MIN_BID_INCREMENT = 50;
 export const AUCTION_EXTENSION_WINDOW_SECONDS = 30;
 export const AUCTION_EXTENSION_SECONDS = 60;
+
+// Timestamps are stored in UTC, but the stats page buckets them into
+// calendar days — and "today" has to mean what an admin in Saudi Arabia
+// sees on the wall calendar, not what UTC says. Bids placed between
+// midnight and 3am local would otherwise land on the previous day's bar.
+// Riyadh observes no daylight saving, so this offset is fixed year-round.
+export const STATS_TIMEZONE = "Asia/Riyadh";
+export const STATS_TIMEZONE_OFFSET = "+03:00";

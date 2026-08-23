@@ -10,41 +10,49 @@ import {
   ShoppingCart,
   Activity,
 } from "lucide-react";
-import { getDashboardStats } from "@/lib/adminQueries";
+import { getDashboardStats, getStatsTimeSeries } from "@/lib/adminQueries";
 import { getServerTranslator } from "@/lib/i18n-server";
+import { formatWeekday } from "@/lib/format";
 import { StatCard } from "@/components/ui/StatCard";
 import { StatsCharts } from "./StatsCharts";
+
+const TREND_DAYS = 7;
 
 export const revalidate = 0;
 
 export default async function AdminStatsPage() {
-  const [stats, { t }] = await Promise.all([getDashboardStats(), getServerTranslator()]);
+  const [stats, daily, { t, locale }] = await Promise.all([
+    getDashboardStats(),
+    getStatsTimeSeries(TREND_DAYS),
+    getServerTranslator(),
+  ]);
 
-  const baseChartData = [
-    { name: t("admin.statTotalPlates"), value: stats.totalPlates },
-    { name: t("admin.statVipPlates"), value: stats.vipPlates },
-    { name: t("admin.statUsers"), value: stats.totalUsers },
-    { name: t("admin.statActiveAuctions"), value: stats.activeAuctions },
-  ];
+  const auctionTrendData = daily.map((point) => ({
+    name: formatWeekday(point.date, locale),
+    value: point.auctions,
+  }));
 
   const auctionStatusData = [
     { name: t("auction.live"), value: stats.activeAuctions, color: "#ef4444" },
     { name: t("auction.scheduled"), value: stats.scheduledAuctions, color: "#3b82f6" },
     { name: t("auction.sold"), value: stats.soldAuctions, color: "#22c55e" },
     { name: t("auction.unsold"), value: stats.unsoldAuctions, color: "#a0aec0" },
+    { name: t("auction.purchased"), value: stats.purchasedAuctions, color: "#ecbd33" },
   ];
 
-  const bidChartData = [
-    { name: "1" , value: Math.min(stats.totalBids, 12) },
-    { name: "2" , value: Math.min(stats.totalBids, 18) },
-    { name: "3" , value: Math.min(stats.totalBids, 14) },
-    { name: "4" , value: Math.min(stats.totalBids, 20) },
-    { name: "5" , value: Math.min(stats.totalBids, 16) },
-    { name: "6" , value: Math.min(stats.totalBids, 22) },
-    { name: "7" , value: Math.min(stats.totalBids, 28) },
-  ];
+  const bidTrendData = daily.map((point) => ({
+    name: formatWeekday(point.date, locale),
+    value: point.bids,
+  }));
 
-  const totalAuctions = stats.activeAuctions + stats.scheduledAuctions + stats.completedAuctions + stats.unsoldAuctions;
+  const bidsThisWeek = daily.reduce((sum, point) => sum + point.bids, 0);
+  const auctionsThisWeek = daily.reduce((sum, point) => sum + point.auctions, 0);
+
+  // Summed from the slices themselves so the "إجمالي المزادات" figure can
+  // never disagree with the donut it labels — the old hand-written sum
+  // added completedAuctions (which already includes sold/unsold/purchased)
+  // on top of unsoldAuctions, double-counting every unsold auction.
+  const totalAuctions = auctionStatusData.reduce((sum, slice) => sum + slice.value, 0);
   return (
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -55,7 +63,7 @@ export default async function AdminStatsPage() {
         </div>
         <div className="inline-flex items-center gap-2 rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) px-3 py-2 text-sm text-(--color-text-muted)">
           <Activity className="h-4 w-4 text-(--color-gold)" aria-hidden="true" />
-          آخر 7 أيام
+          آخر {TREND_DAYS} أيام
         </div>
       </div>
 
@@ -68,10 +76,13 @@ export default async function AdminStatsPage() {
       </div>
 
       <StatsCharts
-        activityData={baseChartData}
+        auctionTrendData={auctionTrendData}
         auctionStatusData={auctionStatusData}
-        bidData={bidChartData}
+        bidTrendData={bidTrendData}
         totalAuctions={totalAuctions}
+        auctionsThisWeek={auctionsThisWeek}
+        bidsThisWeek={bidsThisWeek}
+        trendDays={TREND_DAYS}
       />
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">

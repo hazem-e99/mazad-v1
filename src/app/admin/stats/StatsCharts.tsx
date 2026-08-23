@@ -20,10 +20,13 @@ type MetricPoint = { name: string; value: number };
 type StatusPoint = MetricPoint & { color: string };
 
 interface StatsChartsProps {
-  activityData: MetricPoint[];
+  auctionTrendData: MetricPoint[];
   auctionStatusData: StatusPoint[];
-  bidData: MetricPoint[];
+  bidTrendData: MetricPoint[];
   totalAuctions: number;
+  auctionsThisWeek: number;
+  bidsThisWeek: number;
+  trendDays: number;
 }
 
 const tooltipContentStyle = {
@@ -32,7 +35,15 @@ const tooltipContentStyle = {
   borderRadius: 12,
 };
 
-export function StatsCharts({ activityData, auctionStatusData, bidData, totalAuctions }: StatsChartsProps) {
+export function StatsCharts({
+  auctionTrendData,
+  auctionStatusData,
+  bidTrendData,
+  totalAuctions,
+  auctionsThisWeek,
+  bidsThisWeek,
+  trendDays,
+}: StatsChartsProps) {
   return (
     <>
       <div className="grid gap-6 xl:grid-cols-[1.45fr_0.9fr]">
@@ -40,13 +51,15 @@ export function StatsCharts({ activityData, auctionStatusData, bidData, totalAuc
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-(--color-text)">نشاط المزادات</h2>
-              <p className="text-sm text-(--color-text-faint)">مؤشرات الأداء الحالية</p>
+              <p className="text-sm text-(--color-text-faint)">مزادات جديدة خلال آخر {trendDays} أيام</p>
             </div>
-            <span className="rounded-full border border-(--color-gold)/25 bg-(--color-gold-tint) px-2.5 py-1 text-xs text-(--color-gold)">مباشر</span>
+            <span className="tnum rounded-full border border-(--color-gold)/25 bg-(--color-gold-tint) px-2.5 py-1 text-xs text-(--color-gold)">
+              {auctionsThisWeek} مزاد
+            </span>
           </div>
           <div className="h-72 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={activityData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
+              <AreaChart data={auctionTrendData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
                 <defs>
                   <linearGradient id="goldArea" x1="0" x2="0" y1="0" y2="1">
                     <stop offset="0%" stopColor="#ecbd33" stopOpacity={0.4} />
@@ -55,11 +68,13 @@ export function StatsCharts({ activityData, auctionStatusData, bidData, totalAuc
                 </defs>
                 <CartesianGrid stroke="rgba(255,255,255,0.08)" strokeDasharray="3 3" vertical={false} />
                 <XAxis dataKey="name" tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} width={28} />
+                {/* Counts are whole auctions — without allowDecimals={false} a
+                    quiet week renders an axis of 0.5 / 1.5 ticks. */}
+                <YAxis tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} width={28} allowDecimals={false} />
                 <Tooltip
                   formatter={(value) => {
                     const normalized = Array.isArray(value) ? value[0] : value;
-                    return [`${normalized ?? 0}`, "القيمة"];
+                    return [`${normalized ?? 0}`, "المزادات"];
                   }}
                   labelStyle={{ color: "#fff" }}
                   contentStyle={tooltipContentStyle}
@@ -113,16 +128,18 @@ export function StatsCharts({ activityData, auctionStatusData, bidData, totalAuc
           <div className="mb-5 flex items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-semibold text-(--color-text)">أداء المزايدات</h2>
-              <p className="text-sm text-(--color-text-faint)">عدد المزايدات خلال الأسبوع</p>
+              <p className="text-sm text-(--color-text-faint)">
+                {bidsThisWeek} مزايدة مقبولة خلال آخر {trendDays} أيام
+              </p>
             </div>
             <TrendingUp className="h-4 w-4 text-(--color-gold)" aria-hidden="true" />
           </div>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={bidData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
+              <BarChart data={bidTrendData} margin={{ top: 12, right: 12, left: 0, bottom: 8 }}>
                 <CartesianGrid stroke="rgba(255,255,255,0.08)" vertical={false} strokeDasharray="3 3" />
                 <XAxis dataKey="name" tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} width={28} />
+                <YAxis tick={{ fill: "#b3b8c5", fontSize: 12 }} axisLine={false} tickLine={false} width={28} allowDecimals={false} />
                 <Tooltip formatter={(value) => [`${value ?? 0}`, "المزايدات"]} contentStyle={tooltipContentStyle} />
                 <Bar dataKey="value" radius={[8, 8, 0, 0]} fill="#ecbd33" />
               </BarChart>

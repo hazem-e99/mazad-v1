@@ -1,50 +1,21 @@
-import { connectDB } from "@/lib/db";
-import { Plate } from "@/models/Plate";
-import { Auction } from "@/models/Auction";
-import { Bid } from "@/models/Bid";
-import { Purchase } from "@/models/Purchase";
-import { User } from "@/models/User";
+import { getDashboardStats, getStatsTimeSeries } from "@/lib/adminQueries";
 import { requirePermission } from "@/lib/auth";
 import { jsonOk, handleApiError } from "@/lib/api";
 
+/**
+ * The same numbers the /admin/stats page renders. That page is a server
+ * component and calls the query layer directly (as every admin page in
+ * this app does), so this route exists for clients that can't — and both
+ * go through getDashboardStats/getStatsTimeSeries rather than each
+ * writing its own counts, which is how the two drifted apart before.
+ */
 export async function GET() {
   try {
     await requirePermission("stats:view");
-    await connectDB();
 
-    const [
-      totalPlates,
-      vipPlates,
-      totalUsers,
-      activeAuctions,
-      scheduledAuctions,
-      soldAuctions,
-      unsoldAuctions,
-      totalBids,
-      totalPurchases,
-    ] = await Promise.all([
-      Plate.countDocuments({ isVisible: true }),
-      Plate.countDocuments({ isVip: true, isVisible: true }),
-      User.countDocuments({}),
-      Auction.countDocuments({ status: "live" }),
-      Auction.countDocuments({ status: "scheduled" }),
-      Auction.countDocuments({ status: "sold" }),
-      Auction.countDocuments({ status: "unsold" }),
-      Bid.countDocuments({ accepted: true }),
-      Purchase.countDocuments({}),
-    ]);
+    const [totals, daily] = await Promise.all([getDashboardStats(), getStatsTimeSeries()]);
 
-    return jsonOk({
-      totalPlates,
-      vipPlates,
-      totalUsers,
-      activeAuctions,
-      scheduledAuctions,
-      soldAuctions,
-      unsoldAuctions,
-      totalBids,
-      totalPurchases,
-    });
+    return jsonOk({ ...totals, daily });
   } catch (err) {
     return handleApiError(err);
   }
