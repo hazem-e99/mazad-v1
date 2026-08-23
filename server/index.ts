@@ -22,9 +22,29 @@ function getAuctionService(): Promise<AuctionServiceModule> {
 
 const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
+const host = process.env.HOST || "0.0.0.0";
 
 const app = next({ dev });
 const handle = app.getRequestHandler();
+
+async function warmPublicHome() {
+  if (dev) return;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30_000);
+
+  try {
+    const res = await fetch(`http://127.0.0.1:${port}/`, {
+      signal: controller.signal,
+      headers: { "user-agent": "mazad-render-warmup" },
+    });
+    console.log(`Public home warmup finished with ${res.status}`);
+  } catch (err) {
+    console.error("Public home warmup failed:", err);
+  } finally {
+    clearTimeout(timeout);
+  }
+}
 
 async function main() {
   await app.prepare();
@@ -133,12 +153,15 @@ async function main() {
       .catch((err) => console.error("auction scheduler tick failed:", err));
   }, TICK_MS);
 
-  httpServer.listen(port, () => {
-    console.log(`Mazad server ready on http://localhost:${port}`);
+  httpServer.listen(port, host, () => {
+    console.log(`Mazad server ready on http://${host}:${port}`);
   });
 
   connectDB()
-    .then(() => console.log("MongoDB connected"))
+    .then(async () => {
+      console.log("MongoDB connected");
+      await warmPublicHome();
+    })
     .catch((err) => console.error("Initial MongoDB connection failed:", err));
 
   const shutdown = (signal: string) => {

@@ -14,5 +14,7 @@ services:
         sync: false
       - key: AUTH_SECRET
         sync: false
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://mazad-v1.onrender.com
       - key: UPLOAD_DIR
         value: ./public/uploads

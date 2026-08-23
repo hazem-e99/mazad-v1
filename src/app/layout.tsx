@@ -45,22 +45,27 @@ function urlOrUndefined(value: string): URL | undefined {
   }
 }
 
+function getFallbackSiteUrl(): string {
+  return process.env.NEXT_PUBLIC_SITE_URL || "https://mazad-v1.onrender.com";
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const [locale, settings] = await Promise.all([getServerLocale(), getSiteSettings()]);
   const siteName = localizedText(locale, settings.seo.siteNameAr, settings.seo.siteNameEn);
   const title = localizedText(locale, settings.seo.titleAr, settings.seo.titleEn);
   const description = localizedText(locale, settings.seo.descriptionAr, settings.seo.descriptionEn);
-  const canonical = settings.seo.canonicalUrl;
+  const siteUrl = settings.seo.canonicalUrl || getFallbackSiteUrl();
+  const metadataBase = urlOrUndefined(siteUrl);
 
   return {
-    metadataBase: urlOrUndefined(canonical),
+    metadataBase,
     title: {
       default: title,
       template: `%s | ${siteName}`,
     },
     description,
     keywords: splitKeywords(localizedText(locale, settings.seo.keywordsAr, settings.seo.keywordsEn)),
-    alternates: canonical ? { canonical } : undefined,
+    alternates: metadataBase ? { canonical: metadataBase.toString() } : undefined,
     robots: {
       index: settings.seo.robotsIndex,
       follow: settings.seo.robotsFollow,
@@ -70,7 +75,7 @@ export async function generateMetadata(): Promise<Metadata> {
       siteName,
       title,
       description,
-      url: canonical || undefined,
+      url: metadataBase?.toString(),
       images: settings.seo.ogImage ? [{ url: settings.seo.ogImage, alt: title }] : undefined,
       locale,
     },
