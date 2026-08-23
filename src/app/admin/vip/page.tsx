@@ -50,8 +50,9 @@ export default async function AdminVipPage() {
                   pictures chosen by its position in this list — so an admin
                   checking whether a VIP plate had artwork was shown artwork
                   that belonged to no plate at all. */}
-              <div className="relative mx-4 my-5 flex aspect-[2.65/1] items-center justify-center overflow-hidden rounded-(--radius-md) bg-white p-3 shadow-[0_4px_12px_rgba(0,0,0,0.22)] sm:mx-5 sm:my-6 sm:p-4">
-                {p.image ? (
+              {p.image ? (
+                /* A photo needs a frame of known height to fill. */
+                <div className="relative mx-4 my-5 flex aspect-[2.65/1] items-center justify-center overflow-hidden rounded-(--radius-md) bg-white p-3 shadow-[0_4px_12px_rgba(0,0,0,0.22)] sm:mx-5 sm:my-6 sm:p-4">
                   <Image
                     src={p.image}
                     alt={t("admin.uploadedPlatePhoto")}
@@ -60,19 +61,24 @@ export default async function AdminVipPage() {
                     className="object-contain p-2 transition-transform duration-200 group-hover:scale-[1.02]"
                     unoptimized
                   />
-                ) : (
+                </div>
+              ) : (
+                /* The drawn plate carries the aspect ratio of its own plate
+                   type and paints its own face, so it sets the height here:
+                   a fixed 2.65/1 white frame stranded a 5:1 plate in a tall
+                   box and double-framed it. */
+                <div className="mx-4 my-5 flex items-center justify-center sm:mx-5 sm:my-6">
                   <SaudiPlate
                     type={p.type}
                     lettersAr={p.lettersAr}
                     lettersEn={p.lettersEn}
                     numbers={p.numbers}
                     logo={p.logo}
-                    size="lg"
+                    size="xl"
                     locale={locale}
-                    className="max-w-full"
                   />
-                )}
-              </div>
+                </div>
+              )}
 
               <div className="mt-auto flex items-center justify-between border-t border-(--color-border) px-5 py-4">
                 <span className="text-xs text-(--color-text-muted)">{plateTypeLabel(p.type, locale)}</span>
