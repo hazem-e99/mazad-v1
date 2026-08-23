@@ -1,6 +1,11 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  experimental: {
+    staticGenerationRetryCount: 1,
+    staticGenerationMaxConcurrency: 4,
+    staticGenerationMinPagesPerWorker: 30,
+  },
   // Temporary deployment escape hatch for the short Render test deploy.
   // Full `tsc` currently exceeds local/Render memory during `next build`;
   // keep `npm run lint` and `npm run typecheck` as explicit checks.
