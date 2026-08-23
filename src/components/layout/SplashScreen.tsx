@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MazadLogo } from "@/components/layout/MazadLogo";
 import { cn } from "@/lib/cn";
 
-const MIN_VISIBLE_MS = 1800;
-const MAX_VISIBLE_MS = 6500;
+const VISIBLE_MS = 5_000;
+const VIDEO_PLAYBACK_RATE = 2;
 
 async function waitForPageAssets() {
   if (document.readyState !== "complete") {
@@ -29,25 +29,18 @@ async function waitForPageAssets() {
 }
 
 export function SplashScreen() {
+  const videoRef = useRef<HTMLVideoElement>(null);
   const [leaving, setLeaving] = useState(false);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
-    const startedAt = performance.now();
     let cancelled = false;
 
     document.documentElement.classList.add("overflow-hidden");
 
     const finish = async () => {
-      await Promise.race([
-        waitForPageAssets(),
-        new Promise<void>((resolve) => window.setTimeout(resolve, MAX_VISIBLE_MS)),
-      ]);
-
-      const elapsed = performance.now() - startedAt;
-      if (elapsed < MIN_VISIBLE_MS) {
-        await new Promise<void>((resolve) => window.setTimeout(resolve, MIN_VISIBLE_MS - elapsed));
-      }
+      void waitForPageAssets();
+      await new Promise<void>((resolve) => window.setTimeout(resolve, VISIBLE_MS));
 
       if (cancelled) return;
       setLeaving(true);
@@ -66,7 +59,15 @@ export function SplashScreen() {
     };
   }, []);
 
+  useEffect(() => {
+    if (videoRef.current) videoRef.current.playbackRate = VIDEO_PLAYBACK_RATE;
+  }, []);
+
   if (hidden) return null;
+
+  const speedUpVideo = (video: HTMLVideoElement | null) => {
+    if (video) video.playbackRate = VIDEO_PLAYBACK_RATE;
+  };
 
   return (
     <div
@@ -78,6 +79,7 @@ export function SplashScreen() {
       aria-live="polite"
     >
       <video
+        ref={videoRef}
         className="absolute inset-0 h-full w-full object-cover"
         src="/herosection.mp4"
         autoPlay
@@ -86,6 +88,8 @@ export function SplashScreen() {
         loop
         preload="auto"
         poster="/images/bg-hero.webp"
+        onLoadedMetadata={(event) => speedUpVideo(event.currentTarget)}
+        onCanPlay={(event) => speedUpVideo(event.currentTarget)}
       />
       <span className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,0,0,.05),rgba(0,0,0,.72))]" />
       <div className="relative z-10 flex flex-col items-center gap-6 px-6 text-center">
