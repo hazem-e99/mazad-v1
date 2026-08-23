@@ -124,16 +124,16 @@ export function SaudiPlate({
         />
 
         <div className="saudi-plate__numbers relative z-10 flex min-w-0 flex-col items-center justify-center border-e border-black/35 px-[0.2em] py-[0.1em] text-center">
-          {/* `leading-[1.05]` rather than `leading-none`: Arabic descenders
-              (ي, ن) overflow a line box set to exactly 1em and collide with
-              the Latin line beneath. */}
-          <span className="block font-[900] leading-[1.05] tracking-[0.02em] text-[clamp(0.8rem,2.1cqi,3rem)] text-black">
+          {/* Arabic descenders (ي, ن, ج) paint well below the baseline and
+              overflow a line box set to 1em, landing on the Latin line
+              beneath. 1.35 is what actually contains them. */}
+          <span className="block font-[900] leading-[1.35] tracking-[0.02em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
             {toArabicIndic(numbers)}
           </span>
-          {/* The separation is sized against the plate's own width (cqi),
-              not against this span's font-size — an `em` gap here resolves
-              against the small Latin type and collapses to under a pixel. */}
-          <span className="mt-[clamp(0.12rem,1.5cqi,0.9rem)] block font-mono text-[clamp(0.44rem,1.1cqi,1.7rem)] font-black leading-none tracking-[0.08em] text-black/85">
+          {/* Gap sized against the plate's own width (cqi), not this span's
+              font-size — an `em` here resolves against the small Latin type
+              and collapses to well under a pixel. */}
+          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.08em] text-black/85">
             {numbers}
           </span>
         </div>
@@ -149,10 +149,10 @@ export function SaudiPlate({
         </div>
 
         <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
-          <span className="block font-[900] leading-[1.05] tracking-[0.02em] text-[clamp(0.9rem,2.2cqi,3.1rem)] text-black">
+          <span className="block font-[900] leading-[1.35] tracking-[0.02em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
             {spaced(lettersAr)}
           </span>
-          <span className="mt-[clamp(0.12rem,1.5cqi,0.9rem)] block font-mono text-[clamp(0.48rem,1.15cqi,1.8rem)] font-black leading-none tracking-[0.1em] text-black/85">
+          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.08em] text-black/85">
             {spaced(lettersEn)}
           </span>
         </div>
