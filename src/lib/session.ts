@@ -3,8 +3,11 @@ import jwt from "jsonwebtoken";
 import type { Permission, UserRole } from "@/lib/constants";
 import { ROLE_DEFAULT_PERMISSIONS } from "@/lib/constants";
 
-const AUTH_SECRET = process.env.AUTH_SECRET;
-if (!AUTH_SECRET) throw new Error("AUTH_SECRET environment variable is not set");
+function getAuthSecret(): string {
+  const secret = process.env.AUTH_SECRET?.trim();
+  if (!secret) throw new Error("AUTH_SECRET environment variable is not set");
+  return secret;
+}
 
 export const SESSION_COOKIE = "mazad_session";
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days
@@ -24,12 +27,12 @@ export async function verifyPassword(password: string, hash: string): Promise<bo
 }
 
 export function signSession(payload: SessionPayload): string {
-  return jwt.sign(payload, AUTH_SECRET as string, { expiresIn: SESSION_TTL_SECONDS });
+  return jwt.sign(payload, getAuthSecret(), { expiresIn: SESSION_TTL_SECONDS });
 }
 
 export function verifySession(token: string): SessionPayload | null {
   try {
-    return jwt.verify(token, AUTH_SECRET as string) as SessionPayload;
+    return jwt.verify(token, getAuthSecret()) as SessionPayload;
   } catch {
     return null;
   }

@@ -27,7 +27,6 @@ const app = next({ dev });
 const handle = app.getRequestHandler();
 
 async function main() {
-  await connectDB();
   await app.prepare();
 
   const httpServer = createServer((req, res) => handle(req, res));
@@ -137,6 +136,10 @@ async function main() {
   httpServer.listen(port, () => {
     console.log(`Mazad server ready on http://localhost:${port}`);
   });
+
+  connectDB()
+    .then(() => console.log("MongoDB connected"))
+    .catch((err) => console.error("Initial MongoDB connection failed:", err));
 
   const shutdown = (signal: string) => {
     console.log(`${signal} received, shutting down gracefully...`);

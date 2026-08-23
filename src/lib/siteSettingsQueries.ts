@@ -1,5 +1,10 @@
 import { connectDB } from "@/lib/db";
-import { normalizeSiteSettings, type SiteManagedPage, type SiteSettingsDTO } from "@/lib/siteSettings";
+import {
+  DEFAULT_SITE_SETTINGS,
+  normalizeSiteSettings,
+  type SiteManagedPage,
+  type SiteSettingsDTO,
+} from "@/lib/siteSettings";
 import { SiteSettings } from "@/models/SiteSettings";
 
 type LeanSiteSettings = Partial<SiteSettingsDTO> & {
@@ -17,9 +22,14 @@ function toDTO(doc: LeanSiteSettings | null | undefined): SiteSettingsDTO {
 }
 
 export async function getSiteSettings(): Promise<SiteSettingsDTO> {
-  await connectDB();
-  const doc = await SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>();
-  return toDTO(doc);
+  try {
+    await connectDB();
+    const doc = await SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>();
+    return toDTO(doc);
+  } catch (err) {
+    console.error("site settings failed to load; using defaults:", err);
+    return normalizeSiteSettings(DEFAULT_SITE_SETTINGS);
+  }
 }
 
 export async function saveSiteSettings(input: SiteSettingsDTO): Promise<SiteSettingsDTO> {

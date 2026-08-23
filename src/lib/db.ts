@@ -1,12 +1,6 @@
 import mongoose from "mongoose";
 import dns from "node:dns";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI environment variable is not set");
-}
-
 declare global {
   var __mongooseConn: {
     conn: typeof mongoose | null;
@@ -16,6 +10,12 @@ declare global {
 
 const cached = global.__mongooseConn ?? { conn: null, promise: null };
 global.__mongooseConn = cached;
+
+function getMongoUri(): string {
+  const uri = process.env.MONGODB_URI?.trim();
+  if (!uri) throw new Error("MONGODB_URI environment variable is not set");
+  return uri;
+}
 
 async function connectWithFallbackDns(uri: string) {
   try {
@@ -40,7 +40,7 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (cached.conn) return cached.conn;
 
   if (!cached.promise) {
-    cached.promise = connectWithFallbackDns(MONGODB_URI as string).catch((err) => {
+    cached.promise = connectWithFallbackDns(getMongoUri()).catch((err) => {
       cached.promise = null;
       throw err;
     });
