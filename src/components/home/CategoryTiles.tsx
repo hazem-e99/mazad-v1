@@ -27,19 +27,13 @@ import type { HomeCategory } from "@/lib/queries";
  */
 export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
   const { t, locale } = useTranslations();
-  const scroller = useRef<HTMLUListElement>(null);
   const isArabic = locale === "ar";
   const Arrow = isArabic ? ArrowLeft : ArrowRight;
 
-  // The track scrolls in the document's own direction: in RTL, advancing
-  // to the next tile *decreases* scrollLeft. Flipping the sign here keeps
-  // "next" meaning next in both directions.
-  const step = (direction: -1 | 1) => {
-    const node = scroller.current;
-    if (!node) return;
-    const amount = Math.max(200, node.clientWidth * 0.6) * direction * (isArabic ? -1 : 1);
-    node.scrollBy({ left: amount, behavior: "smooth" });
-  };
+  const { ref: scroller, pages, page, step, scrollToPage, canPrev, canNext } = useCarousel<HTMLUListElement>(
+    isArabic,
+    [categories.length, locale]
+  );
 
   // "Previous" points back the way the text runs — a right chevron in
   // Arabic, a left one in English.
