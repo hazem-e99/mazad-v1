@@ -125,25 +125,17 @@ export default async function AuctionDetailPage({ params }: Props) {
             </div>
 
             <div className="relative flex w-full items-center justify-center overflow-hidden rounded-(--radius-lg) bg-black/25 p-4">
-              {auction.plate.image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={auction.plate.image}
-                  alt={auction.plate.title ?? `${auction.plate.lettersAr} ${auction.plate.numbers}`}
-                  className="max-h-[430px] w-full object-contain"
-                />
-              ) : (
-                <SaudiPlate
-                  type={auction.plate.type}
-                  lettersAr={auction.plate.lettersAr}
-                  lettersEn={auction.plate.lettersEn}
-                  numbers={auction.plate.numbers}
-                  logo={auction.plate.logo}
-                  size="xl"
-                  vip={isVip}
-                  locale={locale}
-                />
-              )}
+              {/* Drawn from the record, never the uploaded photo. */}
+              <SaudiPlate
+                type={auction.plate.type}
+                lettersAr={auction.plate.lettersAr}
+                lettersEn={auction.plate.lettersEn}
+                numbers={auction.plate.numbers}
+                logo={auction.plate.logo}
+                size="xl"
+                vip={isVip}
+                locale={locale}
+              />
             </div>
           </div>
 

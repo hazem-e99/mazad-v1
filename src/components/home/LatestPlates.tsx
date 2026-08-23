@@ -5,7 +5,6 @@ import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
 import { plateClassificationLabel, plateTypeLabel, usageTypeLabel } from "@/lib/constants";
-import { plateDisplayName } from "@/lib/plateLabel";
 import type { PlateDTO } from "@/types/dto";
 
 /**
@@ -70,30 +69,23 @@ export function LatestPlates({ plates }: { plates: PlateDTO[] }) {
                   than `h` so an unusually tall type grows instead of being
                   clipped; the grid stretches the row to match. */}
               <div className="flex min-h-[4.75rem] items-center justify-center sm:min-h-[5.25rem]">
+                {/* Drawn from this plate's own letters, numbers and logo —
+                    never the seller's uploaded photo. `xl` is `w-full`
+                    here, so the wrapper above decides the width; its own
+                    max-width never binds at card scale, and `cn` is plain
+                    clsx, so passing a competing width class would be a
+                    coin flip. */}
                 <div className="flex w-[88%] items-center justify-center">
-                  {plate.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={plate.image}
-                      alt={plateDisplayName(plate, locale)}
-                      className="max-h-[5.25rem] w-full object-contain"
-                    />
-                  ) : (
-                    // `xl` is `w-full` here — the wrapper above is what
-                    // decides the width. Its own max-width never binds at
-                    // card scale, and `cn` is plain clsx, so passing a
-                    // competing width class would be a coin flip.
-                    <SaudiPlate
-                      type={plate.type}
-                      lettersAr={plate.lettersAr}
-                      lettersEn={plate.lettersEn}
-                      numbers={plate.numbers}
-                      logo={plate.logo}
-                      size="xl"
-                      vip={plate.isVip}
-                      locale={locale}
-                    />
-                  )}
+                  <SaudiPlate
+                    type={plate.type}
+                    lettersAr={plate.lettersAr}
+                    lettersEn={plate.lettersEn}
+                    numbers={plate.numbers}
+                    logo={plate.logo}
+                    size="xl"
+                    vip={plate.isVip}
+                    locale={locale}
+                  />
                 </div>
               </div>
 

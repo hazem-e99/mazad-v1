@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/layout/EmptyState";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { toPlateDTO, type LeanPlate } from "@/lib/dto";
 import { PlateRowActions } from "@/app/admin/plates/PlateRowActions";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { plateTypeLabel } from "@/lib/constants";
 
 export const revalidate = 0;
@@ -61,7 +61,7 @@ export default async function AdminVipPage() {
                     unoptimized
                   />
                 ) : (
-                  <PlateRenderer
+                  <SaudiPlate
                     type={p.type}
                     lettersAr={p.lettersAr}
                     lettersEn={p.lettersEn}

@@ -31,8 +31,12 @@ export interface MessageCatalog {
     contact: string;
     contactHint: string;
     rights: string;
-    downloadOn: string;
-    getItOn: string;
+    phone: string;
+    email: string;
+    address: string;
+    hours: string;
+    backToTop: string;
+    socialsLabel: string;
   };
   home: {
     badge: string;
@@ -712,6 +716,7 @@ export interface MessageCatalog {
 
     vipTitle: string;
     vipSubtitle: string;
+    vipPlateLabel: string;
     noVipPlatesYet: string;
     noVipPlatesHint: string;
 
@@ -831,8 +836,12 @@ const ar: MessageCatalog = {
     contact: "تواصل معنا",
     contactHint: "للدعم والاستفسارات تواصل عبر الواتساب أو البريد الإلكتروني.",
     rights: "جميع الحقوق محفوظة.",
-    downloadOn: "حمّل من",
-    getItOn: "احصل عليه من",
+    phone: "9200 12345",
+    email: "info@lawhati.sa",
+    address: "الرياض - المملكة العربية السعودية",
+    hours: "الأحد - الخميس 9 صباحاً - 10 مساءً",
+    backToTop: "العودة للأعلى",
+    socialsLabel: "حساباتنا على التواصل الاجتماعي",
   },
   home: {
     badge: "منصة مزادات لوحات السيارات الأولى",
@@ -1504,6 +1513,7 @@ const ar: MessageCatalog = {
 
     vipTitle: "لوحات VIP",
     vipSubtitle: "إدارة اللوحات المميزة المعروضة للعامة",
+    vipPlateLabel: "لوحة VIP",
     noVipPlatesYet: "لا توجد لوحات VIP بعد",
     noVipPlatesHint: "ميّز لوحة من صفحة اللوحات لتظهر هنا",
 

@@ -65,11 +65,28 @@ function toArabicIndic(value: string): string {
   return value.replace(/[0-9]/g, (d) => ARABIC_INDIC[Number(d)]);
 }
 
-/** Plate characters are set with wide optical spacing on the real thing.
- * Inputs arrive either already spaced ("أ ب ج") or not ("ABC"), so
- * normalise to a single form and let CSS own the tracking. */
-function spaced(value: string): string {
-  return value.replace(/\s+/g, "").split("").join(" ");
+/** ZERO WIDTH NON-JOINER. */
+const ZWNJ = "‌";
+
+/**
+ * Arabic plate letters are stamped as isolated glyphs, never in cursive.
+ * Left alone, "ندي" joins into one ligated word; separating the letters
+ * with ZWNJ breaks the join while adding nothing the line breaker can wrap
+ * on — an ordinary space did both jobs at once, which is why a three-letter
+ * group could drop "ص" onto a second line.
+ *
+ * The visible gap is letter-spacing's job, not the string's. Note that
+ * letter-spacing also applies after each ZWNJ, so the rendered gap is twice
+ * the tracking value.
+ */
+function isolatedArabic(value: string): string {
+  return value.replace(/\s+/g, "").split("").join(ZWNJ);
+}
+
+/** Latin never joins, so it only needs the incoming spacing normalised
+ * away — the optical gap comes from tracking. */
+function isolatedLatin(value: string): string {
+  return value.replace(/\s+/g, "");
 }
 
 /**
@@ -127,13 +144,13 @@ export function SaudiPlate({
           {/* Arabic descenders (ي, ن, ج) paint well below the baseline and
               overflow a line box set to 1em, landing on the Latin line
               beneath. 1.35 is what actually contains them. */}
-          <span className="block font-[900] leading-[1.35] tracking-[0.02em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
+          <span className="block whitespace-nowrap font-[900] leading-[1.35] tracking-[0.04em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
             {toArabicIndic(numbers)}
           </span>
           {/* Gap sized against the plate's own width (cqi), not this span's
               font-size — an `em` here resolves against the small Latin type
               and collapses to well under a pixel. */}
-          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.08em] text-black/85">
+          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block whitespace-nowrap font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.08em] text-black/85">
             {numbers}
           </span>
         </div>
@@ -141,33 +158,38 @@ export function SaudiPlate({
         {/* Padding in cqi so the crest keeps clear air on both sides of the
             dividers at every render size, the way it does on real stock. */}
         <div className="saudi-plate__emblem relative z-10 flex items-center justify-center border-e border-black/35 px-[clamp(0.1rem,1.3cqi,0.85rem)] py-[clamp(0.1rem,1cqi,0.7rem)]">
+          {/* Sized against the plate's width like the type is, at roughly
+              the share of the face the real crest occupies — at 2.5cqi it
+              read as a speck next to 7cqi characters. */}
           {logo ? (
-            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(1.2rem,2.5cqi,2.8rem)] w-[clamp(1.2rem,2.5cqi,2.8rem)] object-contain text-[#0d5d4a]" />
+            <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(0.85rem,11cqi,5rem)] w-[clamp(0.85rem,11cqi,5rem)] object-contain text-[#0d5d4a]" />
           ) : (
-            <SaudiEmblem className="h-[clamp(1.4rem,2.9cqi,3.2rem)] w-[clamp(1.4rem,2.9cqi,3.2rem)] text-[#1a6a59]" />
+            <SaudiEmblem className="h-[clamp(0.9rem,12cqi,5.4rem)] w-[clamp(0.9rem,12cqi,5.4rem)] text-[#1a6a59]" />
           )}
         </div>
 
         <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
-          <span className="block font-[900] leading-[1.35] tracking-[0.02em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
-            {spaced(lettersAr)}
+          <span className="block whitespace-nowrap font-[900] leading-[1.35] tracking-[0.16em] text-[clamp(0.5rem,7cqi,3.6rem)] text-black">
+            {isolatedArabic(lettersAr)}
           </span>
-          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.08em] text-black/85">
-            {spaced(lettersEn)}
+          <span className="mt-[clamp(0.05rem,1.2cqi,0.6rem)] block whitespace-nowrap font-mono text-[clamp(0.42rem,5.6cqi,2.9rem)] font-black leading-none tracking-[0.16em] text-black/85">
+            {isolatedLatin(lettersEn)}
           </span>
         </div>
 
         <div className="saudi-plate__ksa relative z-10 flex flex-col items-center justify-center gap-[0.04em] border-s border-black/35 bg-[#f3f3f3] py-[0.08em] text-center">
-          <div className="flex h-[clamp(0.9rem,1.7cqi,1.8rem)] w-[clamp(0.9rem,1.7cqi,1.8rem)] items-center justify-center text-[#1a6a59]">
+          <div className="flex h-[clamp(0.55rem,4.4cqi,2.4rem)] w-[clamp(0.55rem,4.4cqi,2.4rem)] items-center justify-center text-[#1a6a59]">
             {logo ? (
               <PlateLogoIcon logo={logo} locale={locale} className="h-full w-full object-contain" />
             ) : (
               <SaudiEmblem className="h-full w-full" />
             )}
           </div>
-          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">K</span>
-          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">S</span>
-          <span className="font-[900] text-[0.45em] leading-[0.9] tracking-[0.08em] text-black/80">A</span>
+          {/* cqi, not em: an `em` size here resolved against the inherited
+              16px and so stayed identical on a 96px chip and a 672px hero. */}
+          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">K</span>
+          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">S</span>
+          <span className="font-[900] text-[clamp(0.3rem,2.5cqi,1.3rem)] leading-[1] tracking-[0.06em] text-black/80">A</span>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Crown, ArrowLeft, ArrowRight } from "lucide-react";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import type { PlateDTO } from "@/types/dto";
 
@@ -29,7 +29,7 @@ export function HeaderVipStrip({ plates }: { plates: PlateDTO[] }) {
               className="shrink-0 rounded-md transition-transform duration-(--duration-fast) hover:-translate-y-0.5 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
               aria-label={t("pages.vipPlateAriaLabel", { letters: p.lettersAr, numbers: p.numbers })}
             >
-              <PlateRenderer
+              <SaudiPlate
                 type={p.type}
                 lettersAr={p.lettersAr}
                 lettersEn={p.lettersEn}

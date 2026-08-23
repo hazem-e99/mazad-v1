@@ -7,7 +7,7 @@ import "@/models/User";
 import "@/models/PlateLogo";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { AuctionStatusActions } from "./AuctionStatusActions";
@@ -68,7 +68,7 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <CardBody className="flex flex-col items-center gap-4">
-            <PlateRenderer
+            <SaudiPlate
               type={auction.plate.type}
               lettersAr={auction.plate.lettersAr}
               lettersEn={auction.plate.lettersEn}

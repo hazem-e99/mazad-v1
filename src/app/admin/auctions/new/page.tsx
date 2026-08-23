@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Input, Select, Checkbox } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
 import { useFormValidation } from "@/hooks/useFormValidation";
@@ -106,7 +106,7 @@ export default function AdminNewAuctionPage() {
         <CardBody className="flex flex-col gap-6 p-5 sm:p-6 lg:p-7">
           {selectedPlate && (
             <div className="flex items-center justify-center rounded-(--radius-md) bg-(--color-bg-elevated) p-8">
-              <PlateRenderer
+              <SaudiPlate
                 type={selectedPlate.type}
                 lettersAr={selectedPlate.lettersAr}
                 lettersEn={selectedPlate.lettersEn}

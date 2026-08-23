@@ -8,7 +8,7 @@ import "@/models/PlateLogo";
 import "@/models/PlateCategory";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { PlateRenderer } from "@/components/plate/PlateRenderer";
+import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
 import {
@@ -163,7 +163,7 @@ export default async function AdminListingDetailPage({ params }: Props) {
           </CardHeader>
           <CardBody className="flex flex-col gap-4">
             <div className="flex justify-center">
-              <PlateRenderer
+              <SaudiPlate
                 type={listing.type}
                 lettersAr={listing.lettersAr}
                 lettersEn={listing.lettersEn}

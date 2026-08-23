@@ -129,22 +129,17 @@ export function FeaturedAds({
                 {/* The plate is the card. Only its width is constrained —
                     never both axes, which would distort the glyphs. */}
                 <div className="flex items-center justify-center">
-                  {plate.image ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img src={plate.image} alt={name} className="max-h-24 w-[88%] object-contain" />
-                  ) : (
-                    <SaudiPlate
-                      type={plate.type}
-                      lettersAr={plate.lettersAr}
-                      lettersEn={plate.lettersEn}
-                      numbers={plate.numbers}
-                      logo={plate.logo}
-                      size="xl"
-                      vip
-                      locale={locale}
-                      className="w-[88%]"
-                    />
-                  )}
+                  <SaudiPlate
+                    type={plate.type}
+                    lettersAr={plate.lettersAr}
+                    lettersEn={plate.lettersEn}
+                    numbers={plate.numbers}
+                    logo={plate.logo}
+                    size="xl"
+                    vip
+                    locale={locale}
+                    className="w-[88%]"
+                  />
                 </div>
 
                 <div className="flex flex-wrap items-center justify-center gap-2 text-[12px] text-[#5d574f]">

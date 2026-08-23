@@ -51,26 +51,20 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
           </div>
 
           <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-(--radius-md) bg-(--color-bg)">
-            {auction.plate.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={auction.plate.image}
-                alt={auction.plate.title ?? `${auction.plate.lettersAr} ${auction.plate.numbers}`}
-                className="h-full w-full object-cover transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.02]"
-              />
-            ) : (
-              <SaudiPlate
-                type={auction.plate.type}
-                lettersAr={auction.plate.lettersAr}
-                lettersEn={auction.plate.lettersEn}
-                numbers={auction.plate.numbers}
-                logo={auction.plate.logo}
-                size="md"
-                vip={isVip}
-                locale={locale}
-                className="transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.015]"
-              />
-            )}
+            {/* Always drawn from the plate's own record. The uploaded photo
+                is submission evidence, not artwork — rendering it here put
+                a different plate's characters on the card. */}
+            <SaudiPlate
+              type={auction.plate.type}
+              lettersAr={auction.plate.lettersAr}
+              lettersEn={auction.plate.lettersEn}
+              numbers={auction.plate.numbers}
+              logo={auction.plate.logo}
+              size="md"
+              vip={isVip}
+              locale={locale}
+              className="transition-transform duration-(--duration-base) ease-(--ease-out-expo) group-hover:scale-[1.015]"
+            />
           </div>
         </div>
 

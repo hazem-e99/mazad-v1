@@ -33,8 +33,12 @@ const en: MessageCatalog = {
     contact: "Contact Us",
     contactHint: "For support and enquiries, reach us on WhatsApp or by email.",
     rights: "All rights reserved.",
-    downloadOn: "Download on the",
-    getItOn: "Get it on",
+    phone: "9200 12345",
+    email: "info@lawhati.sa",
+    address: "Riyadh - Kingdom of Saudi Arabia",
+    hours: "Sun - Thu, 9am - 10pm",
+    backToTop: "Back to top",
+    socialsLabel: "Our social accounts",
   },
   home: {
     badge: "The premier vehicle plate auction platform",
@@ -706,6 +710,7 @@ const en: MessageCatalog = {
 
     vipTitle: "VIP Plates",
     vipSubtitle: "Manage the featured plates shown to the public",
+    vipPlateLabel: "VIP Plate",
     noVipPlatesYet: "No VIP plates yet",
     noVipPlatesHint: "Mark a plate as VIP from the Plates page to show it here",
 
