@@ -65,7 +65,15 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
   const accountItems = accountNavItems(viewer).map((item) => ({ ...item, label: navLabel(t, item, locale) }));
 
   const isActive = (href: string) => isNavItemActive(href, pathname);
-  const transparentTextShadow = !scrolled ? { textShadow: "0 1px 12px rgba(0,0,0,.45)" } : undefined;
+
+  // Only the home page puts a dark hero image behind the navbar (every
+  // other route renders the h-20 spacer below instead), so only there may
+  // the bar go transparent and switch to white type. Keying that off
+  // `!scrolled` alone painted white links onto the light page background
+  // of /auctions, /listings and the rest — legible on the hero, invisible
+  // everywhere else.
+  const overHero = pathname === "/" && !scrolled;
+  const transparentTextShadow = overHero ? { textShadow: "0 1px 12px rgba(0,0,0,.45)" } : undefined;
 
   async function handleLogout() {
     try {
@@ -85,9 +93,9 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
       <header
         className={cn(
           "fixed inset-x-0 top-0 z-40 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-(--duration-base)",
-          scrolled
-            ? "border-(--color-border) bg-(--color-bg)/90 shadow-[0_12px_30px_-24px_rgba(0,0,0,.9)] backdrop-blur-xl"
-            : "border-transparent bg-transparent"
+          overHero
+            ? "border-transparent bg-transparent"
+            : "border-(--color-border) bg-(--color-bg)/90 shadow-[0_12px_30px_-24px_rgba(0,0,0,.9)] backdrop-blur-xl"
         )}
       >
         <div className="mz-container flex h-20 items-center justify-between gap-5">
@@ -113,9 +121,9 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
                   active
                     ? "text-(--color-gold) after:absolute after:inset-x-3 after:-bottom-2 after:h-px after:bg-(--color-gold)"
-                    : scrolled
-                      ? "text-(--color-text-muted) hover:text-(--color-text)"
-                      : "text-white/88 hover:text-white"
+                    : overHero
+                      ? "text-white/88 hover:text-white"
+                      : "text-(--color-text-muted) hover:text-(--color-text)"
                 )}
                 style={transparentTextShadow}
               >
@@ -137,9 +145,9 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
                     aria-label={social.label}
                     className={cn(
                       "flex h-9 w-9 items-center justify-center rounded-(--radius-sm) transition-colors duration-(--duration-fast)",
-                      scrolled
-                        ? "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-gold)"
-                        : "text-white/82 hover:bg-white/12 hover:text-white"
+                      overHero
+                        ? "text-white/82 hover:bg-white/12 hover:text-white"
+                        : "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-gold)"
                     )}
                     style={transparentTextShadow}
                   >
@@ -149,10 +157,10 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
               ))}
             </ul>
           )}
-          <div className={cn(!scrolled && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
+          <div className={cn(overHero && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
             <ThemeToggle />
           </div>
-          <div className={cn(!scrolled && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
+          <div className={cn(overHero && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
             <LanguageSwitcher />
           </div>
           <LinkButton href="/plates/new" variant="secondary" size="sm">
@@ -168,7 +176,7 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
                 onClick={() => setAccountOpen((v) => !v)}
-                className={cn(!scrolled && "border-white/55 bg-black/18 text-white hover:bg-black/28")}
+                className={cn(overHero && "border-white/55 bg-black/18 text-white hover:bg-black/28")}
               >
                 <UserRound className="h-4 w-4" aria-hidden="true" />
                 {t("nav.myAccount")}
@@ -230,9 +238,9 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
             type="button"
             className={cn(
               "inline-flex h-11 w-11 items-center justify-center rounded-(--radius-md) border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
-              scrolled
-                ? "border-(--color-border-strong) text-(--color-text) hover:bg-(--color-surface)"
-                : "border-white/55 bg-black/18 text-white hover:bg-black/28"
+              overHero
+                ? "border-white/55 bg-black/18 text-white hover:bg-black/28"
+                : "border-(--color-border-strong) text-(--color-text) hover:bg-(--color-surface)"
             )}
             aria-expanded={menuOpen}
             aria-label={t("nav.openMenu")}

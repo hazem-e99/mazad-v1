@@ -92,13 +92,15 @@ function isolatedLatin(value: string): string {
 /**
  * Draws the plate from the record's own letters, numbers and logo.
  *
- * It renders the *data*, never a stock photograph: an earlier revision
- * picked one of five `/images/License*.png` files by hashing the letters,
- * which meant every plate on the site displayed characters belonging to
- * some other plate. A record's real uploaded photo is a separate thing —
- * callers that have one show it instead of this component (see
- * ListingCard / the home page's PlateVisual), and this is what renders
- * when there is none.
+ * It renders the *data*, never a photograph, and it is what every surface
+ * in the product uses to depict a plate. Two earlier revisions got this
+ * wrong in the same way: one picked a `/images/License*.png` by hashing
+ * the letters, the other preferred the seller's uploaded photo when there
+ * was one. Both put characters belonging to a different plate on the card
+ * — a placeholder or stock upload shows whatever it happens to show.
+ *
+ * The uploaded photo still matters, but as submission evidence: it belongs
+ * on the moderation screens, not in place of the plate's own artwork.
  */
 export function SaudiPlate({
   type,
@@ -128,7 +130,7 @@ export function SaudiPlate({
           // the width where the real thing gives the crest ~17%, squeezing
           // the characters either side. 2rem holds the smallest render
           // without distorting the larger ones.
-          "grid-cols-[minmax(0,1.25fr)_minmax(2rem,0.82fr)_minmax(0,1.25fr)_clamp(1.5rem,9cqi,4.5rem)]",
+          "grid-cols-[minmax(0,1.25fr)_minmax(2rem,0.82fr)_minmax(0,1.25fr)_clamp(1.6rem,10.5cqi,5rem)]",
           "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
           typeAspect[type],
           vip && "ring-[0.05em] ring-(--color-gold)/70",
@@ -181,7 +183,7 @@ export function SaudiPlate({
         </div>
 
         <div className="saudi-plate__ksa relative z-10 flex flex-col items-center justify-center gap-[0.04em] border-s border-black/35 bg-[#f3f3f3] py-[0.08em] text-center">
-          <div className="flex h-[clamp(0.6rem,6.5cqi,3rem)] w-[clamp(0.6rem,6.5cqi,3rem)] items-center justify-center text-[#1a6a59]">
+          <div className="flex h-[clamp(0.62rem,7.2cqi,3.4rem)] w-[clamp(0.62rem,7.2cqi,3.4rem)] items-center justify-center text-[#1a6a59]">
             {logo ? (
               <PlateLogoIcon logo={logo} locale={locale} className="h-full w-full object-contain" />
             ) : (
@@ -190,9 +192,9 @@ export function SaudiPlate({
           </div>
           {/* cqi, not em: an `em` size here resolved against the inherited
               16px and so stayed identical on a 96px chip and a 672px hero. */}
-          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">K</span>
-          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">S</span>
-          <span className="font-[900] text-[clamp(0.32rem,3.2cqi,1.7rem)] leading-[1] tracking-[0.06em] text-black/80">A</span>
+          <span className="font-[900] text-[clamp(0.34rem,3.6cqi,1.9rem)] leading-[1] tracking-[0.06em] text-black/80">K</span>
+          <span className="font-[900] text-[clamp(0.34rem,3.6cqi,1.9rem)] leading-[1] tracking-[0.06em] text-black/80">S</span>
+          <span className="font-[900] text-[clamp(0.34rem,3.6cqi,1.9rem)] leading-[1] tracking-[0.06em] text-black/80">A</span>
         </div>
       </div>
     </div>
