@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
+import { useCarousel } from "@/hooks/useCarousel";
+import { cn } from "@/lib/cn";
 import type { HomeCategory } from "@/lib/queries";
 
 /**
@@ -61,13 +63,15 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
 
           {/* Beside the heading rather than over the tiles: unlike the
               featured panel, this row sits on the page canvas, where a
-              floating disc would have nothing to float above. */}
-          {categories.length > 1 && (
-            <div className="hidden items-center gap-1.5 sm:flex">
-              <StepButton onClick={() => step(-1)} label={t("common.previous")}>
+              floating disc would have nothing to float above. Shown at
+              every width — on a phone the arrows are the clearest signal
+              that the row continues past the edge. */}
+          {pages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <StepButton onClick={() => step(-1)} label={t("common.previous")} disabled={!canPrev}>
                 <PrevIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
               </StepButton>
-              <StepButton onClick={() => step(1)} label={t("common.next")}>
+              <StepButton onClick={() => step(1)} label={t("common.next")} disabled={!canNext}>
                 <NextIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
               </StepButton>
             </div>
@@ -102,6 +106,31 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
           </li>
         ))}
       </ul>
+
+      {/* The dots answer "how much more is there?", which the arrows alone
+          do not. They are real controls, not decoration — each scrolls to
+          its own page. */}
+      {pages > 1 && (
+        <div className="mt-5 flex items-center justify-center gap-2" role="tablist" aria-label={t("home.categoriesTitle")}>
+          {Array.from({ length: pages }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              role="tab"
+              aria-selected={index === page}
+              aria-label={`${index + 1}`}
+              onClick={() => scrollToPage(index)}
+              className={cn(
+                "h-2 rounded-full transition-all duration-(--duration-base)",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+                index === page
+                  ? "w-7 bg-(--color-gold)"
+                  : "w-2 bg-(--color-border-strong) hover:bg-(--color-gold)/55"
+              )}
+            />
+          ))}
+        </div>
+      )}
     </section>
   );
 }
@@ -109,10 +138,12 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
 function StepButton({
   onClick,
   label,
+  disabled,
   children,
 }: {
   onClick: () => void;
   label: string;
+  disabled?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -120,7 +151,15 @@ function StepButton({
       type="button"
       onClick={onClick}
       aria-label={label}
-      className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-(--color-border-strong) text-(--color-text-muted) transition-colors duration-(--duration-fast) hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+      disabled={disabled}
+      className={cn(
+        "inline-flex h-10 w-10 items-center justify-center rounded-full border border-(--color-border-strong) text-(--color-text-muted)",
+        "transition-[color,border-color,opacity] duration-(--duration-fast)",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+        // Dimmed rather than hidden at the ends: a control that vanishes
+        // mid-swipe shifts the header under the reader's thumb.
+        disabled ? "cursor-default opacity-35" : "hover:border-(--color-gold)/55 hover:text-(--color-gold)"
+      )}
     >
       {children}
     </button>
