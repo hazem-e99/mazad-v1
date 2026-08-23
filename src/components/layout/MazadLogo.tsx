@@ -16,11 +16,11 @@ import { cn } from "@/lib/cn";
  * The artwork is ~1.39:1, so callers wanting it to fill the width should
  * pass a box in roughly that ratio.
  */
-export function MazadLogo({ className }: { className?: string }) {
+export function MazadLogo({ className, src = "/images/logo-mark.png" }: { className?: string; src?: string }) {
   return (
     <span className={cn("relative inline-flex shrink-0", className)} aria-hidden="true">
       <Image
-        src="/images/logo-mark.png"
+        src={src}
         alt=""
         fill
         sizes="(max-width: 640px) 12rem, 20rem"

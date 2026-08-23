@@ -2,9 +2,10 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
 import { getSession, isStaffSession } from "@/lib/auth";
+import { getSiteSettings } from "@/lib/siteSettingsQueries";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
-  const session = await getSession();
+  const [session, settings] = await Promise.all([getSession(), getSiteSettings()]);
 
   // Only what the navbar actually renders crosses the server/client
   // boundary — never the raw session (it carries the full permission
@@ -18,9 +19,9 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
-      <Header viewer={viewer} />
+      <Header viewer={viewer} settings={settings} />
       <main className="flex-1">{children}</main>
-      <Footer />
+      <Footer settings={settings} />
       <BottomNav />
     </>
   );

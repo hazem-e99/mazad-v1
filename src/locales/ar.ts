@@ -523,6 +523,7 @@ export interface MessageCatalog {
     navManagementGroup: string;
     navUsers: string;
     navAds: string;
+    navSiteSettings: string;
     navLabel: string;
     navMobileLabel: string;
     viewSite: string;
@@ -1314,6 +1315,7 @@ const ar: MessageCatalog = {
     navManagementGroup: "الإدارة",
     navUsers: "المستخدمون",
     navAds: "الإعلانات",
+    navSiteSettings: "إعدادات الموقع",
     navLabel: "لوحة التحكم",
     navMobileLabel: "قائمة الإدارة",
     viewSite: "عرض الموقع",

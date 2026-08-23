@@ -17,6 +17,7 @@ import type { Permission } from "@/lib/constants";
 const SUBDIR_PERMISSIONS: Record<string, Permission> = {
   "auction-backgrounds": "upload:manage",
   "plate-categories": "category:manage",
+  "site-assets": "site_settings:manage",
 };
 
 export async function POST(req: NextRequest) {

@@ -3,9 +3,8 @@
 import Image from "next/image";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { MazadLogo } from "@/components/layout/MazadLogo";
-import { HeroChrome } from "@/components/home/HeroChrome";
 import { HeroSearch } from "@/components/home/HeroSearch";
-import type { HeaderViewer } from "@/lib/navItems";
+import { localizedText, type SiteSettingsDTO } from "@/lib/siteSettings";
 
 /**
  * The stage. One full-bleed photograph with the mark and the tagline
@@ -17,13 +16,14 @@ import type { HeaderViewer } from "@/lib/navItems";
  * theme, and fades the bottom into the page canvas — which is why the
  * featured panel below can overlap it without a visible seam.
  */
-export function Hero({ viewer }: { viewer: HeaderViewer | null }) {
-  const { t } = useTranslations();
+export function Hero({ settings }: { settings: SiteSettingsDTO }) {
+  const { locale } = useTranslations();
+  const heroTitle = localizedText(locale, settings.hero.titleAr, settings.hero.titleEn);
 
   return (
     <section className="mz-stage flex min-h-[clamp(36rem,84vh,52rem)] flex-col" aria-labelledby="hero-title">
       <Image
-        src="/images/bg-hero.png"
+        src={settings.hero.backgroundImage}
         alt=""
         fill
         priority
@@ -32,19 +32,17 @@ export function Hero({ viewer }: { viewer: HeaderViewer | null }) {
       />
       <span className="mz-stage-scrim" aria-hidden="true" />
 
-      <HeroChrome viewer={viewer} />
-
       {/* The lower padding is the heavier of the two: the featured panel
           rides up over this edge, so the tagline needs clearance beneath it
           that the top does not. */}
       <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-center gap-8 pb-32 pt-24 text-center sm:gap-10 sm:pb-40 sm:pt-28">
         <div className="flex flex-col items-center gap-4">
-          <MazadLogo className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
+          <MazadLogo src={settings.hero.logoUrl || settings.brand.logoUrl} className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
           <h1
             id="hero-title"
             className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-(--color-text)"
           >
-            {t("home.brandTagline")}
+            {heroTitle}
           </h1>
         </div>
 

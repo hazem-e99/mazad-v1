@@ -1,121 +1,85 @@
 "use client";
 
 import Link from "next/link";
-import { Headphones, Mail, MessageCircle } from "lucide-react";
+import { Link as LinkIcon, Mail, MessageCircle } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { MazadLogo } from "@/components/layout/MazadLogo";
-import { AppStoreBadge, GooglePlayBadge } from "@/components/layout/StoreBadges";
+import { InstagramGlyph, SnapchatGlyph, TikTokGlyph, XGlyph } from "@/components/layout/SocialGlyphs";
+import { localizedText, type SiteSettingsDTO, type SiteSocialLink } from "@/lib/siteSettings";
 
-const socials = [
-  { key: "whatsapp", href: "https://wa.me/", icon: MessageCircle, label: "WhatsApp" },
-  { key: "x", href: "https://x.com/", icon: XGlyph, label: "X" },
-  { key: "instagram", href: "https://instagram.com/", icon: InstagramGlyph, label: "Instagram" },
-  { key: "email", href: "mailto:support@mazad.sa", icon: Mail, label: "Email" },
-] as const;
-
-export function Footer() {
-  const { t } = useTranslations();
+export function Footer({ settings }: { settings: SiteSettingsDTO }) {
+  const { locale } = useTranslations();
+  const sections = settings.footer.sections.filter((section) => section.enabled);
+  const socials = settings.footer.socials.filter((social) => social.enabled);
 
   return (
     <footer className="relative mt-14 overflow-hidden border-t border-(--color-border) bg-(--color-bg-elevated)">
-      <div className="mz-container relative grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
+      <div className="mz-container relative grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div>
           <div className="mb-4 flex items-center gap-2.5">
-            <MazadLogo className="h-11 w-16" />
+            <MazadLogo src={settings.brand.footerLogoUrl || settings.brand.logoUrl} className="h-11 w-16" />
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">{t("footer.tagline")}</p>
+          <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">
+            {localizedText(locale, settings.footer.taglineAr, settings.footer.taglineEn)}
+          </p>
 
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            <AppStoreBadge />
-            <GooglePlayBadge />
-          </div>
+          {socials.length > 0 && (
+            <ul className="mt-5 flex items-center gap-2.5">
+              {socials.map((social) => (
+                <li key={social.id}>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={social.label}
+                    className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+                  >
+                    <SocialIcon platform={social.platform} className="h-4 w-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
-        <nav aria-label={t("footer.quickLinks")}>
-          <h3 className="mb-5 text-sm font-semibold text-(--color-text)">{t("footer.quickLinks")}</h3>
-          <ul className="flex flex-col gap-3 text-sm text-(--color-text-muted)">
-            {[
-              { href: "/auctions", label: t("nav.auctions") },
-              { href: "/auctions/exclusive", label: t("nav.exclusive") },
-              { href: "/vip", label: t("nav.vip") },
-              { href: "/ads", label: t("nav.ads") },
-              { href: "/chat", label: t("nav.chat") },
-            ].map((link) => (
-              <li key={link.href}>
-                <Link
-                  href={link.href}
-                  className="inline-flex items-center transition-colors hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
-                >
-                  {link.label}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div>
-          <h3 className="mb-5 flex items-center gap-2 text-sm font-semibold text-(--color-text)">
-            <Headphones className="h-4 w-4 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
-            {t("footer.contact")}
-          </h3>
-          <p className="max-w-xs text-sm leading-relaxed text-(--color-text-muted)">{t("footer.contactHint")}</p>
-
-          <ul className="mt-5 flex items-center gap-2.5">
-            {socials.map((social) => (
-              <li key={social.key}>
-                <a
-                  href={social.href}
-                  target="_blank"
-                  rel="noreferrer noopener"
-                  aria-label={social.label}
-                  className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) border border-(--color-border) bg-(--color-surface) text-(--color-text-muted) transition-colors hover:border-(--color-gold)/40 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
-                >
-                  <social.icon className="h-4 w-4" aria-hidden="true" strokeWidth={1.75} />
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
+        {sections.map((section) => (
+          <nav key={section.id} aria-label={localizedText(locale, section.titleAr, section.titleEn)}>
+            <h3 className="mb-5 text-sm font-semibold text-(--color-text)">
+              {localizedText(locale, section.titleAr, section.titleEn)}
+            </h3>
+            <ul className="flex flex-col gap-3 text-sm text-(--color-text-muted)">
+              {section.links
+                .filter((link) => link.enabled)
+                .map((link) => (
+                  <li key={link.id}>
+                    <Link
+                      href={link.href}
+                      className="inline-flex items-center transition-colors hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+                    >
+                      {localizedText(locale, link.labelAr, link.labelEn)}
+                    </Link>
+                  </li>
+                ))}
+            </ul>
+          </nav>
+        ))}
       </div>
 
       <div className="relative border-t border-(--color-border) py-5">
         <p className="mz-container text-center text-xs text-(--color-text-faint)">
-          © {new Date().getFullYear()} مزاد · Mazad — {t("footer.rights")}
+          (c) {new Date().getFullYear()} Mazad - {localizedText(locale, settings.footer.copyrightAr, settings.footer.copyrightEn)}
         </p>
       </div>
     </footer>
   );
 }
 
-/** lucide-react carries no brand marks, and mixing in a second icon pack
- * for two glyphs would break the single-library rule — so they are drawn here
- * against the same 24px grid and stroke conventions. */
-type GlyphProps = { className?: string; strokeWidth?: number };
-
-function XGlyph({ className }: GlyphProps) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true" focusable="false">
-      <path d="M13.72 10.47 20.5 2.5h-1.9l-5.9 6.93L8 2.5H2.5l7.13 10.4-7.13 8.6h1.9l6.24-7.33 4.98 7.33H21l-7.4-11.03Zm-2.2 2.59-.72-1.04L5.1 3.94h2.5l4.65 6.7.72 1.04 6.05 8.72h-2.5l-4.93-7.1Z" />
-    </svg>
-  );
-}
-
-function InstagramGlyph({ className, strokeWidth = 2 }: GlyphProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      className={className}
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37Z" />
-      <path d="M17.5 6.5h.01" />
-    </svg>
-  );
+function SocialIcon({ platform, className }: { platform: SiteSocialLink["platform"]; className: string }) {
+  if (platform === "whatsapp") return <MessageCircle className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "instagram") return <InstagramGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "snapchat") return <SnapchatGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "tiktok") return <TikTokGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "x") return <XGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "email") return <Mail className={className} aria-hidden="true" strokeWidth={1.75} />;
+  return <LinkIcon className={className} aria-hidden="true" strokeWidth={1.75} />;
 }

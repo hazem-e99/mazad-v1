@@ -1,5 +1,6 @@
 import {
   Crown,
+  ExternalLink,
   Gavel,
   Home,
   IdCard,
@@ -13,6 +14,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { UserRole } from "@/lib/constants";
+import type { SiteNavItem } from "@/lib/siteSettings";
 
 export interface HeaderViewer {
   role: UserRole;
@@ -23,7 +25,9 @@ export interface NavItem {
   href: string;
   /** Key into the message catalog — resolved by whichever component
    * renders the item, so one definition serves both languages. */
-  labelKey: string;
+  labelKey?: string;
+  labelAr?: string;
+  labelEn?: string;
   icon: LucideIcon;
 }
 
@@ -39,7 +43,38 @@ type Translate = (key: string) => string;
  *
  * Every href is a real route under src/app; nothing here is decorative.
  */
-export function mainNavItems(viewer: HeaderViewer | null): NavItem[] {
+function iconForHref(href: string): LucideIcon {
+  if (href === "/") return Home;
+  if (href.startsWith("/auctions/exclusive")) return Sparkles;
+  if (href.startsWith("/auctions")) return Gavel;
+  if (href.startsWith("/vip")) return Crown;
+  if (href.startsWith("/account/plates")) return IdCard;
+  if (href.startsWith("/listings")) return Store;
+  if (href.startsWith("/ads")) return Megaphone;
+  if (href.startsWith("/chat")) return MessageCircle;
+  if (href.startsWith("/admin")) return LayoutDashboard;
+  return ExternalLink;
+}
+
+function audienceAllows(item: SiteNavItem, viewer: HeaderViewer | null): boolean {
+  if (!item.enabled) return false;
+  if (item.audience === "auth") return Boolean(viewer);
+  if (item.audience === "staff") return Boolean(viewer?.isStaff);
+  return true;
+}
+
+export function mainNavItems(viewer: HeaderViewer | null, configuredItems?: SiteNavItem[]): NavItem[] {
+  if (configuredItems?.length) {
+    return configuredItems
+      .filter((item) => audienceAllows(item, viewer))
+      .map((item) => ({
+        href: item.href,
+        labelAr: item.labelAr,
+        labelEn: item.labelEn,
+        icon: iconForHref(item.href),
+      }));
+  }
+
   return [
     { href: "/", labelKey: "nav.home", icon: Home },
     { href: "/auctions", labelKey: "nav.auctions", icon: Gavel },
@@ -67,4 +102,5 @@ export function isNavItemActive(href: string, pathname: string): boolean {
   return href === "/" ? pathname === "/" : pathname.startsWith(href);
 }
 
-export const navLabel = (t: Translate, item: NavItem) => t(item.labelKey);
+export const navLabel = (t: Translate, item: NavItem, locale: "ar" | "en" = "ar") =>
+  item.labelKey ? t(item.labelKey) : locale === "en" ? item.labelEn ?? item.labelAr ?? item.href : item.labelAr ?? item.labelEn ?? item.href;

@@ -517,6 +517,7 @@ const en: MessageCatalog = {
     navManagementGroup: "Management",
     navUsers: "Users",
     navAds: "Listings",
+    navSiteSettings: "Site Settings",
     navLabel: "Admin Dashboard",
     navMobileLabel: "Admin Menu",
     viewSite: "View Site",

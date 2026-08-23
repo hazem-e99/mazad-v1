@@ -6,7 +6,7 @@ import {
   getPlatformStats,
   getVipPlates,
 } from "@/lib/queries";
-import { getSession, isStaffSession } from "@/lib/auth";
+import { getSiteSettings } from "@/lib/siteSettingsQueries";
 import { Hero } from "@/components/home/Hero";
 import { FeaturedAds } from "@/components/home/FeaturedAds";
 import { StatsPanel } from "@/components/home/StatsPanel";
@@ -42,12 +42,11 @@ export const revalidate = 0;
  * strip's retry rather than turning the page into a 500.
  */
 export default async function HomePage() {
-  const session = await getSession();
-  const viewer = session ? { role: session.role, isStaff: isStaffSession(session) } : null;
+  const settings = await getSiteSettings();
 
   return (
     <>
-      <Hero viewer={viewer} />
+      <Hero settings={settings} />
 
       {/* The featured panel rides up over the stage's lower fade — the
           scrim ends in the page canvas, so the overlap has no seam. */}
