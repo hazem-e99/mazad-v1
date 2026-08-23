@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { unstable_cache } from "next/cache";
 import {
   getHomeCategories,
   getLatestPlates,
@@ -25,6 +26,24 @@ export const revalidate = 0;
 
 const HOME_SECTION_TIMEOUT_MS = 5_000;
 
+const getCachedHomeData = unstable_cache(
+  async () => {
+    const [featured, stats, categories, latest] = await Promise.all([
+      section("featured-ads", async () => {
+        const [plates, liveAuctions] = await Promise.all([getVipPlates(10), getLiveAuctions(8)]);
+        return { plates, liveAuctions };
+      }),
+      section("stats", () => getPlatformStats()),
+      section("categories", () => getHomeCategories()),
+      section("latest-plates", () => getLatestPlates(4)),
+    ]);
+
+    return { featured, stats, categories, latest };
+  },
+  ["home-page-data"],
+  { tags: ["home-page-data"], revalidate: 30 }
+);
+
 /**
  * The home page.
  *
@@ -44,7 +63,7 @@ const HOME_SECTION_TIMEOUT_MS = 5_000;
  * strip's retry rather than turning the page into a 500.
  */
 export default async function HomePage() {
-  const settings = await getSiteSettings();
+  const [settings, homeData] = await Promise.all([getSiteSettings(), getCachedHomeData()]);
 
   return (
     <>
@@ -54,19 +73,19 @@ export default async function HomePage() {
           scrim ends in the page canvas, so the overlap has no seam. */}
       <div className="mz-container relative z-10 -mt-16 sm:-mt-20">
         <Suspense fallback={<FeaturedAdsSkeleton />}>
-          <FeaturedBlock />
+          <FeaturedBlock data={homeData.featured} />
         </Suspense>
       </div>
 
       <div className="mz-container mt-5 sm:mt-6">
         <Suspense fallback={<StatsPanelSkeleton />}>
-          <StatsBlock />
+          <StatsBlock stats={homeData.stats} />
         </Suspense>
       </div>
 
       <section className="mz-container pt-12 sm:pt-16">
         <Suspense fallback={<CategoryTilesSkeleton />}>
-          <CategoriesBlock />
+          <CategoriesBlock categories={homeData.categories} />
         </Suspense>
       </section>
 
@@ -76,7 +95,7 @@ export default async function HomePage() {
 
       <section className="mz-container pb-10 pt-8 sm:pb-12 sm:pt-10">
         <Suspense fallback={<CardRowSkeleton count={4} />}>
-          <LatestBlock />
+          <LatestBlock plates={homeData.latest} />
         </Suspense>
       </section>
     </>
@@ -106,29 +125,23 @@ async function section<T>(name: string, load: () => Promise<T>): Promise<T | nul
   }
 }
 
-async function FeaturedBlock() {
-  const data = await section("featured-ads", async () => {
-    // Live auctions come along so a featured plate that is currently
-    // under the hammer shows its bid price, tracked over the socket,
-    // instead of a stale asking price.
-    const [plates, liveAuctions] = await Promise.all([getVipPlates(10), getLiveAuctions(8)]);
-    return { plates, liveAuctions };
-  });
-
+function FeaturedBlock({
+  data,
+}: {
+  data: Awaited<ReturnType<typeof getCachedHomeData>>["featured"];
+}) {
   if (!data) return <SectionError />;
   if (data.plates.length === 0) return null;
 
   return <FeaturedAds plates={data.plates} liveAuctions={data.liveAuctions} />;
 }
 
-async function StatsBlock() {
-  const stats = await section("stats", () => getPlatformStats());
+function StatsBlock({ stats }: { stats: Awaited<ReturnType<typeof getCachedHomeData>>["stats"] }) {
   if (!stats) return <SectionError />;
   return <StatsPanel stats={stats} />;
 }
 
-async function CategoriesBlock() {
-  const categories = await section("categories", () => getHomeCategories());
+function CategoriesBlock({ categories }: { categories: Awaited<ReturnType<typeof getCachedHomeData>>["categories"] }) {
   if (!categories) return <SectionError />;
   if (categories.length === 0) return null;
   return <CategoryTiles categories={categories} />;
@@ -140,8 +153,7 @@ function SellBlock() {
   return <SellPlateBanner />;
 }
 
-async function LatestBlock() {
-  const plates = await section("latest-plates", () => getLatestPlates(4));
+function LatestBlock({ plates }: { plates: Awaited<ReturnType<typeof getCachedHomeData>>["latest"] }) {
   if (!plates) return <SectionError />;
   if (plates.length === 0) return null;
   return <LatestPlates plates={plates} />;
