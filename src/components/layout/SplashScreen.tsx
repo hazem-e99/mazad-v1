@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 
 const VISIBLE_MS = 5_000;
 const VIDEO_PLAYBACK_RATE = 2;
-const SEEN_KEY = "mazad_splash_seen";
+export const SPLASH_SEEN_COOKIE = "mazad_splash_seen";
 
 async function waitForPageAssets() {
   if (document.readyState !== "complete") {
@@ -29,27 +29,18 @@ async function waitForPageAssets() {
   );
 }
 
-export function SplashScreen() {
+export function SplashScreen({ alreadySeen }: { alreadySeen: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
+  // Server decides from the cookie, so this matches on both the server
+  // render and the first client render — no flash, no hydration mismatch.
+  const [shouldRender] = useState(!alreadySeen);
   const [leaving, setLeaving] = useState(false);
   const [hidden, setHidden] = useState(false);
-  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
-    let alreadySeen = true;
-    try {
-      alreadySeen = window.sessionStorage.getItem(SEEN_KEY) === "1";
-      if (!alreadySeen) window.sessionStorage.setItem(SEEN_KEY, "1");
-    } catch {
-      alreadySeen = false;
-    }
-
-    if (alreadySeen) {
-      setHidden(true);
-    } else {
-      setShouldRender(true);
-    }
-  }, []);
+    if (!shouldRender) return;
+    document.cookie = `${SPLASH_SEEN_COOKIE}=1; path=/; samesite=lax`;
+  }, [shouldRender]);
 
   useEffect(() => {
     if (!shouldRender) return;
@@ -77,7 +68,7 @@ export function SplashScreen() {
       cancelled = true;
       document.documentElement.classList.remove("overflow-hidden");
     };
-  }, []);
+  }, [shouldRender]);
 
   useEffect(() => {
     if (videoRef.current) videoRef.current.playbackRate = VIDEO_PLAYBACK_RATE;
