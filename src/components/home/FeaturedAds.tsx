@@ -110,7 +110,7 @@ export function FeaturedAds({
               key={plate._id}
               href={href}
               role="listitem"
-              className="mz-snap mz-hover-lift group flex w-[16.5rem] shrink-0 flex-col gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4 text-(--color-text) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold) sm:w-[17.5rem]"
+              className="mz-snap mz-hover-lift group flex w-[17.5rem] shrink-0 flex-col gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4 text-(--color-text) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold) sm:w-[18.5rem]"
             >
               <div className="flex items-center justify-between gap-2">
                 <span className="inline-flex items-center gap-1.5 rounded-(--radius-pill) bg-(--color-gold-tint) px-2.5 py-1 text-[11px] font-bold text-(--color-gold-dark)">
@@ -119,7 +119,7 @@ export function FeaturedAds({
                 </span>
               </div>
 
-              <div className="flex min-h-[4.5rem] items-center justify-center">
+              <div className="flex min-h-[5rem] items-center justify-center">
                 {plate.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -134,10 +134,9 @@ export function FeaturedAds({
                     lettersEn={plate.lettersEn}
                     numbers={plate.numbers}
                     logo={plate.logo}
-                    size="sm"
+                    size="xl"
                     vip
                     locale={locale}
-                    className="w-full"
                   />
                 )}
               </div>
@@ -153,13 +152,27 @@ export function FeaturedAds({
                 )}
               </div>
 
-              <div className="border-t border-(--color-border) pt-3 text-center">
-                <p className="tnum text-lg font-bold text-(--color-brand)">
-                  {price != null ? formatSar(price, locale) : "—"}
-                </p>
-                <p className="mt-0.5 text-[11px] text-(--color-text-faint)">
-                  {auction ? t("home.currentPrice") : t("pages.adPrice")}
-                </p>
+              {/* A VIP plate that is neither under auction nor listed for
+                  sale genuinely has no price — most are admin-created
+                  records, not marketplace submissions. The slot shows the
+                  plate's own identity in that case rather than a dash
+                  standing in for a figure that does not exist. */}
+              <div className="mt-auto border-t border-(--color-border) pt-3 text-center">
+                {price != null ? (
+                  <>
+                    <p className="tnum text-lg font-bold text-(--color-brand)">{formatSar(price, locale)}</p>
+                    <p className="mt-0.5 text-[11px] text-(--color-text-faint)">
+                      {auction ? t("home.currentPrice") : t("pages.adPrice")}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="truncate text-base font-bold text-(--color-text)">
+                      {plateDisplayName(plate, locale)}
+                    </p>
+                    <p className="mt-0.5 text-[11px] text-(--color-text-faint)">{t("home.exploreVip")}</p>
+                  </>
+                )}
               </div>
             </Link>
           );

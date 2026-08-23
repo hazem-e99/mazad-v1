@@ -42,15 +42,18 @@ export function SellPlateBanner({ plates }: { plates: PlateDTO[] }) {
           </div>
         </div>
 
+        {/* A shallow fan of the real newest listings. Each plate keeps its
+            own `sm` width and the stack overlaps them, rather than forcing
+            a width that would fight the size class and squash the glyphs. */}
         {fan.length > 0 && (
           <div className="hidden shrink-0 items-center lg:order-1 lg:flex" aria-hidden="true">
             {fan.map((plate, index) => (
               <div
                 key={plate._id}
-                className="w-32 shrink-0"
+                className="shrink-0"
                 style={{
-                  marginInlineStart: index === 0 ? 0 : "-2.75rem",
-                  transform: `rotate(${(index - 1) * 4}deg)`,
+                  marginInlineStart: index === 0 ? 0 : "-4.5rem",
+                  transform: `rotate(${(index - 1) * 5}deg)`,
                   zIndex: index,
                 }}
               >
@@ -60,9 +63,8 @@ export function SellPlateBanner({ plates }: { plates: PlateDTO[] }) {
                   lettersEn={plate.lettersEn}
                   numbers={plate.numbers}
                   logo={plate.logo}
-                  size="xs"
+                  size="sm"
                   locale={locale}
-                  className="w-full"
                 />
               </div>
             ))}

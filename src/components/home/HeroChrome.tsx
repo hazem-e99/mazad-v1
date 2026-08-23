@@ -55,7 +55,11 @@ export function HeroChrome({ viewer }: { viewer: HeaderViewer | null }) {
 
   return (
     <>
-      <div className="mz-container absolute inset-x-0 top-0 z-20 flex items-center justify-between gap-3 pt-4 sm:pt-6">
+      {/* `flex-row-reverse` puts the menu button on the reading side and
+          the sign-in pill opposite it — right and left respectively in
+          Arabic, and the mirror of that in English, without either being
+          pinned to a physical edge. */}
+      <div className="mz-container absolute inset-x-0 top-0 z-20 flex flex-row-reverse items-center justify-between gap-3 pt-4 sm:pt-6">
         {viewer ? (
           <LinkButton
             href="/account"

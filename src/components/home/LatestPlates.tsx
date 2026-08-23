@@ -66,10 +66,9 @@ export function LatestPlates({ plates }: { plates: PlateDTO[] }) {
                     lettersEn={plate.lettersEn}
                     numbers={plate.numbers}
                     logo={plate.logo}
-                    size="sm"
+                    size="xl"
                     vip={plate.isVip}
                     locale={locale}
-                    className="w-full"
                   />
                 )}
               </div>

@@ -8,9 +8,8 @@ import { HeroSearch } from "@/components/home/HeroSearch";
 import type { HeaderViewer } from "@/lib/navItems";
 
 /**
- * The stage. One full-bleed photograph, the mark and the tagline centred
- * over it, and the search field sitting at the foot of the frame rather
- * than in a band of its own.
+ * The stage. One full-bleed photograph with the mark and the tagline
+ * centred over it — nothing else competes for the frame.
  *
  * The scrim (`.mz-stage-scrim`) does the work that makes this readable:
  * it darkens the top edge behind the floating controls, tints the
@@ -22,7 +21,7 @@ export function Hero({ viewer }: { viewer: HeaderViewer | null }) {
   const { t } = useTranslations();
 
   return (
-    <section className="mz-stage flex min-h-[clamp(30rem,72vh,44rem)] flex-col" aria-labelledby="hero-title">
+    <section className="mz-stage flex min-h-[clamp(36rem,84vh,52rem)] flex-col" aria-labelledby="hero-title">
       <Image
         src="/images/bg-hero.png"
         alt=""
@@ -35,7 +34,10 @@ export function Hero({ viewer }: { viewer: HeaderViewer | null }) {
 
       <HeroChrome viewer={viewer} />
 
-      <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-center gap-8 py-20 text-center sm:gap-10 sm:py-24">
+      {/* The lower padding is the heavier of the two: the featured panel
+          rides up over this edge, so the tagline needs clearance beneath it
+          that the top does not. */}
+      <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-center gap-8 pb-32 pt-24 text-center sm:gap-10 sm:pb-40 sm:pt-28">
         <div className="flex flex-col items-center gap-4">
           <MazadLogo className="h-20 w-20 rounded-(--radius-lg) sm:h-24 sm:w-24" />
           <h1

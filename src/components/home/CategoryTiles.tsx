@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { formatNumber } from "@/lib/format";
 import type { HomeCategory } from "@/lib/queries";
 
 /**
@@ -62,7 +63,10 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
                 {locale === "en" ? category.nameEn : category.nameAr}
               </span>
               <span className="tnum text-[11px] text-(--color-text-faint)">
-                {t("home.categoryPlateCount", { count: category.plateCount })}
+                {/* Formatted before interpolation so the digits are
+                    Arabic-Indic alongside every other number on the page —
+                    passing the raw count would print Latin ones. */}
+                {t("home.categoryPlateCount", { count: formatNumber(category.plateCount, locale) })}
               </span>
             </Link>
           </li>
