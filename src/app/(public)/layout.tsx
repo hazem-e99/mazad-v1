@@ -23,7 +23,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <SplashScreen />
       <Header viewer={viewer} settings={settings} />
       <main className="flex-1">{children}</main>
-      <Footer settings={settings} />
+      <Footer />
       <BottomNav />
     </>
   );
