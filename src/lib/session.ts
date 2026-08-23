@@ -45,3 +45,15 @@ export function hasPermission(session: SessionPayload | null, permission: Permis
   if (session.role === "admin") return true;
   return session.permissions.includes(permission);
 }
+
+/** Who the /admin dashboard lets in. Kept in one place so the post-login
+ * redirect, the layout gates, and the realtime staff feed can never drift
+ * apart — a session sent to /admin is always one /admin would admit. */
+export function isStaffSession(session: SessionPayload | null | undefined): boolean {
+  if (!session) return false;
+  return (
+    session.role === "admin" ||
+    session.role === "supervisor" ||
+    hasPermission(session, "stats:view")
+  );
+}

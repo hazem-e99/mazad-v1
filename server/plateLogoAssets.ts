@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import { saveImage } from "@/lib/storage";
+import { saveImage, imageExists } from "@/lib/storage";
 import { PlateLogo } from "@/models/PlateLogo";
 
 export interface LegacyLogoSpec {
@@ -82,13 +82,26 @@ async function rasterizeAndSave(svg: string, filename: string): Promise<string> 
 
 /**
  * Idempotently ensures a PlateLogo record exists for the given legacy
- * enum value — safe to call repeatedly (used by both the dev seed and the
- * one-time migration script) since it upserts on the stable
+ * enum value *and* that the file it points at is actually on disk — safe
+ * to call repeatedly (used by the dev seed, the one-time migration script
+ * and the image repair script) since it upserts on the stable
  * `legacySlug`, never creating a duplicate.
+ *
+ * The two halves can drift apart: the record lives in the shared
+ * database, the artwork lives in gitignored local storage. A clone that
+ * never ran the seed itself inherits the rows without the files, which
+ * renders as a broken image in the plate picker and the admin list — so
+ * a record whose image has gone missing is re-rasterized from `spec.svg`
+ * rather than returned as-is.
  */
 export async function ensureLegacyPlateLogo(spec: LegacyLogoSpec, createdBy: string | null) {
   const existing = await PlateLogo.findOne({ legacySlug: spec.legacySlug });
-  if (existing) return existing;
+  if (existing) {
+    if (await imageExists(existing.image)) return existing;
+    existing.image = await rasterizeAndSave(spec.svg, `${spec.legacySlug}.png`);
+    await existing.save();
+    return existing;
+  }
 
   const image = await rasterizeAndSave(spec.svg, `${spec.legacySlug}.png`);
   return PlateLogo.create({

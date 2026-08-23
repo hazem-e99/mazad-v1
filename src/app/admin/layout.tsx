@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { getSession, hasPermission } from "@/lib/auth";
+import { getSession, isStaffSession } from "@/lib/auth";
 import { AdminHeader } from "@/components/layout/AdminHeader";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminRealtimeProvider } from "@/components/admin/AdminRealtimeProvider";
@@ -9,12 +9,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   if (!session) redirect("/login");
 
-  const isStaff =
-    session.role === "admin" ||
-    session.role === "supervisor" ||
-    hasPermission(session, "stats:view");
-
-  if (!isStaff) redirect("/");
+  if (!isStaffSession(session)) redirect("/");
 
   // One realtime subscription for the whole dashboard: every staff page
   // and every live cell inside it reads from this single connection.

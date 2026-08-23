@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { User } from "@/models/User";
-import { verifyPassword, setSessionCookie, effectivePermissions } from "@/lib/auth";
+import { verifyPassword, setSessionCookie, effectivePermissions, isStaffSession } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
@@ -47,9 +47,19 @@ export async function POST(req: NextRequest) {
     await User.updateOne({ _id: user._id }, { $set: { failedLoginAttempts: 0, lockedUntil: null } });
 
     const permissions = effectivePermissions(user.role as UserRole, user.permissions as Permission[]);
-    await setSessionCookie({ sub: String(user._id), role: user.role as UserRole, permissions });
+    const session = { sub: String(user._id), role: user.role as UserRole, permissions };
+    await setSessionCookie(session);
 
-    return jsonOk({ id: user._id, name: user.name, phone: user.phone, role: user.role });
+    // The client redirects on this flag rather than re-deriving it from the
+    // role, so a plain user granted stats:view lands on the dashboard too —
+    // exactly the set of sessions the /admin gate admits.
+    return jsonOk({
+      id: user._id,
+      name: user.name,
+      phone: user.phone,
+      role: user.role,
+      isStaff: isStaffSession(session),
+    });
   } catch (err) {
     return handleApiError(err);
   }

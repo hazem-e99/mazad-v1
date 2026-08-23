@@ -31,13 +31,14 @@ export default function LoginPage() {
 
     setLoading(true);
     try {
-      await apiFetch("/api/auth/login", {
+      const user = await apiFetch<{ isStaff: boolean }>("/api/auth/login", {
         method: "POST",
         body: JSON.stringify(data),
         silentErrors: true,
       });
       push(t("auth.loginSuccess"), "success");
-      router.push("/");
+      // Staff start where they actually work; everyone else on the storefront.
+      router.push(user.isStaff ? "/admin" : "/");
       router.refresh();
     } catch (err) {
       applyApiError(err);

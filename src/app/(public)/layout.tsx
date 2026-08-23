@@ -1,6 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
-import { getSession, hasPermission } from "@/lib/auth";
+import { getSession, isStaffSession } from "@/lib/auth";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -11,8 +11,7 @@ export default async function PublicLayout({ children }: { children: React.React
   const viewer = session
     ? {
         role: session.role,
-        isStaff:
-          session.role === "admin" || session.role === "supervisor" || hasPermission(session, "stats:view"),
+        isStaff: isStaffSession(session),
       }
     : null;
 

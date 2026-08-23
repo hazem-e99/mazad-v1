@@ -1,4 +1,4 @@
-import { writeFile, mkdir, unlink } from "node:fs/promises";
+import { writeFile, mkdir, unlink, access } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 import sharp from "sharp";
@@ -34,6 +34,29 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
   await writeFile(path.join(dir, filename), optimized);
 
   return `/uploads/${subdir}/${filename}`;
+}
+
+/**
+ * Whether the file a stored public path points at is actually present in
+ * the configured storage. Stored paths outlive their files more easily
+ * than they look: uploads live on local disk, outside git, while the
+ * database row referencing them is shared — so a record written by one
+ * machine's seed/migration reaches another clone with no artwork behind
+ * it. Callers that can regenerate the image use this to detect that case
+ * instead of serving a dead <img> to the browser.
+ */
+export async function imageExists(publicPath: string): Promise<boolean> {
+  if (!publicPath.startsWith("/uploads/")) return false;
+  const relative = publicPath.replace(/^\/uploads\//, "");
+  const root = path.resolve(/* turbopackIgnore: true */ UPLOAD_DIR);
+  const fullPath = path.resolve(root, relative);
+  // `..` segments in a stored path would otherwise let this report on
+  // files outside the upload root entirely.
+  if (fullPath !== root && !fullPath.startsWith(root + path.sep)) return false;
+  return access(fullPath).then(
+    () => true,
+    () => false
+  );
 }
 
 export async function deleteImage(publicPath: string): Promise<void> {
