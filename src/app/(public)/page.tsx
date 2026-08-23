@@ -76,7 +76,7 @@ export default async function HomePage() {
         </Suspense>
       </section>
 
-      <section className="mz-container pb-16 pt-12 sm:pb-20 sm:pt-16">
+      <section className="mz-container pb-10 pt-12 sm:pb-14 sm:pt-16">
         <Suspense fallback={<CardRowSkeleton count={4} />}>
           <LatestBlock />
         </Suspense>
@@ -130,12 +130,12 @@ async function CategoriesBlock() {
 async function SellBlock() {
   // Same argument as the latest-plates section, so React's per-request
   // cache serves this from that read rather than querying twice.
-  const plates = await section("sell-banner", () => getLatestPlates(8));
+  const plates = await section("sell-banner", () => getLatestPlates(4));
   return <SellPlateBanner plates={plates ?? []} />;
 }
 
 async function LatestBlock() {
-  const plates = await section("latest-plates", () => getLatestPlates(8));
+  const plates = await section("latest-plates", () => getLatestPlates(4));
   if (!plates) return <SectionError />;
   if (plates.length === 0) return null;
   return <LatestPlates plates={plates} />;

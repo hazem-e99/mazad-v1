@@ -1,6 +1,6 @@
 "use client";
 
-import { Crown, Gavel, IdCard, Users, type LucideIcon } from "lucide-react";
+import Image from "next/image";
 import { formatNumber } from "@/lib/format";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 
@@ -22,11 +22,14 @@ export interface PlatformStats {
 export function StatsPanel({ stats }: { stats: PlatformStats }) {
   const { t, locale } = useTranslations();
 
-  const items: { icon: LucideIcon; value: number; label: string; hint: string }[] = [
-    { icon: Users, value: stats.totalUsers, label: t("home.statsUsers"), hint: t("home.statsUsersHint") },
-    { icon: IdCard, value: stats.totalPlates, label: t("home.statsPlates"), hint: t("home.statsPlatesHint") },
-    { icon: Crown, value: stats.vipPlates, label: t("home.statsPremium"), hint: t("home.statsPremiumHint") },
-    { icon: Gavel, value: stats.activeAuctions, label: t("home.statsAuctions"), hint: t("home.statsAuctionsHint") },
+  // Rendered gold artwork rather than line icons. They are decorative —
+  // every figure is already named by its own <dt> — so each carries an
+  // empty alt and is hidden from assistive tech.
+  const items: { icon: string; value: number; label: string; hint: string }[] = [
+    { icon: "/images/icons/users.png", value: stats.totalUsers, label: t("home.statsUsers"), hint: t("home.statsUsersHint") },
+    { icon: "/images/icons/total_plates.png", value: stats.totalPlates, label: t("home.statsPlates"), hint: t("home.statsPlatesHint") },
+    { icon: "/images/icons/featured_medal.png", value: stats.vipPlates, label: t("home.statsPremium"), hint: t("home.statsPremiumHint") },
+    { icon: "/images/icons/auction_gavel.png", value: stats.activeAuctions, label: t("home.statsAuctions"), hint: t("home.statsAuctionsHint") },
   ];
 
   return (
@@ -44,12 +47,14 @@ export function StatsPanel({ stats }: { stats: PlatformStats }) {
               index > 0 ? "lg:border-s lg:border-(--color-border)" : "lg:border-s-0",
             ].join(" ")}
           >
-            <span
-              className="flex h-11 w-11 items-center justify-center rounded-(--radius-md) bg-(--color-gold-tint) text-(--color-gold-dark)"
+            <Image
+              src={item.icon}
+              alt=""
+              width={112}
+              height={112}
               aria-hidden="true"
-            >
-              <item.icon className="h-5 w-5" strokeWidth={1.9} />
-            </span>
+              className="h-12 w-12 object-contain drop-shadow-[0_4px_10px_rgba(64,48,30,0.18)] sm:h-14 sm:w-14"
+            />
             <dt className="text-xs font-medium text-(--color-text-muted) sm:text-sm">{item.label}</dt>
             <dd className="tnum text-2xl font-bold leading-none text-(--color-text) sm:text-3xl">
               {formatNumber(item.value, locale)}

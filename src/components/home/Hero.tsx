@@ -39,7 +39,7 @@ export function Hero({ viewer }: { viewer: HeaderViewer | null }) {
           that the top does not. */}
       <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-center gap-8 pb-32 pt-24 text-center sm:gap-10 sm:pb-40 sm:pt-28">
         <div className="flex flex-col items-center gap-4">
-          <MazadLogo className="h-20 w-20 rounded-(--radius-lg) sm:h-24 sm:w-24" />
+          <MazadLogo className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
           <h1
             id="hero-title"
             className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-(--color-text)"

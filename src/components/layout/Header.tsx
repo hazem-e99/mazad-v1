@@ -103,8 +103,9 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
           href="/"
           className="group flex shrink-0 items-center gap-2.5 rounded-(--radius-sm) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-gold)"
         >
-          <MazadLogo className="h-10 w-10 transition-transform duration-(--duration-base) group-hover:scale-105" />
-          <span className="text-xl font-bold tracking-tight text-(--color-text)">مزاد</span>
+          {/* No text label beside it: the mark already carries the
+              wordmark, so a word next to it would set the name twice. */}
+          <MazadLogo className="h-10 w-[3.6rem] transition-transform duration-(--duration-base) group-hover:scale-105" />
         </Link>
 
         <nav className="hidden items-center gap-1 xl:flex" aria-label={t("nav.mainNav")}>

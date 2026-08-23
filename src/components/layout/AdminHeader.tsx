@@ -11,6 +11,7 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { useToastStore } from "@/hooks/useToast";
 import { apiFetch } from "@/lib/api-client";
 import { AdminNavList } from "@/components/layout/AdminSidebar";
+import { MazadLogo } from "@/components/layout/MazadLogo";
 import type { UserRole } from "@/lib/constants";
 
 const roleTone = { admin: "gold", supervisor: "scheduled", user: "neutral" } as const;
@@ -50,12 +51,11 @@ export function AdminHeader({ role }: { role: UserRole }) {
           </button>
 
           <Link href="/admin" className="flex items-center gap-3">
-            <span className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) bg-(--color-gold) text-lg font-black text-(--color-gold-foreground)">
-              م
-            </span>
-            <span className="hidden flex-col leading-tight sm:flex">
-              <span className="text-sm font-bold text-(--color-text)">{t("admin.navLabel")}</span>
-              <span className="text-[11px] text-(--color-text-faint)">Mazad</span>
+            <MazadLogo className="h-10 w-[3.6rem]" />
+            {/* Only the section name here — the mark already carries the
+                brand, so the old "Mazad" sub-label would set it twice. */}
+            <span className="hidden text-sm font-bold leading-tight text-(--color-text) sm:block">
+              {t("admin.navLabel")}
             </span>
           </Link>
 

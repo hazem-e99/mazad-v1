@@ -17,12 +17,11 @@ export function Footer() {
   const { t } = useTranslations();
 
   return (
-    <footer className="relative mt-24 overflow-hidden border-t border-(--color-border) bg-(--color-bg-elevated)">
+    <footer className="relative mt-14 overflow-hidden border-t border-(--color-border) bg-(--color-bg-elevated)">
       <div className="mz-container relative grid grid-cols-1 gap-12 py-16 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr]">
         <div>
           <div className="mb-4 flex items-center gap-2.5">
-            <MazadLogo className="h-11 w-11" />
-            <span className="text-xl font-bold tracking-tight text-(--color-text)">مزاد</span>
+            <MazadLogo className="h-11 w-16" />
           </div>
           <p className="max-w-sm text-sm leading-relaxed text-(--color-text-muted)">{t("footer.tagline")}</p>
 

@@ -32,27 +32,26 @@ function HeadingSkeleton() {
   );
 }
 
-/** The charcoal featured panel, with its row of cards. */
+/** The warm-brown featured panel, with its row of ivory cards. */
 export function FeaturedAdsSkeleton() {
   return (
-    <div className="mz-panel-premium rounded-(--radius-xl) p-5 sm:p-7" aria-busy="true" aria-live="polite">
-      <div className="mb-6 flex items-center gap-3">
-        <Shimmer className="h-11 w-11 rounded-(--radius-md) bg-white/10" />
+    <div className="mz-panel-premium px-5 py-6 sm:px-7 sm:py-7" aria-busy="true" aria-live="polite">
+      <div className="mb-6 flex items-center gap-3.5">
+        <Shimmer className="h-11 w-11 rounded-full bg-white/10" />
         <div className="space-y-2">
-          <Shimmer className="h-6 w-40 bg-white/10" />
+          <Shimmer className="h-6 w-44 bg-white/10" />
           <Shimmer className="h-3.5 w-32 bg-white/10" />
         </div>
       </div>
-      <div className="flex gap-4 overflow-hidden">
+      <div className="flex gap-4 overflow-hidden pt-3.5 sm:gap-[18px]">
         {Array.from({ length: 4 }).map((_, i) => (
           <div
             key={i}
-            className="flex w-[16.5rem] shrink-0 flex-col gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4 sm:w-[17.5rem]"
+            className="mz-card-ivory flex min-h-[11rem] w-[78%] shrink-0 flex-col rounded-[14px] px-3.5 pb-4 pt-7 sm:w-[calc((100%-18px)/2)] md:w-[calc((100%-36px)/3)] lg:w-[calc((100%-54px)/4)]"
           >
-            <Shimmer className="h-6 w-16 rounded-(--radius-pill)" />
-            <Shimmer className="h-[4.5rem] w-full" />
-            <Shimmer className="mx-auto h-6 w-32" />
-            <Shimmer className="mx-auto h-7 w-24" />
+            <Shimmer className="my-auto h-14 w-[88%] self-center" />
+            <Shimmer className="mx-auto h-6 w-32 rounded-(--radius-pill)" />
+            <Shimmer className="mx-auto mt-3.5 h-7 w-28" />
           </div>
         ))}
       </div>

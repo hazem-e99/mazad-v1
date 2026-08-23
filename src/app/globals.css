@@ -439,19 +439,57 @@ body {
     0 8px 20px -10px rgba(167, 123, 34, 0.6);
 }
 
-/* Frosted charcoal — the premium-ads panel. */
+/* Frosted warm-brown — the premium-ads panel.
+   A diagonal gradient rather than a flat fill: the flat version read as
+   grey against the ivory canvas, where the whole point of this panel is
+   that it is *warm* dark. The gold hairline is deliberately near-solid,
+   not a tint — it is the frame around the page's most valuable listings. */
 .mz-panel-premium {
-  background: rgba(35, 31, 26, 0.9);
-  border: 1px solid rgba(212, 168, 63, 0.28);
+  background: linear-gradient(135deg, rgba(38, 31, 25, 0.94), rgba(50, 40, 29, 0.9));
+  border: 1px solid rgba(199, 151, 55, 0.75);
+  border-radius: 24px;
   box-shadow:
     0 1px 0 rgba(255, 255, 255, 0.06) inset,
-    0 24px 60px -30px rgba(35, 26, 12, 0.75);
+    0 14px 35px rgba(38, 27, 17, 0.16);
 }
 @supports (backdrop-filter: blur(1px)) {
   .mz-panel-premium {
-    background: rgba(35, 31, 26, 0.82);
+    background: linear-gradient(135deg, rgba(38, 31, 25, 0.9), rgba(50, 40, 29, 0.84));
     backdrop-filter: blur(18px) saturate(120%);
   }
+}
+
+/* The ivory card face inside that panel. Warm white with a barely-there
+   vertical fade — never a flat #fff, which punches a hole in the warm
+   palette. */
+.mz-card-ivory {
+  background: linear-gradient(180deg, #fbf9f6 0%, #f5f1ec 100%);
+  border: 1px solid rgba(70, 60, 50, 0.08);
+  box-shadow: 0 2px 8px rgba(64, 48, 30, 0.05);
+}
+:root[data-theme="dark"] .mz-card-ivory,
+:root:not([data-theme]) .mz-card-ivory {
+  background: linear-gradient(180deg, var(--color-surface) 0%, var(--color-bg-elevated) 100%);
+  border-color: var(--color-border);
+}
+
+/* The VIP flag that straddles a card's top edge. */
+.mz-badge-gold {
+  background: linear-gradient(135deg, #f4d77b, #c59632);
+  color: #211b14;
+  box-shadow: 0 4px 12px -4px rgba(167, 123, 34, 0.7);
+}
+
+/* Carousel arrows that sit on the panel's edge. Light discs on a dark
+   panel, so they read as controls floating above it. */
+.mz-carousel-arrow {
+  background: rgba(248, 248, 248, 0.92);
+  color: #333;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.mz-carousel-arrow:hover {
+  background: #fff;
+  color: var(--color-gold-dark);
 }
 
 /* Frosted ivory — the statistics band, sitting on the same backdrop. */

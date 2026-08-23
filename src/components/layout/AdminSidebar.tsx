@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { MazadLogo } from "@/components/layout/MazadLogo";
 
 interface AdminNavItem {
   href: string;
@@ -122,7 +123,7 @@ export function AdminSidebar() {
       aria-label={t("admin.navLabel")}
     >
       <div className="mb-5 flex items-center gap-3 border-b border-(--color-border) p-3 pb-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-(--radius-md) bg-(--color-gold) text-lg font-black text-(--color-gold-foreground)">م</div>
+        <MazadLogo className="h-10 w-[3.6rem]" />
         <div className="min-w-0">
           <div className="text-sm font-bold text-(--color-text)">{t("admin.navLabel")}</div>
           <div className="text-[11px] text-(--color-text-faint)">مركز التحكم</div>

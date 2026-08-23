@@ -49,8 +49,7 @@ export function AuthShell({
             href="/"
             className="mb-8 inline-flex items-center gap-2.5 rounded-(--radius-sm) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-gold)"
           >
-            <MazadLogo className="h-11 w-11" />
-            <span className="text-xl font-bold tracking-tight text-(--color-text)">مزاد</span>
+            <MazadLogo className="h-11 w-16" />
           </Link>
 
           <h1 className="text-2xl font-bold tracking-tight text-(--color-text) sm:text-3xl">{title}</h1>
