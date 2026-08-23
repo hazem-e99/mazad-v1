@@ -6,7 +6,7 @@ import { cn } from "@/lib/cn";
 
 const VISIBLE_MS = 5_000;
 const VIDEO_PLAYBACK_RATE = 2;
-const SEEN_KEY = "mazad_splash_seen";
+export const SPLASH_SEEN_COOKIE = "mazad_splash_seen";
 
 async function waitForPageAssets() {
   if (document.readyState !== "complete") {
@@ -29,27 +29,18 @@ async function waitForPageAssets() {
   );
 }
 
-/**
- * Runs once during the initial render (not in an effect) so the "already
- * seen this session" case never mounts the splash at all — no flash, no
- * later setState needed to hide it.
- */
-function wasAlreadySeenThisSession(): boolean {
-  if (typeof window === "undefined") return true;
-  try {
-    if (window.sessionStorage.getItem(SEEN_KEY) === "1") return true;
-    window.sessionStorage.setItem(SEEN_KEY, "1");
-    return false;
-  } catch {
-    return false;
-  }
-}
-
-export function SplashScreen() {
+export function SplashScreen({ alreadySeen }: { alreadySeen: boolean }) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [shouldRender] = useState(() => !wasAlreadySeenThisSession());
+  // Server decides from the cookie, so this matches on both the server
+  // render and the first client render — no flash, no hydration mismatch.
+  const [shouldRender] = useState(!alreadySeen);
   const [leaving, setLeaving] = useState(false);
   const [hidden, setHidden] = useState(false);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+    document.cookie = `${SPLASH_SEEN_COOKIE}=1; path=/; samesite=lax`;
+  }, [shouldRender]);
 
   useEffect(() => {
     if (!shouldRender) return;
