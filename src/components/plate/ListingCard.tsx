@@ -23,11 +23,15 @@ export function ListingCard({ listing }: { listing: PlateDTO }) {
   return (
     <Card className={cn("group flex flex-col overflow-hidden transition-[transform,border-color,background-color] duration-(--duration-base) hover:-translate-y-0.5 hover:border-(--color-gold)/35 hover:bg-(--color-surface-hover)", listing.isVip && "border-(--color-vip-border) bg-(--color-vip-surface)")}>
       <Link href={`/listings/${listing._id}`} className="flex flex-col flex-1">
+        {/* A plate photo is a wide, thin subject in an arbitrary frame, so
+            it is fitted rather than filled: `cover` on a 4:3 box cropped a
+            5:1 plate down to two enormous glyphs. The padding keeps the
+            plate clear of the badges sitting over the top corners. */}
         <div className="relative aspect-[4/3] bg-(--color-bg-elevated) overflow-hidden">
           <PlatePhoto
             src={listing.image}
             alt={listing.title ?? ""}
-            className="h-full w-full object-cover transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
+            className="h-full w-full object-contain p-3 pt-11 transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
             fallback={
               <div className="h-full w-full flex items-center justify-center text-(--color-text-faint) text-xs">
                 {t("pages.noImage")}

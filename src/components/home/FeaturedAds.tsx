@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+
 import { ChevronLeft, ChevronRight, Crown, Gem } from "lucide-react";
 import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { useAuctionRooms } from "@/hooks/useAuctionRooms";
+import { useCarousel } from "@/hooks/useCarousel";
+import { cn } from "@/lib/cn";
 import { formatNumber } from "@/lib/format";
 import { plateClassificationLabel, plateTypeLabel, usageTypeLabel } from "@/lib/constants";
 import { plateDisplayName } from "@/lib/plateLabel";
@@ -38,22 +40,17 @@ export function FeaturedAds({
   liveAuctions: AuctionSummary[];
 }) {
   const { t, locale } = useTranslations();
-  const scroller = useRef<HTMLDivElement>(null);
+
 
   const auctionByPlate = new Map(liveAuctions.map((auction) => [auction.plate._id, auction]));
   const { snapshotFor } = useAuctionRooms(liveAuctions.map((auction) => auction._id));
 
   const isArabic = locale === "ar";
 
-  // The track scrolls in the document's own direction: in RTL, advancing
-  // to the next card *decreases* scrollLeft. Flipping the sign here is
-  // what keeps "next" meaning next in both directions.
-  const step = (direction: -1 | 1) => {
-    const node = scroller.current;
-    if (!node) return;
-    const amount = Math.max(240, node.clientWidth * 0.55) * direction * (isArabic ? -1 : 1);
-    node.scrollBy({ left: amount, behavior: "smooth" });
-  };
+  const { ref: scroller, pages, page, step, scrollToPage, canPrev, canNext } = useCarousel<HTMLDivElement>(
+    isArabic,
+    [plates.length, locale]
+  );
 
   // "Previous" points back the way the text runs — a right chevron in
   // Arabic, a left one in English — and sits on the reading side.
@@ -179,16 +176,43 @@ export function FeaturedAds({
             );
           })}
         </div>
+
+        {/* The dots answer "how much more is there?", which the arrows
+            alone do not — and on a phone, where the arrows are the only
+            other cue, they are what makes the track look scrollable. */}
+        {pages > 1 && (
+          <div
+            className="mt-5 flex items-center justify-center gap-2"
+            role="tablist"
+            aria-label={t("home.premiumTitle")}
+          >
+            {Array.from({ length: pages }).map((_, index) => (
+              <button
+                key={index}
+                type="button"
+                role="tab"
+                aria-selected={index === page}
+                aria-label={`${index + 1}`}
+                onClick={() => scrollToPage(index)}
+                className={cn(
+                  "h-2 rounded-full transition-all duration-(--duration-base)",
+                  "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+                  index === page ? "w-7 bg-(--color-gold)" : "w-2 bg-white/25 hover:bg-white/55"
+                )}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Straddling the panel's edges and centred on the cards, rather
           than parked beside the header — they belong to the track. */}
-      {plates.length > 1 && (
+      {pages > 1 && (
         <>
-          <ArrowButton side="start" onClick={() => step(-1)} label={t("common.previous")}>
+          <ArrowButton side="start" onClick={() => step(-1)} label={t("common.previous")} disabled={!canPrev}>
             <PrevIcon className="h-5 w-5" aria-hidden="true" strokeWidth={2.2} />
           </ArrowButton>
-          <ArrowButton side="end" onClick={() => step(1)} label={t("common.next")}>
+          <ArrowButton side="end" onClick={() => step(1)} label={t("common.next")} disabled={!canNext}>
             <NextIcon className="h-5 w-5" aria-hidden="true" strokeWidth={2.2} />
           </ArrowButton>
         </>
