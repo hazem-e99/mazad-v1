@@ -1,6 +1,7 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { BottomNav } from "@/components/layout/BottomNav";
+import { SplashScreen } from "@/components/layout/SplashScreen";
 import { getSession, isStaffSession } from "@/lib/auth";
 import { getSiteSettings } from "@/lib/siteSettingsQueries";
 
@@ -19,6 +20,7 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
+      <SplashScreen />
       <Header viewer={viewer} settings={settings} />
       <main className="flex-1">{children}</main>
       <Footer settings={settings} />

@@ -342,6 +342,18 @@ body {
     transform: translateY(0);
   }
 }
+
+@keyframes splash-progress {
+  0% {
+    transform: translateX(-110%);
+  }
+  50% {
+    transform: translateX(55%);
+  }
+  100% {
+    transform: translateX(210%);
+  }
+}
 .mz-hero-reveal {
   animation: mz-hero-rise 650ms var(--ease-out-expo) both;
 }

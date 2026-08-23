@@ -26,8 +26,9 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
         src={settings.hero.backgroundImage}
         alt=""
         fill
-        priority
+        preload
         sizes="100vw"
+        unoptimized
         className="mz-stage-media"
       />
       <span className="mz-stage-scrim" aria-hidden="true" />

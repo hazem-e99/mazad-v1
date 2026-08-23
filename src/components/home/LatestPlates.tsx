@@ -5,6 +5,7 @@ import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
 import { plateClassificationLabel, plateTypeLabel, usageTypeLabel } from "@/lib/constants";
+import { plateDisplayName } from "@/lib/plateLabel";
 import type { PlateDTO } from "@/types/dto";
 
 /**
@@ -76,16 +77,32 @@ export function LatestPlates({ plates }: { plates: PlateDTO[] }) {
                     clsx, so passing a competing width class would be a
                     coin flip. */}
                 <div className="flex w-[88%] items-center justify-center">
-                  <SaudiPlate
-                    type={plate.type}
-                    lettersAr={plate.lettersAr}
-                    lettersEn={plate.lettersEn}
-                    numbers={plate.numbers}
-                    logo={plate.logo}
-                    size="xl"
-                    vip={plate.isVip}
-                    locale={locale}
-                  />
+                  {plate.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={plate.image}
+                      alt={plateDisplayName(plate, locale)}
+                      loading="eager"
+                      fetchPriority="high"
+                      decoding="async"
+                      className="max-h-[5.25rem] w-full object-contain"
+                    />
+                  ) : (
+                    // `xl` is `w-full` here — the wrapper above is what
+                    // decides the width. Its own max-width never binds at
+                    // card scale, and `cn` is plain clsx, so passing a
+                    // competing width class would be a coin flip.
+                    <SaudiPlate
+                      type={plate.type}
+                      lettersAr={plate.lettersAr}
+                      lettersEn={plate.lettersEn}
+                      numbers={plate.numbers}
+                      logo={plate.logo}
+                      size="xl"
+                      vip={plate.isVip}
+                      locale={locale}
+                    />
+                  )}
                 </div>
               </div>
 
