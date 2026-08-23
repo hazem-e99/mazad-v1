@@ -37,10 +37,13 @@ export function SellPlateBanner() {
       aria-labelledby="sell-cta-title"
     >
       <Image
-        src="/images/bg-banner.png"
+        src="/images/bg-banner.webp"
         alt=""
         fill
         sizes="(min-width: 1280px) 1200px, 100vw"
+        loading="eager"
+        fetchPriority="high"
+        unoptimized
         // The plates live in the left third of a very wide frame. Holding
         // that edge in view keeps them on screen as the banner narrows,
         // instead of cropping to the empty ground in the middle.

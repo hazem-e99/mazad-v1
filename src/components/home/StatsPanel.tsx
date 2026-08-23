@@ -26,10 +26,10 @@ export function StatsPanel({ stats }: { stats: PlatformStats }) {
   // every figure is already named by its own <dt> — so each carries an
   // empty alt and is hidden from assistive tech.
   const items: { icon: string; value: number; label: string; hint: string }[] = [
-    { icon: "/images/icons/users.png", value: stats.totalUsers, label: t("home.statsUsers"), hint: t("home.statsUsersHint") },
-    { icon: "/images/icons/total_plates.png", value: stats.totalPlates, label: t("home.statsPlates"), hint: t("home.statsPlatesHint") },
-    { icon: "/images/icons/featured_medal.png", value: stats.vipPlates, label: t("home.statsPremium"), hint: t("home.statsPremiumHint") },
-    { icon: "/images/icons/auction_gavel.png", value: stats.activeAuctions, label: t("home.statsAuctions"), hint: t("home.statsAuctionsHint") },
+    { icon: "/images/icons/users.webp", value: stats.totalUsers, label: t("home.statsUsers"), hint: t("home.statsUsersHint") },
+    { icon: "/images/icons/total_plates.webp", value: stats.totalPlates, label: t("home.statsPlates"), hint: t("home.statsPlatesHint") },
+    { icon: "/images/icons/featured_medal.webp", value: stats.vipPlates, label: t("home.statsPremium"), hint: t("home.statsPremiumHint") },
+    { icon: "/images/icons/auction_gavel.webp", value: stats.activeAuctions, label: t("home.statsAuctions"), hint: t("home.statsAuctionsHint") },
   ];
 
   return (
@@ -52,6 +52,9 @@ export function StatsPanel({ stats }: { stats: PlatformStats }) {
               alt=""
               width={112}
               height={112}
+              loading="eager"
+              fetchPriority="high"
+              unoptimized
               aria-hidden="true"
               className="h-12 w-12 object-contain drop-shadow-[0_4px_10px_rgba(64,48,30,0.18)] sm:h-14 sm:w-14"
             />

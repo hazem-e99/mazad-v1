@@ -85,8 +85,8 @@ export interface SiteSettingsDTO {
   updatedAt?: string;
 }
 
-const DEFAULT_LOGO = "/images/logo-mark.png";
-const DEFAULT_HERO = "/images/bg-hero.png";
+const DEFAULT_LOGO = "/images/logo-mark.webp";
+const DEFAULT_HERO = "/images/bg-hero.webp";
 
 export const DEFAULT_SITE_SETTINGS: SiteSettingsDTO = {
   brand: {
@@ -280,6 +280,14 @@ function sortByOrder<T extends { sortOrder: number }>(items: T[]): T[] {
   return [...items].sort((a, b) => a.sortOrder - b.sortOrder);
 }
 
+function optimizedKnownAsset(url: string): string {
+  const replacements: Record<string, string> = {
+    "/images/logo-mark.png": "/images/logo-mark.webp",
+    "/images/bg-hero.png": "/images/bg-hero.webp",
+  };
+  return replacements[url] ?? url;
+}
+
 export function normalizeSiteSettings(input: Partial<SiteSettingsDTO> | null | undefined): SiteSettingsDTO {
   const merged = {
     ...DEFAULT_SITE_SETTINGS,
@@ -295,6 +303,20 @@ export function normalizeSiteSettings(input: Partial<SiteSettingsDTO> | null | u
   const parsed = siteSettingsSchema.parse(merged);
   return {
     ...parsed,
+    brand: {
+      logoUrl: optimizedKnownAsset(parsed.brand.logoUrl),
+      headerLogoUrl: optimizedKnownAsset(parsed.brand.headerLogoUrl),
+      footerLogoUrl: optimizedKnownAsset(parsed.brand.footerLogoUrl),
+    },
+    hero: {
+      ...parsed.hero,
+      backgroundImage: optimizedKnownAsset(parsed.hero.backgroundImage),
+      logoUrl: optimizedKnownAsset(parsed.hero.logoUrl),
+    },
+    seo: {
+      ...parsed.seo,
+      ogImage: optimizedKnownAsset(parsed.seo.ogImage),
+    },
     navItems: sortByOrder(parsed.navItems),
     footer: {
       ...parsed.footer,
