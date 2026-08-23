@@ -5,6 +5,7 @@ import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
 import { plateClassificationLabel, plateTypeLabel, usageTypeLabel } from "@/lib/constants";
+import { plateDisplayName } from "@/lib/plateLabel";
 import type { PlateDTO } from "@/types/dto";
 
 /**

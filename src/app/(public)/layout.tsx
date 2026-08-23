@@ -20,7 +20,6 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
-      <link rel="preload" href="/herosection.mp4" as="video" type="video/mp4" />
       <SplashScreen />
       <Header viewer={viewer} settings={settings} />
       <main className="flex-1">{children}</main>
