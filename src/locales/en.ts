@@ -364,6 +364,12 @@ const en: MessageCatalog = {
     messageRequired: "Please type a message before sending.",
     messageTooLong: "Message must be at most 500 characters.",
   },
+  siteSettings: {
+    title: "Site Settings",
+    subtitle: "Control the hero artwork, site logos, navbar, footer, pages and social links.",
+    viewOnly: "View only",
+    save: "Save site settings",
+  },
   errors: {
     notFoundTitle: "Page not found",
     notFoundHint: "The link you opened is incorrect, or the page has moved.",

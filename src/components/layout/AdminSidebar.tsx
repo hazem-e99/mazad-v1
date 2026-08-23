@@ -21,11 +21,18 @@ import {
 import { cn } from "@/lib/cn";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { MazadLogo } from "@/components/layout/MazadLogo";
+import { useAdminSession } from "@/components/admin/AdminSessionProvider";
+import type { Permission } from "@/lib/constants";
 
 interface AdminNavItem {
   href: string;
   label: string;
   icon: LucideIcon;
+  /** The entitlement the route behind this link is gated on. Undefined
+   * means every staff member may open it. Kept in step with the
+   * layout/page guards — this list decides what is *shown*, those decide
+   * what is *allowed*. */
+  permission?: Permission;
 }
 
 interface AdminNavGroup {
@@ -35,42 +42,56 @@ interface AdminNavGroup {
 
 export function useAdminNavGroups(): AdminNavGroup[] {
   const { t } = useTranslations();
+  const { can } = useAdminSession();
 
-  return [
+  const groups: AdminNavGroup[] = [
     {
       title: t("admin.navOverview"),
       items: [
         { href: "/admin", label: t("admin.navOverview"), icon: LayoutDashboard },
-        { href: "/admin/stats", label: t("admin.navStats"), icon: BarChart3 },
-        { href: "/admin/audit", label: t("admin.navAudit"), icon: History },
+        { href: "/admin/stats", label: t("admin.navStats"), icon: BarChart3, permission: "stats:view" },
+        { href: "/admin/audit", label: t("admin.navAudit"), icon: History, permission: "audit:view" },
       ],
     },
     {
       title: t("admin.navAuctionsGroup"),
       items: [
-        { href: "/admin/auctions", label: t("admin.navAuctionsList"), icon: Gavel },
-        { href: "/admin/auctions/new", label: t("admin.navAuctionCreate"), icon: PlusCircle },
-        { href: "/admin/bids", label: t("admin.navBids"), icon: TrendingUp },
+        { href: "/admin/auctions", label: t("admin.navAuctionsList"), icon: Gavel, permission: "auction:manage" },
+        { href: "/admin/auctions/new", label: t("admin.navAuctionCreate"), icon: PlusCircle, permission: "auction:create" },
+        { href: "/admin/bids", label: t("admin.navBids"), icon: TrendingUp, permission: "auction:manage" },
       ],
     },
     {
       title: t("admin.navPlatesGroup"),
       items: [
-        { href: "/admin/listings", label: t("admin.navListingsModeration"), icon: ClipboardCheck },
-        { href: "/admin/plates", label: t("admin.navPlatesList"), icon: IdCard },
-        { href: "/admin/vip", label: t("admin.navVip"), icon: Crown },
-        { href: "/admin/plate-logos", label: t("admin.navPlateLogos"), icon: ImageIcon },
-        { href: "/admin/plate-categories", label: t("admin.navPlateCategories"), icon: FolderTree },
+        { href: "/admin/listings", label: t("admin.navListingsModeration"), icon: ClipboardCheck, permission: "listing:moderate" },
+        { href: "/admin/plates", label: t("admin.navPlatesList"), icon: IdCard, permission: "plate:manage" },
+        { href: "/admin/vip", label: t("admin.navVip"), icon: Crown, permission: "vip:manage" },
+        { href: "/admin/plate-logos", label: t("admin.navPlateLogos"), icon: ImageIcon, permission: "plate_logo:manage" },
+        { href: "/admin/plate-categories", label: t("admin.navPlateCategories"), icon: FolderTree, permission: "category:manage" },
       ],
     },
     {
       title: t("admin.navManagementGroup"),
       items: [
+<<<<<<< Updated upstream
         { href: "/admin/users", label: t("admin.navUsers"), icon: Users },
         { href: "/admin/ads", label: t("admin.navAds"), icon: Megaphone },
+=======
+        { href: "/admin/users", label: t("admin.navUsers"), icon: Users, permission: "user:manage" },
+        { href: "/admin/ads", label: t("admin.navAds"), icon: Megaphone, permission: "ad:manage" },
+        { href: "/admin/site-settings", label: t("admin.navSiteSettings"), icon: Settings, permission: "site_settings:view" },
+>>>>>>> Stashed changes
       ],
     },
   ];
+
+  // Drop what this staff member cannot open, then drop any group left
+  // with nothing in it — a heading over an empty column reads as a
+  // rendering fault rather than an entitlement boundary.
+  return groups
+    .map((group) => ({ ...group, items: group.items.filter((item) => !item.permission || can(item.permission)) }))
+    .filter((group) => group.items.length > 0);
 }
 
 export function AdminNavList({ onNavigate, className }: { onNavigate?: () => void; className?: string }) {

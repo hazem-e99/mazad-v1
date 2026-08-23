@@ -16,7 +16,13 @@ interface Params {
 export async function POST(_req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    await requirePermission("auction:manage");
+    // `auction:sell` — closing an auction and awarding the plate is the
+    // sale itself, which is why the permission list separates it from the
+    // general `auction:manage` used to schedule and edit auctions. It was
+    // defined but never enforced; a supervisor who may run auctions is now
+    // only able to *conclude* one if they were granted this too. (Admins
+    // hold every permission, so nothing changes for them.)
+    await requirePermission("auction:sell");
 
     const result = await finalizeAuction(id, { force: true });
     if (!result) throw Errors.notFound("المزاد");

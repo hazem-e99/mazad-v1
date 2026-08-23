@@ -365,6 +365,12 @@ export interface MessageCatalog {
     messageRequired: string;
     messageTooLong: string;
   };
+  siteSettings: {
+    title: string;
+    subtitle: string;
+    viewOnly: string;
+    save: string;
+  };
   errors: {
     notFoundTitle: string;
     notFoundHint: string;
@@ -1160,6 +1166,12 @@ const ar: MessageCatalog = {
     invalidId: "معرّف غير صالح.",
     messageRequired: "يرجى كتابة رسالة قبل الإرسال.",
     messageTooLong: "الرسالة يجب ألا تزيد عن 500 حرف.",
+  },
+  siteSettings: {
+    title: "إعدادات الموقع",
+    subtitle: "تحكم في صور الهيرو، وشعارات الموقع، والناف بار، والفوتر، والصفحات، وروابط التواصل.",
+    viewOnly: "عرض فقط",
+    save: "حفظ إعدادات الموقع",
   },
   errors: {
     notFoundTitle: "الصفحة غير موجودة",

@@ -181,6 +181,11 @@ export const PERMISSIONS = [
   "user:manage",
   "vip:manage",
   "ad:manage",
+<<<<<<< Updated upstream
+=======
+  "site_settings:view", // عرض إعدادات الموقع دون تعديلها
+  "site_settings:manage",
+>>>>>>> Stashed changes
   "upload:manage",
   "stats:view",
   "audit:view",

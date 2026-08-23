@@ -3,6 +3,8 @@ import { getSession, isStaffSession } from "@/lib/auth";
 import { AdminHeader } from "@/components/layout/AdminHeader";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
 import { AdminRealtimeProvider } from "@/components/admin/AdminRealtimeProvider";
+import { AdminSessionProvider } from "@/components/admin/AdminSessionProvider";
+import { effectivePermissions } from "@/lib/session";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession();
@@ -14,7 +16,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   // One realtime subscription for the whole dashboard: every staff page
   // and every live cell inside it reads from this single connection.
   return (
-    <AdminRealtimeProvider>
+    <AdminSessionProvider role={session.role} permissions={effectivePermissions(session.role, session.permissions)}>
+      <AdminRealtimeProvider>
       <div className="min-h-screen bg-(--color-bg) text-(--color-text)">
         <AdminHeader role={session.role} />
         <div className="mx-auto flex w-full max-w-[1440px] flex-1 gap-6 px-4 pb-8 pt-6 sm:px-6 lg:px-8">
@@ -24,6 +27,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           </main>
         </div>
       </div>
-    </AdminRealtimeProvider>
+      </AdminRealtimeProvider>
+    </AdminSessionProvider>
   );
 }

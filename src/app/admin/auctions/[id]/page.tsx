@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import { checkPagePermission } from "@/lib/auth";
+import { AccessDenied } from "@/components/admin/AccessDenied";
 import { connectDB } from "@/lib/db";
 import { Auction } from "@/models/Auction";
 import { Bid } from "@/models/Bid";
@@ -31,6 +33,9 @@ interface Props {
 }
 
 export default async function AdminAuctionDetailPage({ params }: Props) {
+  // The section layout admits anyone with create *or* manage; the list
+  // and detail screens are management surfaces specifically.
+  if (!(await checkPagePermission("auction:manage"))) return <AccessDenied />;
   const { id } = await params;
   await connectDB();
   const { t, locale } = await getServerTranslator();
