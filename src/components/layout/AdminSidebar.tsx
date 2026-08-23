@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
   ClipboardCheck,
   FolderTree,
+  Settings,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -68,6 +69,7 @@ export function useAdminNavGroups(): AdminNavGroup[] {
       items: [
         { href: "/admin/users", label: t("admin.navUsers"), icon: Users },
         { href: "/admin/ads", label: t("admin.navAds"), icon: Megaphone },
+        { href: "/admin/site-settings", label: t("admin.navSiteSettings"), icon: Settings },
       ],
     },
   ];

@@ -181,6 +181,7 @@ export const PERMISSIONS = [
   "user:manage",
   "vip:manage",
   "ad:manage",
+  "site_settings:manage",
   "upload:manage",
   "stats:view",
   "audit:view",

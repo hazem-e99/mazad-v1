@@ -6,6 +6,8 @@ import { ThemeProvider } from "@/components/theme/ThemeProvider";
 import { getServerLocale } from "@/lib/i18n-server";
 import { getServerTheme } from "@/lib/theme-server";
 import { dirForLocale } from "@/lib/i18n";
+import { getSiteSettings } from "@/lib/siteSettingsQueries";
+import { localizedText } from "@/lib/siteSettings";
 import "./globals.css";
 
 const ibmPlexArabic = IBM_Plex_Sans_Arabic({
@@ -24,28 +26,67 @@ const inter = Inter({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  // Only used for plate glyphs / tabular data below the fold, never in the
-  // initial paint — eager root-level preload of this font on every route
-  // triggers Chrome's "preloaded but not used within a few seconds" warning.
   preload: false,
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "مزاد - سوق لوحات السيارات السعودية",
-    template: "%s | مزاد",
-  },
-  description: "منصة مزادات لوحات السيارات المميزة في المملكة العربية السعودية",
-};
+function splitKeywords(value: string): string[] {
+  return value
+    .split(",")
+    .map((keyword) => keyword.trim())
+    .filter(Boolean);
+}
+
+function urlOrUndefined(value: string): URL | undefined {
+  if (!value) return undefined;
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
+  }
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+  const [locale, settings] = await Promise.all([getServerLocale(), getSiteSettings()]);
+  const siteName = localizedText(locale, settings.seo.siteNameAr, settings.seo.siteNameEn);
+  const title = localizedText(locale, settings.seo.titleAr, settings.seo.titleEn);
+  const description = localizedText(locale, settings.seo.descriptionAr, settings.seo.descriptionEn);
+  const canonical = settings.seo.canonicalUrl;
+
+  return {
+    metadataBase: urlOrUndefined(canonical),
+    title: {
+      default: title,
+      template: `%s | ${siteName}`,
+    },
+    description,
+    keywords: splitKeywords(localizedText(locale, settings.seo.keywordsAr, settings.seo.keywordsEn)),
+    alternates: canonical ? { canonical } : undefined,
+    robots: {
+      index: settings.seo.robotsIndex,
+      follow: settings.seo.robotsFollow,
+    },
+    openGraph: {
+      type: "website",
+      siteName,
+      title,
+      description,
+      url: canonical || undefined,
+      images: settings.seo.ogImage ? [{ url: settings.seo.ogImage, alt: title }] : undefined,
+      locale,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: settings.seo.ogImage ? [settings.seo.ogImage] : undefined,
+    },
+  };
+}
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
   const [locale, theme] = await Promise.all([getServerLocale(), getServerTheme()]);
 
   return (
-    // `data-theme` is resolved server-side so the very first paint is already
-    // in the visitor's theme — see src/app/globals.css for the token blocks.
-    // `body` takes its canvas from --page-background (a gradient on light),
-    // which a `bg-*` utility could not express.
     <html
       lang={locale}
       dir={dirForLocale(locale)}

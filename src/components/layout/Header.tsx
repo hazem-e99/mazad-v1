@@ -4,21 +4,14 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  Gavel,
-  Crown,
-  Sparkles,
-  Megaphone,
+  Link as LinkIcon,
+  Mail,
   MessageCircle,
   Plus,
   Menu,
-  Home,
-  IdCard,
   UserRound,
-  LayoutDashboard,
   LogOut,
-  TrendingUp,
   ChevronDown,
-  Store,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
 import { Button, LinkButton } from "@/components/ui/Button";
@@ -26,24 +19,25 @@ import { Drawer } from "@/components/ui/Drawer";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
-import { TopSocialBar } from "@/components/home/TopSocialBar";
 import { MazadLogo } from "@/components/layout/MazadLogo";
+import { InstagramGlyph, SnapchatGlyph, TikTokGlyph, XGlyph } from "@/components/layout/SocialGlyphs";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
-import { accountNavItems, isNavItemActive, mainNavItems, type HeaderViewer } from "@/lib/navItems";
+import { accountNavItems, isNavItemActive, mainNavItems, navLabel, type HeaderViewer } from "@/lib/navItems";
+import type { SiteSettingsDTO, SiteSocialLink } from "@/lib/siteSettings";
 
 // Re-exported so existing importers keep working; the definition itself
 // lives with the nav data it describes.
 export type { HeaderViewer };
 
-export function Header({ viewer }: { viewer: HeaderViewer | null }) {
+export function Header({ viewer, settings }: { viewer: HeaderViewer | null; settings: SiteSettingsDTO }) {
   const pathname = usePathname();
   const router = useRouter();
   const push = useToastStore((s) => s.push);
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { t } = useTranslations();
+  const { t, locale } = useTranslations();
 
   // The navbar only earns its blur and border once content has moved
   // beneath it — at rest it sits flush on the hero.
@@ -67,10 +61,11 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
 
   // Shared with the hero drawer and the bottom bar, so the three can
   // never offer different destinations.
-  const navItems = mainNavItems(viewer).map((item) => ({ ...item, label: t(item.labelKey) }));
-  const accountItems = accountNavItems(viewer).map((item) => ({ ...item, label: t(item.labelKey) }));
+  const navItems = mainNavItems(viewer, settings.navItems).map((item) => ({ ...item, label: navLabel(t, item, locale) }));
+  const accountItems = accountNavItems(viewer).map((item) => ({ ...item, label: navLabel(t, item, locale) }));
 
   const isActive = (href: string) => isNavItemActive(href, pathname);
+  const transparentTextShadow = !scrolled ? { textShadow: "0 1px 12px rgba(0,0,0,.45)" } : undefined;
 
   async function handleLogout() {
     try {
@@ -83,32 +78,29 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
     }
   }
 
-  // The home page is its own header: the hero carries the menu button and
-  // the sign-in pill over the artwork (see HeroChrome), so a second bar
-  // stacked above it would push the stage down and duplicate the nav.
-  // What survives here is the charcoal social strip that sits above it.
-  if (pathname === "/") return <TopSocialBar />;
+  const socialLinks = settings.footer.socials.filter((social) => social.enabled).sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-40 transition-[background-color,border-color,box-shadow] duration-(--duration-base)",
-        scrolled
-          ? "border-b border-(--color-border) bg-(--color-bg)/90 shadow-[0_12px_30px_-24px_rgba(0,0,0,.9)] backdrop-blur-xl"
-          : "border-b border-transparent bg-(--color-bg)"
-      )}
-    >
-      <div className="mz-container flex h-20 items-center justify-between gap-5">
+    <>
+      <header
+        className={cn(
+          "fixed inset-x-0 top-0 z-40 border-b transition-[background-color,border-color,box-shadow,backdrop-filter] duration-(--duration-base)",
+          scrolled
+            ? "border-(--color-border) bg-(--color-bg)/90 shadow-[0_12px_30px_-24px_rgba(0,0,0,.9)] backdrop-blur-xl"
+            : "border-transparent bg-transparent"
+        )}
+      >
+        <div className="mz-container flex h-20 items-center justify-between gap-5">
         <Link
           href="/"
           className="group flex shrink-0 items-center gap-2.5 rounded-(--radius-sm) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-(--color-gold)"
         >
           {/* No text label beside it: the mark already carries the
               wordmark, so a word next to it would set the name twice. */}
-          <MazadLogo className="h-10 w-[3.6rem] transition-transform duration-(--duration-base) group-hover:scale-105" />
+          <MazadLogo src={settings.brand.headerLogoUrl || settings.brand.logoUrl} className="h-10 w-[3.6rem] transition-transform duration-(--duration-base) group-hover:scale-105" />
         </Link>
 
-        <nav className="hidden items-center gap-1 xl:flex" aria-label={t("nav.mainNav")}>
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-1 lg:flex" aria-label={t("nav.mainNav")}>
           {navItems.map((item) => {
             const active = isActive(item.href);
             return (
@@ -121,8 +113,11 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
                   "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
                   active
                     ? "text-(--color-gold) after:absolute after:inset-x-3 after:-bottom-2 after:h-px after:bg-(--color-gold)"
-                    : "text-(--color-text-muted) hover:text-(--color-text)"
+                    : scrolled
+                      ? "text-(--color-text-muted) hover:text-(--color-text)"
+                      : "text-white/88 hover:text-white"
                 )}
+                style={transparentTextShadow}
               >
                 {item.label}
               </Link>
@@ -131,8 +126,35 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
         </nav>
 
         <div className="hidden shrink-0 items-center gap-2 lg:flex">
-          <ThemeToggle />
-          <LanguageSwitcher />
+          {socialLinks.length > 0 && (
+            <ul className="hidden items-center gap-1 xl:flex" aria-label={t("home.followUs")}>
+              {socialLinks.map((social) => (
+                <li key={social.id}>
+                  <a
+                    href={social.href}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    aria-label={social.label}
+                    className={cn(
+                      "flex h-9 w-9 items-center justify-center rounded-(--radius-sm) transition-colors duration-(--duration-fast)",
+                      scrolled
+                        ? "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-gold)"
+                        : "text-white/82 hover:bg-white/12 hover:text-white"
+                    )}
+                    style={transparentTextShadow}
+                  >
+                    <SocialIcon platform={social.platform} className="h-4 w-4" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+          <div className={cn(!scrolled && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
+            <ThemeToggle />
+          </div>
+          <div className={cn(!scrolled && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
+            <LanguageSwitcher />
+          </div>
           <LinkButton href="/plates/new" variant="secondary" size="sm">
             <Plus className="h-4 w-4" aria-hidden="true" />
             {t("nav.addPlate")}
@@ -146,6 +168,7 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
                 aria-expanded={accountOpen}
                 aria-haspopup="menu"
                 onClick={() => setAccountOpen((v) => !v)}
+                className={cn(!scrolled && "border-white/55 bg-black/18 text-white hover:bg-black/28")}
               >
                 <UserRound className="h-4 w-4" aria-hidden="true" />
                 {t("nav.myAccount")}
@@ -205,7 +228,12 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
           </LinkButton>
           <button
             type="button"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-(--radius-md) border border-(--color-border-strong) text-(--color-text) transition-colors hover:bg-(--color-surface) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+            className={cn(
+              "inline-flex h-11 w-11 items-center justify-center rounded-(--radius-md) border transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+              scrolled
+                ? "border-(--color-border-strong) text-(--color-text) hover:bg-(--color-surface)"
+                : "border-white/55 bg-black/18 text-white hover:bg-black/28"
+            )}
             aria-expanded={menuOpen}
             aria-label={t("nav.openMenu")}
             onClick={() => setMenuOpen(true)}
@@ -215,72 +243,84 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
         </div>
       </div>
 
-      <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} title={t("nav.mobileNav")}>
-        <nav className="flex flex-col gap-1" aria-label={t("nav.mobileNav")}>
-          {navItems.map((item) => {
-            const active = isActive(item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-3 rounded-(--radius-md) px-3 py-3 text-[15px] font-medium transition-colors",
-                  active
-                    ? "bg-(--color-gold-tint) text-(--color-gold)"
-                    : "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-text)"
-                )}
-              >
-                <item.icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" strokeWidth={1.75} />
-                {item.label}
-              </Link>
-            );
-          })}
-
-          {viewer && (
-            <>
-              <div className="my-2 h-px bg-(--color-border)" aria-hidden="true" />
-              {accountItems.map((item) => (
+        <Drawer open={menuOpen} onClose={() => setMenuOpen(false)} title={t("nav.mobileNav")}>
+          <nav className="flex flex-col gap-1" aria-label={t("nav.mobileNav")}>
+            {navItems.map((item) => {
+              const active = isActive(item.href);
+              return (
                 <Link
                   key={item.href}
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
-                  className="flex items-center gap-3 rounded-(--radius-md) px-3 py-3 text-[15px] font-medium text-(--color-text-muted) transition-colors hover:bg-(--color-surface) hover:text-(--color-text)"
+                  aria-current={active ? "page" : undefined}
+                  className={cn(
+                    "flex items-center gap-3 rounded-(--radius-md) px-3 py-3 text-[15px] font-medium transition-colors",
+                    active
+                      ? "bg-(--color-gold-tint) text-(--color-gold)"
+                      : "text-(--color-text-muted) hover:bg-(--color-surface) hover:text-(--color-text)"
+                  )}
                 >
                   <item.icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" strokeWidth={1.75} />
                   {item.label}
                 </Link>
-              ))}
-            </>
-          )}
-        </nav>
+              );
+            })}
 
-        <div className="mt-4 flex flex-col gap-2.5 border-t border-(--color-border) pt-4">
-          <div className="flex items-center justify-center gap-2 pb-1">
-            <ThemeToggle />
-            <LanguageSwitcher />
-          </div>
-          <LinkButton href="/plates/new" variant="secondary" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            {t("nav.addPlate")}
-          </LinkButton>
-          <LinkButton href="/ads/new" variant="secondary" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
-            <Plus className="h-4 w-4" aria-hidden="true" />
-            {t("nav.addAd")}
-          </LinkButton>
-          {viewer ? (
-            <Button variant="ghost" size="md" className="w-full" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" aria-hidden="true" />
-              {t("admin.logoutAction")}
-            </Button>
-          ) : (
-            <LinkButton href="/login" variant="gold" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
-              {t("nav.login")}
+            {viewer && (
+              <>
+                <div className="my-2 h-px bg-(--color-border)" aria-hidden="true" />
+                {accountItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 rounded-(--radius-md) px-3 py-3 text-[15px] font-medium text-(--color-text-muted) transition-colors hover:bg-(--color-surface) hover:text-(--color-text)"
+                  >
+                    <item.icon className="h-[18px] w-[18px] shrink-0" aria-hidden="true" strokeWidth={1.75} />
+                    {item.label}
+                  </Link>
+                ))}
+              </>
+            )}
+          </nav>
+
+          <div className="mt-4 flex flex-col gap-2.5 border-t border-(--color-border) pt-4">
+            <div className="flex items-center justify-center gap-2 pb-1">
+              <ThemeToggle />
+              <LanguageSwitcher />
+            </div>
+            <LinkButton href="/plates/new" variant="secondary" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              {t("nav.addPlate")}
             </LinkButton>
-          )}
-        </div>
-      </Drawer>
-    </header>
+            <LinkButton href="/ads/new" variant="secondary" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
+              <Plus className="h-4 w-4" aria-hidden="true" />
+              {t("nav.addAd")}
+            </LinkButton>
+            {viewer ? (
+              <Button variant="ghost" size="md" className="w-full" onClick={handleLogout}>
+                <LogOut className="h-4 w-4" aria-hidden="true" />
+                {t("admin.logoutAction")}
+              </Button>
+            ) : (
+              <LinkButton href="/login" variant="gold" size="md" className="w-full" onClick={() => setMenuOpen(false)}>
+                {t("nav.login")}
+              </LinkButton>
+            )}
+          </div>
+        </Drawer>
+      </header>
+      {pathname !== "/" && <div className="h-20 shrink-0" aria-hidden="true" />}
+    </>
   );
+}
+
+function SocialIcon({ platform, className }: { platform: SiteSocialLink["platform"]; className: string }) {
+  if (platform === "whatsapp") return <MessageCircle className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "instagram") return <InstagramGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "snapchat") return <SnapchatGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "tiktok") return <TikTokGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "x") return <XGlyph className={className} aria-hidden="true" strokeWidth={1.75} />;
+  if (platform === "email") return <Mail className={className} aria-hidden="true" strokeWidth={1.75} />;
+  return <LinkIcon className={className} aria-hidden="true" strokeWidth={1.75} />;
 }
