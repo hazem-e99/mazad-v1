@@ -1,22 +1,17 @@
 /**
- * Repairs plate logos whose stored image file is missing from local
- * storage — the rows render as a broken <img> in the admin list and in
- * the plate-creation picker even though the API and the database are
- * perfectly healthy.
- *
- * Why the two drift apart: `image` holds a public path like
- * `/uploads/plate-logos/<uuid>.webp`, and those files are written to
- * gitignored local disk (see UPLOAD_DIR in src/lib/storage.ts) while the
- * PlateLogo documents live in the shared database. Whoever runs
- * `npm run seed` / `npm run migrate:plate-logos` gets both; every other
- * clone pointed at the same database inherits the rows alone.
+ * Repairs plate logos whose stored image asset is missing from the
+ * database — the rows render as a broken <img> in the admin list and in
+ * the plate-creation picker even though the rest of the API and database
+ * are perfectly healthy. Image bytes now live in MongoDB alongside the
+ * PlateLogo documents (see src/lib/storage.ts), so this is mainly useful
+ * for recovering from an asset deleted out from under a row.
  *
  * The four legacy catalog logos are generated from SVG source checked
  * into server/plateLogoAssets.ts, so they can simply be re-rasterized.
  * Admin-uploaded logos have no such source — those are reported for
  * manual re-upload instead of being silently blanked.
  *
- * Safe to re-run: logos whose file is present are left untouched.
+ * Safe to re-run: logos whose asset is present are left untouched.
  *
  * Run with: npm run repair:plate-logos
  * (equivalent to: npx tsx --env-file=.env server/repairPlateLogoImages.ts)

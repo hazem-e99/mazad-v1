@@ -51,7 +51,7 @@ Copy `.env.example` to `.env` and fill in real values. Never commit `.env`.
 | `AUTH_SECRET` | Secret used to sign session JWTs |
 | `NODE_ENV` | `development` or `production` |
 | `PORT` | HTTP port for the custom server |
-| `UPLOAD_DIR` | Local filesystem path for uploaded images (auction backgrounds, ad/plate photos) |
+| `PRIVATE_UPLOAD_DIR` | Local filesystem path for private ownership documents only (see below) |
 
 **Note on this dev environment:** if `mongodb+srv://` DNS resolution fails locally (some local resolvers can't answer SRV/TXT records), `src/lib/db.ts` automatically retries once against public DNS (1.1.1.1 / 8.8.8.8) before giving up. This is transparent and does not require configuration.
 
@@ -174,11 +174,11 @@ All 62 tests run against the real configured MongoDB database using uniquely-tag
 ## Deployment (Linux VPS)
 
 1. `npm ci && npm run build`
-2. Set environment variables (`MONGODB_URI`, `AUTH_SECRET`, `NODE_ENV=production`, `PORT`, `UPLOAD_DIR`) outside of any committed file.
+2. Set environment variables (`MONGODB_URI`, `AUTH_SECRET`, `NODE_ENV=production`, `PORT`) outside of any committed file.
 3. Run with PM2 using the provided `ecosystem.config.js`: `pm2 start ecosystem.config.js` (single instance — see the realtime-architecture note above on why not to scale to cluster mode without a Socket.IO Redis adapter).
 4. Put Nginx in front as a reverse proxy — see `nginx.conf.example` for a ready-to-adapt config that proxies both regular HTTP and the `/socket.io/` WebSocket upgrade to the same upstream, terminates TLS, and exposes `/api/health` for uptime monitoring.
 5. The custom server handles `SIGTERM`/`SIGINT` for graceful shutdown (closes Socket.IO, drains the HTTP server, force-exits after a 10s grace period) — compatible with PM2/systemd stop signals.
-6. Ensure `UPLOAD_DIR` points at a persistent volume (uploaded images are plain files on disk); the storage layer in `src/lib/storage.ts` is isolated behind `saveImage`/`deleteImage` so it can be swapped for S3-compatible object storage later without touching calling code.
+6. Uploaded images (auction backgrounds, plate/logo/category artwork, ad photos, site-settings branding) are stored as documents in MongoDB itself, not on local disk — no persistent upload volume is required, and every app instance/deploy/clone shares the same images automatically. The storage layer in `src/lib/storage.ts` is isolated behind `saveImage`/`deleteImage` so it can be swapped for S3-compatible object storage later without touching calling code. (Private ownership documents are the one exception — see `PRIVATE_UPLOAD_DIR` above and `src/lib/privateStorage.ts`.)
 
 ## Known Limitations / Remaining Work
 

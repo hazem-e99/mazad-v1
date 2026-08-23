@@ -10,8 +10,8 @@ module.exports = {
         NODE_ENV: "production",
       },
       // Environment-specific values (MONGODB_URI, AUTH_SECRET, PORT,
-      // UPLOAD_DIR) must be set in the actual deployment environment or a
-      // .env file loaded via --env-file — never hardcoded here.
+      // PRIVATE_UPLOAD_DIR) must be set in the actual deployment environment
+      // or a .env file loaded via --env-file — never hardcoded here.
       //
       // Single instance only: Socket.IO rooms are held in this process's
       // memory. Running multiple instances (cluster mode) would silently

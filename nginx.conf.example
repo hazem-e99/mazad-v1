@@ -50,9 +50,8 @@ server {
         proxy_read_timeout 86400s; # keep long-lived websocket connections open
     }
 
-    # Uploaded images served directly by Next.js from /public/uploads —
-    # proxied through like any other request (no special static-file
-    # handling needed unless serving directly from disk for performance).
+    # Uploaded images are served from MongoDB via /api/site-assets/<key> —
+    # just an ordinary request, proxied through like everything else.
     location / {
         proxy_pass http://mazad_upstream;
         proxy_http_version 1.1;

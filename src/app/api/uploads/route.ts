@@ -1,7 +1,6 @@
 import { NextRequest } from "next/server";
 import { requireSession, hasPermission } from "@/lib/auth";
 import { saveImage } from "@/lib/storage";
-import { saveSiteAsset } from "@/lib/siteAssetStorage";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { rateLimit } from "@/lib/rate-limit";
 import type { Permission } from "@/lib/constants";
@@ -39,7 +38,7 @@ export async function POST(req: NextRequest) {
 
     let url: string;
     try {
-      url = subdir === "site-assets" ? await saveSiteAsset(file) : await saveImage(file, subdir);
+      url = await saveImage(file, subdir);
     } catch (saveErr) {
       throw Errors.badRequest(saveErr instanceof Error ? saveErr.message : "تعذر معالجة الملف");
     }

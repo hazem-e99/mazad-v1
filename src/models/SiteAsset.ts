@@ -8,6 +8,9 @@ const siteAssetSchema = new Schema(
     contentType: { type: String, required: true, default: "image/webp" },
     originalName: { type: String, default: "" },
     size: { type: Number, required: true },
+    // Which upload pipeline wrote this asset (e.g. "plates", "auction-backgrounds",
+    // "site-assets") — kept only for admin/debug visibility, not read on the serve path.
+    subdir: { type: String, default: "" },
   },
   { timestamps: true }
 );

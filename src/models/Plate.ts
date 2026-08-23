@@ -46,7 +46,7 @@ const plateSchema = new Schema(
     image: { type: String, default: null },
 
     // Private — never exposed in a public DTO, never under a public
-    // /uploads/ URL. See src/lib/privateStorage.ts and
+    // /api/site-assets/ URL. See src/lib/privateStorage.ts and
     // src/app/api/plates/[id]/ownership-document/route.ts.
     ownershipDocument: { type: String, default: null, select: false },
 

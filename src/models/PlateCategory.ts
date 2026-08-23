@@ -5,9 +5,9 @@ const plateCategorySchema = new Schema(
   {
     nameAr: { type: String, required: true, trim: true, maxlength: 100 },
     nameEn: { type: String, required: true, trim: true, maxlength: 100 },
-    // Public path to the artwork the home tiles draw (e.g.
-    // "/uploads/plate-categories/<uuid>.webp"), written by the shared
-    // upload pipeline in src/lib/storage.ts — never the image bytes.
+    // Public URL to the artwork the home tiles draw (e.g.
+    // "/api/site-assets/<uuid>.webp"), written by the shared upload
+    // pipeline in src/lib/storage.ts — the bytes live in MongoDB, never here.
     // Optional on purpose: categories created before this field existed
     // keep working and fall back to the default icon.
     image: { type: String, default: null },

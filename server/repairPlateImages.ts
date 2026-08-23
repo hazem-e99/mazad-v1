@@ -1,19 +1,17 @@
 /**
- * Repairs plates whose stored photo file is missing from local storage —
+ * Repairs plates whose stored photo asset is missing from the database —
  * the rows render as a broken <img> on the home page, the marketplace grid
- * and the listing detail page even though the API and the database are
- * perfectly healthy.
+ * and the listing detail page even though the rest of the API and database
+ * are perfectly healthy. Image bytes now live in MongoDB alongside the
+ * Plate documents (see src/lib/storage.ts), so this class of drift should
+ * be rare — mainly useful for recovering from a row that references an
+ * asset deleted out from under it.
  *
- * The plate-photo twin of repairPlateLogoImages.ts, and it exists for the
- * same reason: `image` holds a public path like `/uploads/plates/<uuid>.webp`
- * written to gitignored local disk (see UPLOAD_DIR in src/lib/storage.ts),
- * while the Plate documents live in the shared database. Whoever ran the
- * seed or uploaded the photo gets both; every other clone pointed at the
- * same database inherits the rows alone.
+ * The plate-photo twin of repairPlateLogoImages.ts.
  *
  * Two populations, two treatments:
  *
- *   - Seeded listings all point at one stable placeholder path, whose
+ *   - Seeded listings all point at one stable placeholder key, whose
  *     artwork is generated from a committed asset — those are simply
  *     materialized (see server/platePhotoAsset.ts), no row is touched.
  *   - A real upload has no code-side source to regenerate from. Rather
@@ -23,7 +21,7 @@
  *
  * Pass --dry-run to report without writing anything.
  *
- * Safe to re-run: plates whose file is present are left untouched.
+ * Safe to re-run: plates whose asset is present are left untouched.
  *
  * Run with: npm run repair:plate-images
  * (equivalent to: npx tsx --env-file=.env server/repairPlateImages.ts)
