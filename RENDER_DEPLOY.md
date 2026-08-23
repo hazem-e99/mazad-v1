@@ -24,7 +24,7 @@ NODE_ENV=production
 UPLOAD_DIR=./public/uploads
 ```
 
-Do not set `PORT`; Render injects it automatically. If you set `NODE_ENV` manually, it must be exactly `production` in lowercase.
+Do not set `PORT`; Render injects it automatically. If you set `NODE_ENV` manually, it must be exactly `production` in lowercase. The build/start scripts also force production mode for Render.
 
 ## Notes
 
