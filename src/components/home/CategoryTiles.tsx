@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { ArrowLeft, ArrowRight, Tag } from "lucide-react";
+import { ArrowLeft, ArrowRight, ChevronLeft, ChevronRight, Tag } from "lucide-react";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatNumber } from "@/lib/format";
+import { useCarousel } from "@/hooks/useCarousel";
+import { cn } from "@/lib/cn";
 import type { HomeCategory } from "@/lib/queries";
 
 /**
@@ -27,7 +29,18 @@ import type { HomeCategory } from "@/lib/queries";
  */
 export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
   const { t, locale } = useTranslations();
-  const Arrow = locale === "ar" ? ArrowLeft : ArrowRight;
+  const isArabic = locale === "ar";
+  const Arrow = isArabic ? ArrowLeft : ArrowRight;
+
+  const { ref: scroller, pages, page, step, scrollToPage, canPrev, canNext } = useCarousel<HTMLUListElement>(
+    isArabic,
+    [categories.length, locale]
+  );
+
+  // "Previous" points back the way the text runs — a right chevron in
+  // Arabic, a left one in English.
+  const PrevIcon = isArabic ? ChevronRight : ChevronLeft;
+  const NextIcon = isArabic ? ChevronLeft : ChevronRight;
 
   return (
     <section aria-labelledby="categories-title">
@@ -38,18 +51,43 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
           </h2>
           <p className="mt-1.5 text-sm text-(--color-text-muted)">{t("home.categoriesSubtitle")}</p>
         </div>
-        <Link
-          href="/listings"
-          className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--color-border-strong) px-4 text-sm font-semibold text-(--color-text-muted) transition-colors hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
-        >
-          {t("home.categoriesViewAll")}
-          <Arrow className="h-4 w-4" aria-hidden="true" />
-        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link
+            href="/listings"
+            className="inline-flex h-10 items-center gap-2 rounded-(--radius-pill) border border-(--color-border-strong) px-4 text-sm font-semibold text-(--color-text-muted) transition-colors hover:border-(--color-gold)/55 hover:text-(--color-gold) focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
+          >
+            {t("home.categoriesViewAll")}
+            <Arrow className="h-4 w-4" aria-hidden="true" />
+          </Link>
+
+          {/* Beside the heading rather than over the tiles: unlike the
+              featured panel, this row sits on the page canvas, where a
+              floating disc would have nothing to float above. Shown at
+              every width — on a phone the arrows are the clearest signal
+              that the row continues past the edge. */}
+          {pages > 1 && (
+            <div className="flex items-center gap-1.5">
+              <StepButton onClick={() => step(-1)} label={t("common.previous")} disabled={!canPrev}>
+                <PrevIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
+              </StepButton>
+              <StepButton onClick={() => step(1)} label={t("common.next")} disabled={!canNext}>
+                <NextIcon className="h-4 w-4" aria-hidden="true" strokeWidth={2.2} />
+              </StepButton>
+            </div>
+          )}
+        </div>
       </div>
 
-      <ul className="mz-scroller -mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:grid sm:grid-cols-3 sm:overflow-visible lg:grid-cols-5">
+      {/* One scrolling track at every width — never a wrapping grid, which
+          left a ragged second row whenever the admin's category count was
+          not an exact multiple of the column count. */}
+      <ul ref={scroller} className="mz-scroller -mx-1 flex gap-3 overflow-x-auto px-1 pb-1 sm:gap-4">
         {categories.map((category) => (
-          <li key={category._id} className="mz-snap w-36 shrink-0 sm:w-auto">
+          <li
+            key={category._id}
+            className="mz-snap w-36 shrink-0 sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-4rem)/5)]"
+          >
             <Link
               href={`/listings?category=${category._id}`}
               className="mz-hover-lift flex h-full flex-col items-center gap-2.5 rounded-(--radius-lg) border border-(--color-border-light) bg-(--color-surface-secondary) px-3 py-5 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
@@ -68,7 +106,63 @@ export function CategoryTiles({ categories }: { categories: HomeCategory[] }) {
           </li>
         ))}
       </ul>
+
+      {/* The dots answer "how much more is there?", which the arrows alone
+          do not. They are real controls, not decoration — each scrolls to
+          its own page. */}
+      {pages > 1 && (
+        <div className="mt-5 flex items-center justify-center gap-2" role="tablist" aria-label={t("home.categoriesTitle")}>
+          {Array.from({ length: pages }).map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              role="tab"
+              aria-selected={index === page}
+              aria-label={`${index + 1}`}
+              onClick={() => scrollToPage(index)}
+              className={cn(
+                "h-2 rounded-full transition-all duration-(--duration-base)",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+                index === page
+                  ? "w-7 bg-(--color-gold)"
+                  : "w-2 bg-(--color-border-strong) hover:bg-(--color-gold)/55"
+              )}
+            />
+          ))}
+        </div>
+      )}
     </section>
+  );
+}
+
+function StepButton({
+  onClick,
+  label,
+  disabled,
+  children,
+}: {
+  onClick: () => void;
+  label: string;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      disabled={disabled}
+      className={cn(
+        "inline-flex h-10 w-10 items-center justify-center rounded-full border border-(--color-border-strong) text-(--color-text-muted)",
+        "transition-[color,border-color,opacity] duration-(--duration-fast)",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+        // Dimmed rather than hidden at the ends: a control that vanishes
+        // mid-swipe shifts the header under the reader's thumb.
+        disabled ? "cursor-default opacity-35" : "hover:border-(--color-gold)/55 hover:text-(--color-gold)"
+      )}
+    >
+      {children}
+    </button>
   );
 }
 

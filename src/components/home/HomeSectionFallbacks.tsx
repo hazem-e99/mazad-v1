@@ -22,12 +22,15 @@ function Shimmer({ className }: { className?: string }) {
 
 function HeadingSkeleton() {
   return (
-    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div className="space-y-2.5">
-        <Shimmer className="h-8 w-52 sm:h-9 sm:w-64" />
-        <Shimmer className="h-4 w-64 sm:w-80" />
+    <div className="mb-5 flex items-start justify-between gap-4">
+      <div className="flex items-stretch gap-3">
+        <Shimmer className="w-[3px] shrink-0 rounded-(--radius-pill)" />
+        <div className="space-y-2">
+          <Shimmer className="h-7 w-48 sm:h-8 sm:w-56" />
+          <Shimmer className="h-3.5 w-56 sm:w-64" />
+        </div>
       </div>
-      <Shimmer className="h-10 w-32 rounded-(--radius-pill)" />
+      <Shimmer className="h-[38px] w-32 shrink-0 rounded-(--radius-pill)" />
     </div>
   );
 }
@@ -82,34 +85,39 @@ export function CategoryTilesSkeleton() {
   return (
     <div aria-busy="true" aria-live="polite">
       <HeadingSkeleton />
-      <div className="flex gap-3 overflow-hidden sm:grid sm:grid-cols-3 lg:grid-cols-5">
+      <div className="flex gap-3 overflow-hidden sm:gap-4">
         {Array.from({ length: 5 }).map((_, i) => (
-          <Shimmer key={i} className="h-[9.5rem] w-36 shrink-0 rounded-(--radius-lg) sm:w-auto" />
+          <Shimmer
+            key={i}
+            className="h-[9.5rem] w-36 shrink-0 rounded-(--radius-lg) sm:w-[calc((100%-3rem)/4)] lg:w-[calc((100%-4rem)/5)]"
+          />
         ))}
       </div>
     </div>
   );
 }
 
-/** The charcoal sell-your-plate banner. */
-export function SellBannerSkeleton() {
-  return <Shimmer className="h-40 w-full rounded-(--radius-xl) sm:h-44" aria-busy="true" />;
-}
-
-/** A grid of equal listing cards — the newest plates. */
+/** A grid of equal listing cards — the newest plates. Mirrors the real
+ * card's box model (radius, padding, plate stage, gaps) so the section
+ * does not resize when the data lands. */
 export function CardRowSkeleton({ count = 4 }: { count?: number }) {
   return (
     <div aria-busy="true" aria-live="polite">
       <HeadingSkeleton />
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-4">
         {Array.from({ length: count }).map((_, i) => (
           <div
             key={i}
-            className="flex flex-col gap-3.5 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4"
+            className="flex flex-col rounded-(--radius-md) border border-(--color-border-light) bg-(--color-surface)/70 px-3.5 py-3"
           >
-            <Shimmer className="h-[4.25rem] w-full" />
-            <Shimmer className="h-6 w-28" />
-            <Shimmer className="h-6 w-24" />
+            <div className="flex min-h-[4.75rem] items-center justify-center sm:min-h-[5.25rem]">
+              <Shimmer className="h-[3.25rem] w-[88%]" />
+            </div>
+            <div className="mt-2 flex justify-center gap-1.5">
+              <Shimmer className="h-[1.35rem] w-16 rounded-(--radius-pill)" />
+              <Shimmer className="h-[1.35rem] w-14 rounded-(--radius-pill)" />
+            </div>
+            <Shimmer className="mx-auto mt-2 h-[1.4rem] w-24" />
           </div>
         ))}
       </div>
