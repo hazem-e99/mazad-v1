@@ -6,6 +6,7 @@ import { cn } from "@/lib/cn";
 
 const VISIBLE_MS = 5_000;
 const VIDEO_PLAYBACK_RATE = 2;
+const SEEN_KEY = "mazad_splash_seen";
 
 async function waitForPageAssets() {
   if (document.readyState !== "complete") {
@@ -32,8 +33,27 @@ export function SplashScreen() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [leaving, setLeaving] = useState(false);
   const [hidden, setHidden] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
 
   useEffect(() => {
+    let alreadySeen = true;
+    try {
+      alreadySeen = window.sessionStorage.getItem(SEEN_KEY) === "1";
+      if (!alreadySeen) window.sessionStorage.setItem(SEEN_KEY, "1");
+    } catch {
+      alreadySeen = false;
+    }
+
+    if (alreadySeen) {
+      setHidden(true);
+    } else {
+      setShouldRender(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!shouldRender) return;
+
     let cancelled = false;
 
     document.documentElement.classList.add("overflow-hidden");
@@ -63,7 +83,7 @@ export function SplashScreen() {
     if (videoRef.current) videoRef.current.playbackRate = VIDEO_PLAYBACK_RATE;
   }, []);
 
-  if (hidden) return null;
+  if (!shouldRender || hidden) return null;
 
   const speedUpVideo = (video: HTMLVideoElement | null) => {
     if (video) video.playbackRate = VIDEO_PLAYBACK_RATE;
