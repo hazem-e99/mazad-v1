@@ -14,7 +14,7 @@ import type { PlateDTO } from "@/types/dto";
 /**
  * Deliberately distinct from AuctionCard: a plain "For Sale" tag instead of
  * a live/scheduled status badge, no countdown, and the real uploaded photo
- * as the primary image (never the generated PlateRenderer) — so a visitor
+ * as the primary image (never the generated SaudiPlate) — so a visitor
  * never mistakes a marketplace listing for a live auction.
  */
 export function ListingCard({ listing }: { listing: PlateDTO }) {

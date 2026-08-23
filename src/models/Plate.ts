@@ -41,7 +41,7 @@ const plateSchema = new Schema(
     description: { type: String, trim: true, maxlength: 2000, default: null },
     price: { type: Number, min: 0, default: null },
     // The actual uploaded photo of the physical plate — the platform never
-    // generates plate artwork from letters/numbers/logo. PlateRenderer
+    // generates plate artwork from letters/numbers/logo. SaudiPlate
     // remains a fallback only for records with no real photo yet.
     image: { type: String, default: null },
 
