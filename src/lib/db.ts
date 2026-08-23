@@ -11,6 +11,8 @@ declare global {
 const cached = global.__mongooseConn ?? { conn: null, promise: null };
 global.__mongooseConn = cached;
 
+mongoose.set("bufferCommands", false);
+
 function getMongoUri(): string {
   const uri = process.env.MONGODB_URI?.trim();
   if (!uri) throw new Error("MONGODB_URI environment variable is not set");
@@ -18,8 +20,14 @@ function getMongoUri(): string {
 }
 
 async function connectWithFallbackDns(uri: string) {
+  const options = {
+    serverSelectionTimeoutMS: 8_000,
+    connectTimeoutMS: 8_000,
+    socketTimeoutMS: 20_000,
+  };
+
   try {
-    return await mongoose.connect(uri);
+    return await mongoose.connect(uri, options);
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     const isSrvDnsFailure =
@@ -32,7 +40,7 @@ async function connectWithFallbackDns(uri: string) {
     // proxy that cannot answer SRV/TXT queries required by mongodb+srv://.
     // Retry once against public resolvers before giving up.
     dns.setServers(["1.1.1.1", "8.8.8.8"]);
-    return await mongoose.connect(uri);
+    return await mongoose.connect(uri, options);
   }
 }
 

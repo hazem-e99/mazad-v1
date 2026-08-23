@@ -12,6 +12,18 @@ type LeanSiteSettings = Partial<SiteSettingsDTO> & {
   updatedAt?: Date | string;
 };
 
+const SITE_SETTINGS_TIMEOUT_MS = 5_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      const timeout = setTimeout(() => reject(new Error(`Operation timed out after ${ms}ms`)), ms);
+      if (typeof timeout === "object" && "unref" in timeout) timeout.unref();
+    }),
+  ]);
+}
+
 function toDTO(doc: LeanSiteSettings | null | undefined): SiteSettingsDTO {
   const normalized = normalizeSiteSettings(doc ?? null);
   return {
@@ -23,8 +35,11 @@ function toDTO(doc: LeanSiteSettings | null | undefined): SiteSettingsDTO {
 
 export async function getSiteSettings(): Promise<SiteSettingsDTO> {
   try {
-    await connectDB();
-    const doc = await SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>();
+    await withTimeout(connectDB(), SITE_SETTINGS_TIMEOUT_MS);
+    const doc = await withTimeout(
+      SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>(),
+      SITE_SETTINGS_TIMEOUT_MS
+    );
     return toDTO(doc);
   } catch (err) {
     console.error("site settings failed to load; using defaults:", err);
