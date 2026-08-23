@@ -37,6 +37,9 @@ export function VipPlateCard({
       <div className="relative flex flex-1 items-center justify-center py-4">
         <SaudiPlate
           type={plate.type}
+          usageType={plate.usageType}
+          shape={plate.shape}
+          classification={plate.classification}
           lettersAr={plate.lettersAr}
           lettersEn={plate.lettersEn}
           numbers={plate.numbers}

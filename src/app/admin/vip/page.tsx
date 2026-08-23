@@ -70,6 +70,9 @@ export default async function AdminVipPage() {
                 <div className="mx-4 my-5 flex items-center justify-center sm:mx-5 sm:my-6">
                   <SaudiPlate
                     type={p.type}
+                    usageType={p.usageType}
+                    shape={p.shape}
+                    classification={p.classification}
                     lettersAr={p.lettersAr}
                     lettersEn={p.lettersEn}
                     numbers={p.numbers}

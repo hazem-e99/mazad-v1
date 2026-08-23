@@ -165,6 +165,9 @@ export default async function AdminListingDetailPage({ params }: Props) {
             <div className="flex justify-center">
               <SaudiPlate
                 type={listing.type}
+                usageType={listing.usageType}
+                shape={listing.shape}
+                classification={listing.classification}
                 lettersAr={listing.lettersAr}
                 lettersEn={listing.lettersEn}
                 numbers={listing.numbers}

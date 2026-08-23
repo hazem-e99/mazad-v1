@@ -60,20 +60,49 @@ export function plateClassificationLabel(value: PlateClassification, locale: "ar
 }
 
 // Usage type — independent from classification/size/shape.
-export const USAGE_TYPES = ["private", "transport", "private_transport", "sport"] as const;
+/**
+ * What the plate is licensed for. This is the field that decides the
+ * category colour and symbol on the plate face — see
+ * getPlateUsageStyle() in src/components/plate/plateSpec.ts, which is the
+ * only place that mapping lives.
+ *
+ * The first four are the original set and keep their stored values, so no
+ * migration is needed: `commercial`, `diplomatic` and `temporary` are
+ * pure additions. `transport` is the taxi/public-transport class — its
+ * label was widened to say so, but the value is untouched because rows
+ * already carry it.
+ *
+ * Ordered as the form presents them: the everyday classes first, the
+ * special-registration ones last.
+ */
+export const USAGE_TYPES = [
+  "private", // خصوصي
+  "transport", // نقل عام / أجرة
+  "private_transport", // نقل خاص
+  "commercial", // نقل تجاري (شاحنات)
+  "sport", // رياضية
+  "diplomatic", // دبلوماسي
+  "temporary", // مؤقت
+] as const;
 export type UsageType = (typeof USAGE_TYPES)[number];
 
 export const USAGE_TYPE_LABELS_AR: Record<UsageType, string> = {
   private: "خصوصي",
-  transport: "نقل",
+  transport: "نقل عام / أجرة",
   private_transport: "نقل خاص",
+  commercial: "نقل تجاري",
   sport: "رياضية",
+  diplomatic: "دبلوماسي",
+  temporary: "مؤقت",
 };
 export const USAGE_TYPE_LABELS_EN: Record<UsageType, string> = {
   private: "Private",
-  transport: "Transport",
+  transport: "Public Transport / Taxi",
   private_transport: "Private Transport",
+  commercial: "Commercial Transport",
   sport: "Sport",
+  diplomatic: "Diplomatic",
+  temporary: "Temporary",
 };
 export function usageTypeLabel(value: UsageType, locale: "ar" | "en" = "ar"): string {
   return locale === "en" ? USAGE_TYPE_LABELS_EN[value] : USAGE_TYPE_LABELS_AR[value];

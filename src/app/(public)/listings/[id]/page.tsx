@@ -117,6 +117,9 @@ export default async function ListingDetailPage({ params }: Props) {
             fallback={
               <SaudiPlate
                 type={listing.type}
+                usageType={listing.usageType}
+                shape={listing.shape}
+                classification={listing.classification}
                 lettersAr={listing.lettersAr}
                 lettersEn={listing.lettersEn}
                 numbers={listing.numbers}

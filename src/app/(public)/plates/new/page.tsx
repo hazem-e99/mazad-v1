@@ -282,6 +282,9 @@ export default function NewPlatePage() {
         </span>
         <SaudiPlate
           type={type}
+          usageType={usageType || null}
+          shape={shape || null}
+          classification={classification || null}
           lettersAr={lettersAr || PREVIEW_PLACEHOLDER.lettersAr}
           lettersEn={lettersEn || PREVIEW_PLACEHOLDER.lettersEn}
           numbers={numbers || PREVIEW_PLACEHOLDER.numbers}

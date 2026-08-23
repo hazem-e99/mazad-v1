@@ -14,7 +14,20 @@ type LeanSiteSettings = Partial<SiteSettingsDTO> & {
   updatedAt?: Date | string;
 };
 
-const SITE_SETTINGS_TIMEOUT_MS = 5_000;
+/**
+ * Two budgets, because the two awaits below fail for different reasons.
+ *
+ * Opening the connection is a once-per-process cost and a cold Atlas
+ * handshake measures ~3s here — occasionally more when the SRV lookup
+ * falls back to public resolvers (see connectWithFallbackDns in lib/db).
+ * A 5s cap on that was marginal, so a slow-but-healthy connect tripped
+ * the timeout and the page silently rendered default settings instead of
+ * the admin's. The *query* runs on an already-open pool and returns in
+ * ~350ms, so it keeps a tight budget: past a couple of seconds the
+ * database is genuinely unwell and defaults are the right answer.
+ */
+const SITE_SETTINGS_CONNECT_TIMEOUT_MS = 20_000;
+const SITE_SETTINGS_QUERY_TIMEOUT_MS = 5_000;
 const SITE_SETTINGS_CACHE_TAG = "site-settings";
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
@@ -38,10 +51,10 @@ function toDTO(doc: LeanSiteSettings | null | undefined): SiteSettingsDTO {
 
 const getCachedSiteSettings = unstable_cache(
   async (): Promise<SiteSettingsDTO> => {
-    await withTimeout(connectDB(), SITE_SETTINGS_TIMEOUT_MS);
+    await withTimeout(connectDB(), SITE_SETTINGS_CONNECT_TIMEOUT_MS);
     const doc = await withTimeout(
       SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>(),
-      SITE_SETTINGS_TIMEOUT_MS
+      SITE_SETTINGS_QUERY_TIMEOUT_MS
     );
     return toDTO(doc);
   },

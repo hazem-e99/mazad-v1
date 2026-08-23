@@ -135,6 +135,9 @@ export function FeaturedAds({
                 <div className="flex items-center justify-center">
                   <SaudiPlate
                     type={plate.type}
+                    usageType={plate.usageType}
+                    shape={plate.shape}
+                    classification={plate.classification}
                     lettersAr={plate.lettersAr}
                     lettersEn={plate.lettersEn}
                     numbers={plate.numbers}

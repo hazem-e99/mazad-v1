@@ -108,6 +108,9 @@ export default function AdminNewAuctionPage() {
             <div className="flex items-center justify-center rounded-(--radius-md) bg-(--color-bg-elevated) p-8">
               <SaudiPlate
                 type={selectedPlate.type}
+                usageType={selectedPlate.usageType}
+                shape={selectedPlate.shape}
+                classification={selectedPlate.classification}
                 lettersAr={selectedPlate.lettersAr}
                 lettersEn={selectedPlate.lettersEn}
                 numbers={selectedPlate.numbers}

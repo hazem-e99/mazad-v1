@@ -70,6 +70,9 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
           <CardBody className="flex flex-col items-center gap-4">
             <SaudiPlate
               type={auction.plate.type}
+              usageType={auction.plate.usageType}
+              shape={auction.plate.shape}
+              classification={auction.plate.classification}
               lettersAr={auction.plate.lettersAr}
               lettersEn={auction.plate.lettersEn}
               numbers={auction.plate.numbers}

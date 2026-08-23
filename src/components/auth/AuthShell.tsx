@@ -81,6 +81,9 @@ export function AuthShell({
               >
                 <SaudiPlate
                   type={plate.type}
+                  usageType={plate.usageType}
+                  shape={plate.shape}
+                  classification={plate.classification}
                   lettersAr={plate.lettersAr}
                   lettersEn={plate.lettersEn}
                   numbers={plate.numbers}

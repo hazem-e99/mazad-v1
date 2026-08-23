@@ -31,6 +31,9 @@ export function HeaderVipStrip({ plates }: { plates: PlateDTO[] }) {
             >
               <SaudiPlate
                 type={p.type}
+                usageType={p.usageType}
+                shape={p.shape}
+                classification={p.classification}
                 lettersAr={p.lettersAr}
                 lettersEn={p.lettersEn}
                 numbers={p.numbers}

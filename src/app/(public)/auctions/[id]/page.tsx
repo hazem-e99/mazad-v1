@@ -128,6 +128,9 @@ export default async function AuctionDetailPage({ params }: Props) {
               {/* Drawn from the record, never the uploaded photo. */}
               <SaudiPlate
                 type={auction.plate.type}
+                usageType={auction.plate.usageType}
+                shape={auction.plate.shape}
+                classification={auction.plate.classification}
                 lettersAr={auction.plate.lettersAr}
                 lettersEn={auction.plate.lettersEn}
                 numbers={auction.plate.numbers}

@@ -31,6 +31,9 @@ export function ListingCard({ listing }: { listing: PlateDTO }) {
         <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden bg-(--color-bg-elevated) p-3 pt-11">
           <SaudiPlate
             type={listing.type}
+            usageType={listing.usageType}
+            shape={listing.shape}
+            classification={listing.classification}
             lettersAr={listing.lettersAr}
             lettersEn={listing.lettersEn}
             numbers={listing.numbers}
