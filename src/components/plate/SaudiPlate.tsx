@@ -106,7 +106,12 @@ export function SaudiPlate({
         aria-label={label}
         className={cn(
           "saudi-plate relative grid w-full select-none overflow-hidden rounded-[0.32em] border-[0.065em] border-black bg-[#f4f4f4] text-[#121212] shadow-(--shadow-plate)",
-          "grid-cols-[minmax(0,1.25fr)_minmax(70px,0.82fr)_minmax(0,1.25fr)_2.5rem]",
+          // The emblem column's floor is what keeps the crest legible, but
+          // a 70px one dominated the plate at card scale — it took ~30% of
+          // the width where the real thing gives the crest ~17%, squeezing
+          // the characters either side. 2rem holds the smallest render
+          // without distorting the larger ones.
+          "grid-cols-[minmax(0,1.25fr)_minmax(2rem,0.82fr)_minmax(0,1.25fr)_2.5rem]",
           "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
           typeAspect[type],
           vip && "ring-[0.05em] ring-(--color-gold)/70",
@@ -119,15 +124,23 @@ export function SaudiPlate({
         />
 
         <div className="saudi-plate__numbers relative z-10 flex min-w-0 flex-col items-center justify-center border-e border-black/35 px-[0.2em] py-[0.1em] text-center">
-          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.8rem,2.1cqi,3rem)] text-black">
+          {/* `leading-[1.05]` rather than `leading-none`: Arabic descenders
+              (ي, ن) overflow a line box set to exactly 1em and collide with
+              the Latin line beneath. */}
+          <span className="block font-[900] leading-[1.05] tracking-[0.02em] text-[clamp(0.8rem,2.1cqi,3rem)] text-black">
             {toArabicIndic(numbers)}
           </span>
-          <span className="mt-[0.08em] block font-mono text-[clamp(0.44rem,1.1cqi,1.7rem)] font-black leading-none tracking-[0.08em] text-black/85">
+          {/* The separation is sized against the plate's own width (cqi),
+              not against this span's font-size — an `em` gap here resolves
+              against the small Latin type and collapses to under a pixel. */}
+          <span className="mt-[clamp(0.12rem,1.5cqi,0.9rem)] block font-mono text-[clamp(0.44rem,1.1cqi,1.7rem)] font-black leading-none tracking-[0.08em] text-black/85">
             {numbers}
           </span>
         </div>
 
-        <div className="saudi-plate__emblem relative z-10 flex items-center justify-center border-e border-black/35 py-[0.12em]">
+        {/* Padding in cqi so the crest keeps clear air on both sides of the
+            dividers at every render size, the way it does on real stock. */}
+        <div className="saudi-plate__emblem relative z-10 flex items-center justify-center border-e border-black/35 px-[clamp(0.1rem,1.3cqi,0.85rem)] py-[clamp(0.1rem,1cqi,0.7rem)]">
           {logo ? (
             <PlateLogoIcon logo={logo} locale={locale} className="h-[clamp(1.2rem,2.5cqi,2.8rem)] w-[clamp(1.2rem,2.5cqi,2.8rem)] object-contain text-[#0d5d4a]" />
           ) : (
@@ -136,10 +149,10 @@ export function SaudiPlate({
         </div>
 
         <div className="saudi-plate__letters relative z-10 flex min-w-0 flex-col items-center justify-center px-[0.18em] py-[0.1em] text-center">
-          <span className="block font-[900] leading-none tracking-[0.02em] text-[clamp(0.9rem,2.2cqi,3.1rem)] text-black">
+          <span className="block font-[900] leading-[1.05] tracking-[0.02em] text-[clamp(0.9rem,2.2cqi,3.1rem)] text-black">
             {spaced(lettersAr)}
           </span>
-          <span className="mt-[0.08em] block font-mono text-[clamp(0.48rem,1.15cqi,1.8rem)] font-black leading-none tracking-[0.1em] text-black/85">
+          <span className="mt-[clamp(0.12rem,1.5cqi,0.9rem)] block font-mono text-[clamp(0.48rem,1.15cqi,1.8rem)] font-black leading-none tracking-[0.1em] text-black/85">
             {spaced(lettersEn)}
           </span>
         </div>

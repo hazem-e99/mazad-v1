@@ -83,7 +83,7 @@ export default async function MyPurchasesPage() {
                       <PlatePhoto
                         src={plate.image}
                         alt={title}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain p-2"
                         fallback={
                           <div className="flex h-full min-h-36 items-center justify-center px-4 text-center text-xs text-(--color-text-faint)">
                             {t("pages.noImage")}

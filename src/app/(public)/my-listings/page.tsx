@@ -60,7 +60,7 @@ export default async function MyListingsPage() {
           {listings.map((listing) => (
             <Card key={listing._id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="h-20 w-32 shrink-0 rounded-(--radius-md) overflow-hidden bg-(--color-bg-elevated)">
-                <PlatePhoto src={listing.image} alt="" className="h-full w-full object-cover" fallback={null} />
+                <PlatePhoto src={listing.image} alt="" className="h-full w-full object-contain p-1.5" fallback={null} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">

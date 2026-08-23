@@ -56,7 +56,7 @@ export default async function ListingDetailPage({ params }: Props) {
             <PlatePhoto
               src={listing.image}
               alt={listing.title ?? ""}
-              className="h-full w-full object-cover"
+              className="h-full w-full object-contain p-4"
               fallback={null}
             />
           </div>
