@@ -1,3 +1,5 @@
+import { cache } from "react";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { connectDB } from "@/lib/db";
 import {
   DEFAULT_SITE_SETTINGS,
@@ -13,6 +15,7 @@ type LeanSiteSettings = Partial<SiteSettingsDTO> & {
 };
 
 const SITE_SETTINGS_TIMEOUT_MS = 5_000;
+const SITE_SETTINGS_CACHE_TAG = "site-settings";
 
 function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
@@ -33,19 +36,27 @@ function toDTO(doc: LeanSiteSettings | null | undefined): SiteSettingsDTO {
   };
 }
 
-export async function getSiteSettings(): Promise<SiteSettingsDTO> {
-  try {
+const getCachedSiteSettings = unstable_cache(
+  async (): Promise<SiteSettingsDTO> => {
     await withTimeout(connectDB(), SITE_SETTINGS_TIMEOUT_MS);
     const doc = await withTimeout(
       SiteSettings.findOne({ singletonKey: "site" }).lean<LeanSiteSettings>(),
       SITE_SETTINGS_TIMEOUT_MS
     );
     return toDTO(doc);
+  },
+  [SITE_SETTINGS_CACHE_TAG],
+  { tags: [SITE_SETTINGS_CACHE_TAG], revalidate: 300 }
+);
+
+export const getSiteSettings = cache(async (): Promise<SiteSettingsDTO> => {
+  try {
+    return await getCachedSiteSettings();
   } catch (err) {
     console.error("site settings failed to load; using defaults:", err);
     return normalizeSiteSettings(DEFAULT_SITE_SETTINGS);
   }
-}
+});
 
 export async function saveSiteSettings(input: SiteSettingsDTO): Promise<SiteSettingsDTO> {
   await connectDB();
@@ -55,6 +66,7 @@ export async function saveSiteSettings(input: SiteSettingsDTO): Promise<SiteSett
     { $set: { ...data, singletonKey: "site" } },
     { new: true, upsert: true, setDefaultsOnInsert: true }
   ).lean<LeanSiteSettings>();
+  revalidateTag(SITE_SETTINGS_CACHE_TAG, { expire: 0 });
   return toDTO(doc);
 }
 
