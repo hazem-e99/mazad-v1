@@ -5,14 +5,16 @@ import { Plate } from "@/models/Plate";
 import { Bid } from "@/models/Bid";
 import { User } from "@/models/User";
 import "@/models/PlateLogo";
-import "@/models/PlateCategory";
+import { PlateCategory } from "@/models/PlateCategory";
 import {
   toAuctionDTOList,
   toAuctionSummaryDTOList,
   toPlateDTO,
   toPlateDTOList,
+  toPlateCategoryDTOList,
   type LeanAuction,
   type LeanPlate,
+  type LeanPlateCategory,
 } from "@/lib/dto";
 
 /** The statuses that mean "this auction is over", however it ended. */
@@ -29,25 +31,80 @@ export const getMarketplaceListings = cache(async (limit = 8) => {
 });
 
 /**
- * The three figures behind the home page's proof band.
+ * The four figures behind the home page's stats panel.
  *
- * Every one of them is a count over the same collections the admin
- * dashboard reads, so the public number and the internal number can never
- * disagree. Nothing here is a stated claim: an earlier revision shipped a
- * hardcoded `satisfaction: 98` percent, which the platform has no way to
- * measure and which therefore had no business sitting between two real
- * figures as though it were one.
+ * Every one is a count over the same collections getDashboardStats reads
+ * for /admin/stats, so the public number and the internal number can
+ * never disagree. Nothing here is a stated claim: an earlier revision
+ * shipped a hardcoded `satisfaction: 98` percent, a figure the platform
+ * has no way to measure, sitting between two real ones.
  */
 export const getPlatformStats = cache(async () => {
   await connectDB();
 
-  const [totalBids, totalUsers, soldPlates] = await Promise.all([
-    Bid.countDocuments({ accepted: true }),
+  const [totalUsers, totalPlates, vipPlates, activeAuctions] = await Promise.all([
     User.countDocuments({}),
-    Auction.countDocuments({ status: { $in: ["sold", "purchased"] } }),
+    Plate.countDocuments({ isVisible: true }),
+    Plate.countDocuments({ isVip: true, isVisible: true }),
+    Auction.countDocuments({ status: "live" }),
   ]);
 
-  return { totalBids, totalUsers, soldPlates };
+  return { totalUsers, totalPlates, vipPlates, activeAuctions };
+});
+
+/**
+ * The admin-managed sections shown on the home page.
+ *
+ * Same filter and ordering as GET /api/plate-categories, so a category
+ * the admin adds, renames, reorders or deactivates changes the home page
+ * with no code edit — which is the whole point of the category manager.
+ */
+export const getHomeCategories = cache(async () => {
+  await connectDB();
+
+  const [categories, counts] = await Promise.all([
+    PlateCategory.find({ isActive: true }).sort({ sortOrder: 1, nameAr: 1 }).lean<LeanPlateCategory[]>(),
+    // Grouped in the database rather than by counting each category with
+    // its own query — one round trip regardless of how many categories
+    // the admin has created.
+    Plate.aggregate<{ _id: unknown; count: number }>([
+      { $match: { isVisible: true, moderationStatus: { $nin: ["pending", "rejected"] }, category: { $ne: null } } },
+      { $group: { _id: "$category", count: { $sum: 1 } } },
+    ]),
+  ]);
+
+  const countById = new Map(counts.map((row) => [String(row._id), row.count]));
+
+  return toPlateCategoryDTOList(categories).map((category) => ({
+    ...category,
+    /** How many public plates currently sit in this category. Zero is a
+     * real answer and is rendered as such — a freshly created category
+     * says "0 plates" rather than being hidden. */
+    plateCount: countById.get(category._id) ?? 0,
+  }));
+});
+
+export type HomeCategory = Awaited<ReturnType<typeof getHomeCategories>>[number];
+
+/**
+ * Newest approved marketplace listings, strictly by submission date.
+ *
+ * Distinct from getMarketplaceListings, which sorts featured entries
+ * first: "أحدث اللوحات" is a claim about *recency*, so promoting a
+ * featured older plate into it would make the heading untrue.
+ */
+export const getLatestPlates = cache(async (limit = 8) => {
+  await connectDB();
+  const plates = await Plate.find({
+    submissionType: "marketplace",
+    moderationStatus: "approved",
+    isVisible: true,
+  })
+    .sort({ createdAt: -1 })
+    .limit(limit)
+    .populate("logo")
+    .lean<LeanPlate[]>();
+  return toPlateDTOList(plates);
 });
 
 /** Populate spec shared by every auction card query — the plate and its

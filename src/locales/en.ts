@@ -119,6 +119,7 @@ const en: MessageCatalog = {
     categoryHeritage: "Heritage Plates",
     categoryArchive: "Plate Archive",
     categoryAuctions: "Auctions",
+    categoryPlateCount: "{count} plates",
     sellTitle: "Add Your Plate Now",
     sellSubtitle: "Sell your plate easily and securely with Mazad",
     sellCta: "Add a plate",

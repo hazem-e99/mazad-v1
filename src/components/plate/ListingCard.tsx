@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Crown, Tag } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
+import { PlatePhoto } from "@/components/plate/PlatePhoto";
 import { Badge } from "@/components/ui/Badge";
 import { formatSar } from "@/lib/format";
 import { plateClassificationLabel, usageTypeLabel } from "@/lib/constants";
@@ -23,12 +24,16 @@ export function ListingCard({ listing }: { listing: PlateDTO }) {
     <Card className={cn("group flex flex-col overflow-hidden transition-[transform,border-color,background-color] duration-(--duration-base) hover:-translate-y-0.5 hover:border-(--color-gold)/35 hover:bg-(--color-surface-hover)", listing.isVip && "border-(--color-vip-border) bg-(--color-vip-surface)")}>
       <Link href={`/listings/${listing._id}`} className="flex flex-col flex-1">
         <div className="relative aspect-[4/3] bg-(--color-bg-elevated) overflow-hidden">
-          {listing.image ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.image} alt={listing.title ?? ""} className="h-full w-full object-cover transition-transform duration-(--duration-base) group-hover:scale-[1.03]" />
-          ) : (
-            <div className="h-full w-full flex items-center justify-center text-(--color-text-faint) text-xs">{t("pages.noImage")}</div>
-          )}
+          <PlatePhoto
+            src={listing.image}
+            alt={listing.title ?? ""}
+            className="h-full w-full object-cover transition-transform duration-(--duration-base) group-hover:scale-[1.03]"
+            fallback={
+              <div className="h-full w-full flex items-center justify-center text-(--color-text-faint) text-xs">
+                {t("pages.noImage")}
+              </div>
+            }
+          />
           <div className="absolute inset-x-3 top-3 flex items-center justify-between gap-1.5">
             <Badge tone="neutral" className="gap-1 bg-(--color-surface)/90">
               <Tag className="h-3 w-3" aria-hidden="true" />

@@ -8,6 +8,7 @@ import { Bid } from "@/models/Bid";
 import { hashPassword } from "@/lib/session";
 import { effectivePermissions } from "@/lib/session";
 import { LEGACY_LOGO_SPECS, ensureLegacyPlateLogo } from "./plateLogoAssets";
+import { SEED_PLATE_PHOTO, ensureSeedPlatePhoto } from "./platePhotoAsset";
 import type { PlateType, PlateClassification, UsageType, PlateShape, SubmissionType, ModerationStatus } from "@/lib/constants";
 import type { Types } from "mongoose";
 
@@ -34,15 +35,21 @@ interface PlateSpec {
   ownerUser?: Types.ObjectId;
 }
 
-// A tiny inline placeholder plate photo (data URI would be too large for a
-// document field / not a real upload) — seed listings reference a real
-// static asset already shipped with the app instead of inventing an
-// upload. Falls back gracefully: ListingCard/detail pages render the
-// "no image" empty state if this path doesn't resolve to a file.
-const SEED_PLATE_PHOTO = "/uploads/seed/sample-plate.webp";
+// The placeholder photo seeded listings carry. `ensureSeedPlatePhoto()`
+// (called at the top of seed(), below) actually writes the file this path
+// points at — an earlier revision only wrote the *string* onto every
+// listing and claimed the target was "a real static asset already shipped
+// with the app". It was not: public/uploads is gitignored local storage,
+// so the rows referenced a file that existed nowhere and every seeded
+// listing rendered a broken image.
 
 async function seed() {
   await connectDB();
+
+  // Before any listing references it — a row whose artwork was never
+  // written is exactly the failure this seed used to ship.
+  console.log("Ensuring seed plate photo exists on disk...");
+  await ensureSeedPlatePhoto();
 
   console.log("Clearing existing seed-relevant collections...");
   await Promise.all([

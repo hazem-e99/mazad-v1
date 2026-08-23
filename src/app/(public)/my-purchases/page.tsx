@@ -10,6 +10,7 @@ import "@/models/User";
 import { getSession } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatDateTime, formatSar } from "@/lib/format";
+import { PlatePhoto } from "@/components/plate/PlatePhoto";
 import { toAuctionDTOList, type LeanAuction } from "@/lib/dto";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -79,14 +80,16 @@ export default async function MyPurchasesPage() {
                 <div className="grid grid-cols-1 gap-0 sm:grid-cols-[180px_1fr]">
                   <Link href={`/auctions/${auction._id}`} className="block bg-(--color-bg-elevated)">
                     <div className="aspect-[4/3] sm:h-full sm:aspect-auto">
-                      {plate.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={plate.image} alt={title} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full min-h-36 items-center justify-center px-4 text-center text-xs text-(--color-text-faint)">
-                          {t("pages.noImage")}
-                        </div>
-                      )}
+                      <PlatePhoto
+                        src={plate.image}
+                        alt={title}
+                        className="h-full w-full object-cover"
+                        fallback={
+                          <div className="flex h-full min-h-36 items-center justify-center px-4 text-center text-xs text-(--color-text-faint)">
+                            {t("pages.noImage")}
+                          </div>
+                        }
+                      />
                     </div>
                   </Link>
 

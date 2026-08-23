@@ -16,6 +16,7 @@ import {
 } from "@/lib/constants";
 import { toPlateDTO, type LeanPlate } from "@/lib/dto";
 import { WhatsAppContactButton } from "@/components/plate/WhatsAppContactButton";
+import { PlatePhoto } from "@/components/plate/PlatePhoto";
 
 export const revalidate = 0;
 
@@ -52,10 +53,12 @@ export default async function ListingDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="overflow-hidden">
           <div className="aspect-[4/3] bg-(--color-bg-elevated)">
-            {listing.image ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={listing.image} alt={listing.title ?? ""} className="h-full w-full object-cover" />
-            ) : null}
+            <PlatePhoto
+              src={listing.image}
+              alt={listing.title ?? ""}
+              className="h-full w-full object-cover"
+              fallback={null}
+            />
           </div>
         </Card>
 

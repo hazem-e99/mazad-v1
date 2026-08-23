@@ -1,125 +1,86 @@
 import { Suspense } from "react";
 import {
-  getCompletedAuctions,
+  getHomeCategories,
+  getLatestPlates,
   getLiveAuctions,
-  getMarketplaceListings,
   getPlatformStats,
-  getUpcomingAuctions,
   getVipPlates,
 } from "@/lib/queries";
-import { getServerTranslator } from "@/lib/i18n-server";
+import { getSession, isStaffSession } from "@/lib/auth";
 import { Hero } from "@/components/home/Hero";
-import { TrustBar } from "@/components/home/TrustBar";
-import { LiveAuctionsSection } from "@/components/home/LiveAuctionsSection";
-import { StatsBand } from "@/components/home/StatsBand";
+import { FeaturedAds } from "@/components/home/FeaturedAds";
+import { StatsPanel } from "@/components/home/StatsPanel";
+import { CategoryTiles } from "@/components/home/CategoryTiles";
+import { SellPlateBanner } from "@/components/home/SellPlateBanner";
+import { LatestPlates } from "@/components/home/LatestPlates";
 import {
   CardRowSkeleton,
-  CuratedSkeleton,
-  ListRowsSkeleton,
-  LiveStageSkeleton,
+  CategoryTilesSkeleton,
+  FeaturedAdsSkeleton,
   SectionError,
-  StatsBandSkeleton,
+  SellBannerSkeleton,
+  StatsPanelSkeleton,
 } from "@/components/home/HomeSectionFallbacks";
-import {
-  CompletedResults,
-  CuratedVipSection,
-  DirectSaleSection,
-  HomeFinalCta,
-  UpcomingSchedule,
-} from "@/components/home/HomeEditorialSections";
 
 export const revalidate = 0;
 
 /**
- * Every figure, plate, price and badge below is read from MongoDB at
- * request time through src/lib/queries.ts — there is no fixture, no
- * seeded array and no placeholder anywhere in this tree.
+ * The home page.
  *
- * Each section fetches its own slice and is wrapped in its own Suspense
- * boundary, so a slow collection delays only its own strip and a failing
- * one degrades to that strip's error state instead of turning the whole
- * home page into a 500. `revalidate = 0` keeps it request-fresh; live
- * prices then track the database over the socket (LiveAuctionsSection)
- * rather than waiting for the next navigation.
+ * Reading order, top to bottom: the stage (mark, tagline, search), the
+ * featured panel overlapping its lower edge, the stats band, the
+ * admin-managed categories, the sell-your-plate banner and the newest
+ * listings.
+ *
+ * Every plate, price, count and category below is read from MongoDB at
+ * request time through src/lib/queries.ts. There is no fixture, no seeded
+ * array and no hardcoded figure in this tree — flag a plate VIP, publish
+ * a listing, open an auction or add a category and the matching section
+ * changes on the next request with nothing edited here.
+ *
+ * Each section fetches its own slice inside its own Suspense boundary, so
+ * a slow collection delays one strip and a failing one degrades to that
+ * strip's retry rather than turning the page into a 500.
  */
-export default function HomePage() {
+export default async function HomePage() {
+  const session = await getSession();
+  const viewer = session ? { role: session.role, isStaff: isStaffSession(session) } : null;
+
   return (
     <>
-      <Hero />
+      <Hero viewer={viewer} />
 
-      <section className="mz-section pt-8 sm:pt-10">
-        <div className="mz-container">
-          <TrustBar />
-        </div>
+      {/* The featured panel rides up over the stage's lower fade — the
+          scrim ends in the page canvas, so the overlap has no seam. */}
+      <div className="mz-container relative z-10 -mt-16 sm:-mt-20">
+        <Suspense fallback={<FeaturedAdsSkeleton />}>
+          <FeaturedBlock />
+        </Suspense>
+      </div>
+
+      <div className="mz-container mt-5 sm:mt-6">
+        <Suspense fallback={<StatsPanelSkeleton />}>
+          <StatsBlock />
+        </Suspense>
+      </div>
+
+      <section className="mz-container pt-12 sm:pt-16">
+        <Suspense fallback={<CategoryTilesSkeleton />}>
+          <CategoriesBlock />
+        </Suspense>
       </section>
 
-      <section className="mz-section mz-section-surface">
-        <div className="mz-container">
-          <Suspense fallback={<LiveStageSkeleton />}>
-            <LiveAuctionsBlock />
-          </Suspense>
-        </div>
+      <section className="mz-container pt-12 sm:pt-16">
+        <Suspense fallback={<SellBannerSkeleton />}>
+          <SellBlock />
+        </Suspense>
       </section>
 
-      <Suspense
-        fallback={
-          <section className="mz-section">
-            <div className="mz-container">
-              <CuratedSkeleton />
-            </div>
-          </section>
-        }
-      >
-        <VipBlock />
-      </Suspense>
-
-      <Suspense
-        fallback={
-          <section className="mz-section mz-section-surface">
-            <div className="mz-container">
-              <CardRowSkeleton />
-            </div>
-          </section>
-        }
-      >
-        <MarketplaceBlock />
-      </Suspense>
-
-      <Suspense
-        fallback={
-          <section className="mz-section">
-            <div className="mz-container">
-              <ListRowsSkeleton count={4} />
-            </div>
-          </section>
-        }
-      >
-        <UpcomingBlock />
-      </Suspense>
-
-      <Suspense
-        fallback={
-          <section className="mz-section mz-section-surface">
-            <div className="mz-container">
-              <ListRowsSkeleton count={5} height="h-20" />
-            </div>
-          </section>
-        }
-      >
-        <CompletedBlock />
-      </Suspense>
-
-      <section className="mz-section pt-0">
-        <div className="mz-container">
-          <Suspense fallback={<StatsBandSkeleton />}>
-            <StatsBlock />
-          </Suspense>
-        </div>
+      <section className="mz-container pb-16 pt-12 sm:pb-20 sm:pt-16">
+        <Suspense fallback={<CardRowSkeleton count={4} />}>
+          <LatestBlock />
+        </Suspense>
       </section>
-
-      <Suspense fallback={null}>
-        <FinalCtaBlock />
-      </Suspense>
     </>
   );
 }
@@ -127,7 +88,7 @@ export default function HomePage() {
 /**
  * A section's query failing is a section-sized problem. Logging keeps the
  * cause visible on the server; the reader gets that strip's retry rather
- * than an error page in place of the entire home page.
+ * than an error page in place of the whole home page.
  */
 async function section<T>(name: string, load: () => Promise<T>): Promise<T | null> {
   try {
@@ -138,114 +99,44 @@ async function section<T>(name: string, load: () => Promise<T>): Promise<T | nul
   }
 }
 
-async function LiveAuctionsBlock() {
-  const data = await section("live-auctions", async () => {
-    const [live, upcoming] = await Promise.all([getLiveAuctions(8), getUpcomingAuctions(6)]);
-    return { live, upcoming };
+async function FeaturedBlock() {
+  const data = await section("featured-ads", async () => {
+    // Live auctions come along so a featured plate that is currently
+    // under the hammer shows its bid price, tracked over the socket,
+    // instead of a stale asking price.
+    const [plates, liveAuctions] = await Promise.all([getVipPlates(10), getLiveAuctions(8)]);
+    return { plates, liveAuctions };
   });
 
   if (!data) return <SectionError />;
+  if (data.plates.length === 0) return null;
 
-  // Scheduled auctions are watched but not rendered here: their rooms are
-  // what carry `auction_started`, which is how a newly-opened auction
-  // reaches this section without a reload.
-  const watchIds = [...data.live, ...data.upcoming].map((auction) => auction._id);
-
-  return <LiveAuctionsSection auctions={data.live} watchIds={watchIds} />;
-}
-
-async function VipBlock() {
-  const [plates, translator] = await Promise.all([
-    section("vip-plates", () => getVipPlates(5)),
-    getServerTranslator(),
-  ]);
-
-  if (!plates) {
-    return (
-      <section className="mz-section">
-        <div className="mz-container">
-          <SectionError />
-        </div>
-      </section>
-    );
-  }
-
-  return <CuratedVipSection plates={plates} locale={translator.locale} t={translator.t} />;
-}
-
-async function MarketplaceBlock() {
-  const [listings, translator] = await Promise.all([
-    section("marketplace", () => getMarketplaceListings(3)),
-    getServerTranslator(),
-  ]);
-
-  if (!listings) {
-    return (
-      <section className="mz-section mz-section-surface">
-        <div className="mz-container">
-          <SectionError />
-        </div>
-      </section>
-    );
-  }
-
-  return <DirectSaleSection listings={listings} locale={translator.locale} t={translator.t} />;
-}
-
-async function UpcomingBlock() {
-  const [auctions, translator] = await Promise.all([
-    section("upcoming-auctions", () => getUpcomingAuctions(6)),
-    getServerTranslator(),
-  ]);
-
-  if (!auctions) {
-    return (
-      <section className="mz-section">
-        <div className="mz-container">
-          <SectionError />
-        </div>
-      </section>
-    );
-  }
-
-  return <UpcomingSchedule auctions={auctions} locale={translator.locale} t={translator.t} />;
-}
-
-async function CompletedBlock() {
-  const [auctions, translator] = await Promise.all([
-    section("completed-auctions", () => getCompletedAuctions(6)),
-    getServerTranslator(),
-  ]);
-
-  if (!auctions) {
-    return (
-      <section className="mz-section mz-section-surface">
-        <div className="mz-container">
-          <SectionError />
-        </div>
-      </section>
-    );
-  }
-
-  return <CompletedResults auctions={auctions} locale={translator.locale} t={translator.t} />;
+  return <FeaturedAds plates={data.plates} liveAuctions={data.liveAuctions} />;
 }
 
 async function StatsBlock() {
   const stats = await section("stats", () => getPlatformStats());
   if (!stats) return <SectionError />;
-  return <StatsBand stats={stats} />;
+  return <StatsPanel stats={stats} />;
 }
 
-async function FinalCtaBlock() {
-  // Same argument as the VIP section above, so React's per-request cache
-  // serves this from that section's read instead of issuing a second query.
-  const [plates, translator] = await Promise.all([
-    section("final-cta", () => getVipPlates(5)),
-    getServerTranslator(),
-  ]);
+async function CategoriesBlock() {
+  const categories = await section("categories", () => getHomeCategories());
+  if (!categories) return <SectionError />;
+  if (categories.length === 0) return null;
+  return <CategoryTiles categories={categories} />;
+}
 
-  // The closing panel's plate is decoration around a call to action — if
-  // that one read fails the panel still renders, with its own fallback
-  // mark instead of a plate.
-  return <HomeFinalCta plate={plates?.[0]} locale={translator.locale} t={translator.t} />;
+async function SellBlock() {
+  // Same argument as the latest-plates section, so React's per-request
+  // cache serves this from that read rather than querying twice.
+  const plates = await section("sell-banner", () => getLatestPlates(8));
+  return <SellPlateBanner plates={plates ?? []} />;
+}
+
+async function LatestBlock() {
+  const plates = await section("latest-plates", () => getLatestPlates(8));
+  if (!plates) return <SectionError />;
+  if (plates.length === 0) return null;
+  return <LatestPlates plates={plates} />;
 }

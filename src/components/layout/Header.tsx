@@ -26,15 +26,15 @@ import { Drawer } from "@/components/ui/Drawer";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
+import { TopSocialBar } from "@/components/home/TopSocialBar";
 import { MazadLogo } from "@/components/layout/MazadLogo";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
-import type { UserRole } from "@/lib/constants";
+import { accountNavItems, isNavItemActive, mainNavItems, type HeaderViewer } from "@/lib/navItems";
 
-export interface HeaderViewer {
-  role: UserRole;
-  isStaff: boolean;
-}
+// Re-exported so existing importers keep working; the definition itself
+// lives with the nav data it describes.
+export type { HeaderViewer };
 
 export function Header({ viewer }: { viewer: HeaderViewer | null }) {
   const pathname = usePathname();
@@ -65,25 +65,12 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
     return () => window.clearTimeout(reset);
   }, [pathname]);
 
-  const navItems = [
-    { href: "/", label: t("nav.home"), icon: Home },
-    { href: "/auctions", label: t("nav.auctions"), icon: Gavel },
-    { href: "/listings", label: t("nav.marketplace"), icon: Store },
-    { href: "/auctions/exclusive", label: t("nav.exclusive"), icon: Sparkles },
-    { href: "/vip", label: t("nav.vip"), icon: Crown },
-    ...(viewer ? [{ href: "/account/plates", label: t("nav.myPlates"), icon: IdCard }] : []),
-    { href: "/ads", label: t("nav.ads"), icon: Megaphone },
-    { href: "/chat", label: t("nav.chat"), icon: MessageCircle },
-  ];
+  // Shared with the hero drawer and the bottom bar, so the three can
+  // never offer different destinations.
+  const navItems = mainNavItems(viewer).map((item) => ({ ...item, label: t(item.labelKey) }));
+  const accountItems = accountNavItems(viewer).map((item) => ({ ...item, label: t(item.labelKey) }));
 
-  const accountItems = [
-    { href: "/account", label: t("nav.myAccount"), icon: UserRound },
-    { href: "/account/plates", label: t("nav.myPlates"), icon: IdCard },
-    { href: "/account/bids", label: t("nav.myBids"), icon: TrendingUp },
-    ...(viewer?.isStaff ? [{ href: "/admin", label: t("nav.dashboard"), icon: LayoutDashboard }] : []),
-  ];
-
-  const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
+  const isActive = (href: string) => isNavItemActive(href, pathname);
 
   async function handleLogout() {
     try {
@@ -95,6 +82,12 @@ export function Header({ viewer }: { viewer: HeaderViewer | null }) {
       push(t("common.actionFailed"), "error");
     }
   }
+
+  // The home page is its own header: the hero carries the menu button and
+  // the sign-in pill over the artwork (see HeroChrome), so a second bar
+  // stacked above it would push the stage down and duplicate the nav.
+  // What survives here is the charcoal social strip that sits above it.
+  if (pathname === "/") return <TopSocialBar />;
 
   return (
     <header

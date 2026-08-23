@@ -37,6 +37,31 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
 }
 
 /**
+ * Stores an image under a caller-chosen, stable filename instead of a
+ * random UUID.
+ *
+ * Uploads get a UUID because two users uploading `plate.jpg` must not
+ * collide. Fixture artwork has the opposite requirement: the seed and the
+ * repair script need to write *the same* path every run, so a database row
+ * that already references it heals without a rewrite. Kept here rather
+ * than writing files directly from the seed so local disk stays swappable
+ * for object storage behind this one module.
+ */
+export async function saveImageAt(source: Buffer, subdir: string, filename: string): Promise<string> {
+  const dir = path.join(/* turbopackIgnore: true */ UPLOAD_DIR, subdir);
+  await mkdir(dir, { recursive: true });
+
+  const optimized = await sharp(source)
+    .resize({ width: 1920, withoutEnlargement: true })
+    .webp({ quality: 82 })
+    .toBuffer();
+
+  await writeFile(path.join(dir, filename), optimized);
+
+  return `/uploads/${subdir}/${filename}`;
+}
+
+/**
  * Whether the file a stored public path points at is actually present in
  * the configured storage. Stored paths outlive their files more easily
  * than they look: uploads live on local disk, outside git, while the

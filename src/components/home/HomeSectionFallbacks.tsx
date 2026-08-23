@@ -11,87 +11,48 @@ import { cn } from "@/lib/cn";
  *
  * The page fetches each section's data separately precisely so that one
  * slow or failing collection cannot decide the fate of the whole page —
- * these are what the reader sees in that section's place meanwhile. They
- * hold the section's own footprint so nothing below them jumps when the
- * real content arrives.
+ * these are what the reader sees in that section's place meanwhile. Each
+ * holds its section's real footprint, so nothing below it jumps when the
+ * content arrives.
  */
 
 function Shimmer({ className }: { className?: string }) {
-  return <div className={cn("animate-pulse rounded-(--radius-md) bg-(--color-surface-hover)", className)} />;
+  return <div className={cn("mz-skeleton animate-pulse rounded-(--radius-md)", className)} />;
 }
 
-function SectionHeadingSkeleton() {
+function HeadingSkeleton() {
   return (
-    <div className="mb-10 flex flex-wrap items-end justify-between gap-6">
-      <div className="max-w-2xl space-y-3">
-        <Shimmer className="h-9 w-64 sm:h-10 sm:w-80" />
-        <Shimmer className="h-4 w-72 sm:w-96" />
-      </div>
-      <Shimmer className="h-5 w-20" />
-    </div>
-  );
-}
-
-/** The live stage: heading plus the two-column stage block. */
-export function LiveStageSkeleton() {
-  return (
-    <div className="space-y-8" aria-busy="true" aria-live="polite">
-      <div className="space-y-3">
-        <Shimmer className="h-9 w-56 sm:h-11 sm:w-72" />
+    <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div className="space-y-2.5">
+        <Shimmer className="h-8 w-52 sm:h-9 sm:w-64" />
         <Shimmer className="h-4 w-64 sm:w-80" />
       </div>
-      <div className="grid min-h-[25rem] grid-cols-1 border-y border-(--color-border-strong) bg-(--color-surface) sm:min-h-[30rem] lg:min-h-[34rem] lg:grid-cols-[minmax(360px,0.8fr)_minmax(0,1.4fr)]">
-        <div className="flex flex-col justify-center gap-5 p-6 sm:p-8 lg:p-10 xl:p-12">
-          <Shimmer className="h-4 w-24" />
-          <Shimmer className="h-8 w-3/4" />
-          <Shimmer className="h-14 w-2/3" />
-          <Shimmer className="h-12 w-full" />
-          <Shimmer className="h-13 w-full" />
-        </div>
-        <div className="flex items-center justify-center border-t border-(--color-border) bg-(--color-bg) p-8 lg:border-s lg:border-t-0">
-          <Shimmer className="aspect-[5/1] w-full max-w-[42rem]" />
-        </div>
-      </div>
+      <Shimmer className="h-10 w-32 rounded-(--radius-pill)" />
     </div>
   );
 }
 
-/** The VIP editorial split: one tall feature beside a stack of rows. */
-export function CuratedSkeleton() {
+/** The charcoal featured panel, with its row of cards. */
+export function FeaturedAdsSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite">
-      <SectionHeadingSkeleton />
-      <div className="grid gap-10 lg:grid-cols-[1.35fr_0.65fr] lg:gap-14">
-        <Shimmer className="min-h-[25rem] rounded-(--radius-xl) sm:min-h-[31rem]" />
-        <div className="divide-y divide-(--color-border) border-y border-(--color-border)">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="grid min-h-28 grid-cols-[7rem_1fr] items-center gap-4 py-4 sm:grid-cols-[8rem_1fr]">
-              <Shimmer className="h-16" />
-              <div className="space-y-2">
-                <Shimmer className="h-4 w-3/4" />
-                <Shimmer className="h-3 w-1/2" />
-              </div>
-            </div>
-          ))}
+    <div className="mz-panel-premium rounded-(--radius-xl) p-5 sm:p-7" aria-busy="true" aria-live="polite">
+      <div className="mb-6 flex items-center gap-3">
+        <Shimmer className="h-11 w-11 rounded-(--radius-md) bg-white/10" />
+        <div className="space-y-2">
+          <Shimmer className="h-6 w-40 bg-white/10" />
+          <Shimmer className="h-3.5 w-32 bg-white/10" />
         </div>
       </div>
-    </div>
-  );
-}
-
-/** A row of equal cards — the direct-sale strip. */
-export function CardRowSkeleton({ count = 3 }: { count?: number }) {
-  return (
-    <div aria-busy="true" aria-live="polite">
-      <SectionHeadingSkeleton />
-      <div className="grid border-y border-(--color-border) lg:grid-cols-3">
-        {Array.from({ length: count }).map((_, i) => (
-          <div key={i} className="flex flex-col gap-6 border-b border-(--color-border) p-5 sm:p-7 lg:border-b-0 lg:border-s">
-            <Shimmer className="aspect-[1.5/1] rounded-(--radius-lg)" />
-            <div className="space-y-2">
-              <Shimmer className="h-5 w-2/3" />
-              <Shimmer className="h-4 w-1/3" />
-            </div>
+      <div className="flex gap-4 overflow-hidden">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="flex w-[16.5rem] shrink-0 flex-col gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4 sm:w-[17.5rem]"
+          >
+            <Shimmer className="h-6 w-16 rounded-(--radius-pill)" />
+            <Shimmer className="h-[4.5rem] w-full" />
+            <Shimmer className="mx-auto h-6 w-32" />
+            <Shimmer className="mx-auto h-7 w-24" />
           </div>
         ))}
       </div>
@@ -99,34 +60,60 @@ export function CardRowSkeleton({ count = 3 }: { count?: number }) {
   );
 }
 
-/** Stacked list rows — the upcoming schedule and the results strip. */
-export function ListRowsSkeleton({ count = 4, height = "h-28" }: { count?: number; height?: string }) {
+/** The four-figure frosted band. */
+export function StatsPanelSkeleton() {
   return (
-    <div aria-busy="true" aria-live="polite">
-      <SectionHeadingSkeleton />
-      <div className="space-y-3">
-        {Array.from({ length: count }).map((_, i) => (
-          <Shimmer key={i} className={cn("w-full rounded-(--radius-xl)", height)} />
+    <div className="mz-panel-stats rounded-(--radius-xl) px-2 py-5 sm:px-4 sm:py-6" aria-busy="true" aria-live="polite">
+      <div className="grid grid-cols-2 gap-y-6 lg:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="flex flex-col items-center gap-2 px-3 sm:px-6">
+            <Shimmer className="h-11 w-11 rounded-(--radius-md)" />
+            <Shimmer className="h-4 w-20" />
+            <Shimmer className="h-7 w-16" />
+            <Shimmer className="h-3 w-14" />
+          </div>
         ))}
       </div>
     </div>
   );
 }
 
-/** The three-figure proof band. */
-export function StatsBandSkeleton() {
+/** The category row. */
+export function CategoryTilesSkeleton() {
   return (
-    <div
-      className="grid grid-cols-1 divide-y divide-(--color-border) border-y border-(--color-border) bg-(--color-bg-elevated) sm:grid-cols-3 sm:divide-x sm:divide-y-0"
-      aria-busy="true"
-      aria-live="polite"
-    >
-      {Array.from({ length: 3 }).map((_, i) => (
-        <div key={i} className="flex flex-col items-center gap-2 px-6 py-10">
-          <Shimmer className="h-9 w-24 sm:h-10" />
-          <Shimmer className="h-4 w-20" />
-        </div>
-      ))}
+    <div aria-busy="true" aria-live="polite">
+      <HeadingSkeleton />
+      <div className="flex gap-3 overflow-hidden sm:grid sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Shimmer key={i} className="h-[9.5rem] w-36 shrink-0 rounded-(--radius-lg) sm:w-auto" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** The charcoal sell-your-plate banner. */
+export function SellBannerSkeleton() {
+  return <Shimmer className="h-40 w-full rounded-(--radius-xl) sm:h-44" aria-busy="true" />;
+}
+
+/** A grid of equal listing cards — the newest plates. */
+export function CardRowSkeleton({ count = 4 }: { count?: number }) {
+  return (
+    <div aria-busy="true" aria-live="polite">
+      <HeadingSkeleton />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: count }).map((_, i) => (
+          <div
+            key={i}
+            className="flex flex-col gap-3.5 rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-4"
+          >
+            <Shimmer className="h-[4.25rem] w-full" />
+            <Shimmer className="h-6 w-28" />
+            <Shimmer className="h-6 w-24" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -144,7 +131,7 @@ export function SectionError({ className }: { className?: string }) {
     <div
       role="alert"
       className={cn(
-        "flex flex-col items-center justify-center gap-4 rounded-(--radius-xl) border border-dashed border-(--color-border-strong) bg-(--color-bg-elevated)/50 px-6 py-14 text-center",
+        "flex flex-col items-center justify-center gap-4 rounded-(--radius-xl) border border-dashed border-(--color-border-strong) bg-(--color-bg-elevated)/60 px-6 py-12 text-center",
         className
       )}
     >

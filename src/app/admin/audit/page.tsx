@@ -1,5 +1,20 @@
 import Link from "next/link";
-import { History, PlusCircle, Pencil, Flag, Activity, type LucideIcon } from "lucide-react";
+import {
+  History,
+  PlusCircle,
+  Pencil,
+  Flag,
+  Activity,
+  CheckCircle2,
+  XCircle,
+  Trash2,
+  Archive,
+  Upload,
+  EyeOff,
+  ShoppingBag,
+  RefreshCw,
+  type LucideIcon,
+} from "lucide-react";
 import { getPaginatedAuditLogs } from "@/lib/adminQueries";
 import { TableContainer, Table, Thead, Th, Td, Tr } from "@/components/ui/Table";
 import { Badge } from "@/components/ui/Badge";
@@ -9,6 +24,7 @@ import { Pagination } from "@/components/ui/Pagination";
 import { Card } from "@/components/ui/Card";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatDateTime } from "@/lib/format";
+import { auditActionLabel } from "@/lib/constants";
 
 export const revalidate = 0;
 
@@ -21,10 +37,21 @@ const entityTone: Record<string, "gold" | "scheduled" | "neutral"> = {
   Advertisement: "neutral",
 };
 
+// Keyed by the verb after the dot, so every entity type shares one icon
+// vocabulary — a supervisor scanning the column reads the *kind* of
+// change before reading a word of it.
 const actionIcon: Record<string, LucideIcon> = {
   created: PlusCircle,
   updated: Pencil,
   finalized: Flag,
+  approved: CheckCircle2,
+  rejected: XCircle,
+  deleted: Trash2,
+  archived: Archive,
+  submitted: Upload,
+  hidden: EyeOff,
+  direct_purchase: ShoppingBag,
+  status_changed: RefreshCw,
 };
 
 function iconForAction(action: string): LucideIcon {
@@ -88,7 +115,9 @@ export default async function AdminAuditPage({ searchParams }: Props) {
                     </div>
                     <span className="shrink-0 text-xs text-(--color-text-faint)">{formatDateTime(log.createdAt, locale)}</span>
                   </div>
-                  <p className="font-mono text-xs text-(--color-text-muted)">{log.action}</p>
+                  <p className="text-sm text-(--color-text-muted)" title={log.action}>
+                    {auditActionLabel(log.action, locale)}
+                  </p>
                   <div className="flex items-center justify-between text-xs text-(--color-text-faint)">
                     <Badge tone={entityTone[log.entityType] ?? "neutral"}>{log.entityType}</Badge>
                     {entityLink ? (
@@ -131,10 +160,10 @@ export default async function AdminAuditPage({ searchParams }: Props) {
                             {log.actor?.phone}
                           </span>
                         </Td>
-                        <Td className="font-mono text-xs">
-                          <span className="flex items-center gap-2">
+                        <Td>
+                          <span className="flex items-center gap-2" title={log.action}>
                             <Icon className="h-3.5 w-3.5 text-(--color-text-faint) shrink-0" aria-hidden="true" strokeWidth={2} />
-                            {log.action}
+                            {auditActionLabel(log.action, locale)}
                           </span>
                         </Td>
                         <Td>

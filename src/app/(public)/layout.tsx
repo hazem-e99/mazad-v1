@@ -1,5 +1,6 @@
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
+import { BottomNav } from "@/components/layout/BottomNav";
 import { getSession, isStaffSession } from "@/lib/auth";
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
@@ -20,6 +21,7 @@ export default async function PublicLayout({ children }: { children: React.React
       <Header viewer={viewer} />
       <main className="flex-1">{children}</main>
       <Footer />
+      <BottomNav />
     </>
   );
 }

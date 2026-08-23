@@ -117,6 +117,7 @@ export interface MessageCatalog {
     categoryHeritage: string;
     categoryArchive: string;
     categoryAuctions: string;
+    categoryPlateCount: string;
     sellTitle: string;
     sellSubtitle: string;
     sellCta: string;
@@ -909,6 +910,7 @@ const ar: MessageCatalog = {
     categoryHeritage: "لوحات تراثية",
     categoryArchive: "أرشيف اللوحات",
     categoryAuctions: "المزادات",
+    categoryPlateCount: "{count} لوحة",
     sellTitle: "أضف لوحتك الآن",
     sellSubtitle: "بيع لوحتك بسهولة وأمان مع منصة مزاد",
     sellCta: "إضافة لوحة",

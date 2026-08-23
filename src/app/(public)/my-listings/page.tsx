@@ -9,6 +9,7 @@ import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
+import { PlatePhoto } from "@/components/plate/PlatePhoto";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/layout/EmptyState";
 import { toPlateDTOList, type LeanPlate } from "@/lib/dto";
@@ -59,10 +60,7 @@ export default async function MyListingsPage() {
           {listings.map((listing) => (
             <Card key={listing._id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
               <div className="h-20 w-32 shrink-0 rounded-(--radius-md) overflow-hidden bg-(--color-bg-elevated)">
-                {listing.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={listing.image} alt="" className="h-full w-full object-cover" />
-                ) : null}
+                <PlatePhoto src={listing.image} alt="" className="h-full w-full object-cover" fallback={null} />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
