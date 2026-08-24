@@ -202,8 +202,11 @@ export function buildSchemas(t: Translate) {
     numbers: plateNumbers,
     logo: objectId.nullable().optional(),
     classification: z.enum(PLATE_CLASSIFICATIONS, { error: () => v("selectRequired") }).nullable().optional(),
-    usageType: z.enum(USAGE_TYPES, { error: () => v("selectRequired") }).nullable().optional(),
-    shape: z.enum(PLATE_SHAPES, { error: () => v("selectRequired") }).nullable().optional(),
+    // Required (unlike classification/size below): the wizard's
+    // usage-type -> shape -> logo chain always supplies both from here on,
+    // so a listing missing either would mean the client skipped the flow.
+    usageType: z.enum(USAGE_TYPES, { error: () => v("selectRequired") }),
+    shape: z.enum(PLATE_SHAPES, { error: () => v("selectRequired") }),
     size: z.enum(PLATE_SIZES, { error: () => v("selectRequired") }).nullable().optional(),
     category: objectId.nullable().optional(),
     title,
@@ -244,6 +247,8 @@ export function buildSchemas(t: Translate) {
     image: z.string().min(1, v("logoImageRequired")),
     isActive: z.boolean().default(true),
     sortOrder: sortOrder.default(0),
+    allowedUsageTypes: z.array(z.enum(USAGE_TYPES)).default([]),
+    allowedShapes: z.array(z.enum(PLATE_SHAPES)).default([]),
   });
 
   const plateLogoUpdateSchema = z.object({
@@ -252,6 +257,8 @@ export function buildSchemas(t: Translate) {
     image: z.string().min(1, v("logoImageRequired")).optional(),
     isActive: z.boolean().optional(),
     sortOrder: sortOrder.optional(),
+    allowedUsageTypes: z.array(z.enum(USAGE_TYPES)).optional(),
+    allowedShapes: z.array(z.enum(PLATE_SHAPES)).optional(),
   });
 
   const auctionSchema = z

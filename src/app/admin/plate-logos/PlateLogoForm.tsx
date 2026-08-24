@@ -11,6 +11,8 @@ import { useToastStore } from "@/hooks/useToast";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { USAGE_TYPES, usageTypeLabel, PLATE_SHAPES, plateShapeLabel } from "@/lib/constants";
+import type { UsageType, PlateShape } from "@/lib/constants";
 import type { PlateLogoDTO } from "@/types/dto";
 
 interface PlateLogoFormProps {
@@ -21,11 +23,13 @@ interface PlateLogoFormProps {
 export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
   const router = useRouter();
   const push = useToastStore((s) => s.push);
-  const { t } = useTranslations();
+  const { t, locale } = useTranslations();
   const [nameAr, setNameAr] = useState(initial?.nameAr ?? "");
   const [nameEn, setNameEn] = useState(initial?.nameEn ?? "");
   const [isActive, setIsActive] = useState(initial?.isActive ?? true);
   const [sortOrder, setSortOrder] = useState(String(initial?.sortOrder ?? 0));
+  const [allowedUsageTypes, setAllowedUsageTypes] = useState<UsageType[]>(initial?.allowedUsageTypes ?? []);
+  const [allowedShapes, setAllowedShapes] = useState<PlateShape[]>(initial?.allowedShapes ?? []);
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
@@ -51,6 +55,8 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
       nameEn,
       isActive,
       sortOrder: Number.isFinite(parsedSortOrder) ? parsedSortOrder : NaN,
+      allowedUsageTypes,
+      allowedShapes,
       // On edit the already-stored image satisfies the requirement; on
       // create only a freshly picked file does.
       image: file ? "pending-upload" : existingImage ?? "",
@@ -193,6 +199,42 @@ export function PlateLogoForm({ mode, initial }: PlateLogoFormProps) {
             checked={isActive}
             onChange={(e) => setIsActive(e.target.checked)}
           />
+
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-(--color-text)">{t("admin.logoAllowedUsageTypesLabel")}</span>
+            <p className="text-xs text-(--color-text-faint)">{t("admin.logoAllowedUsageTypesHint")}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              {USAGE_TYPES.map((item) => (
+                <Checkbox
+                  key={item}
+                  label={usageTypeLabel(item, locale)}
+                  checked={allowedUsageTypes.includes(item)}
+                  onChange={(e) =>
+                    setAllowedUsageTypes((prev) =>
+                      e.target.checked ? [...prev, item] : prev.filter((v) => v !== item)
+                    )
+                  }
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <span className="text-sm font-medium text-(--color-text)">{t("admin.logoAllowedShapesLabel")}</span>
+            <p className="text-xs text-(--color-text-faint)">{t("admin.logoAllowedShapesHint")}</p>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {PLATE_SHAPES.map((item) => (
+                <Checkbox
+                  key={item}
+                  label={plateShapeLabel(item, locale)}
+                  checked={allowedShapes.includes(item)}
+                  onChange={(e) =>
+                    setAllowedShapes((prev) => (e.target.checked ? [...prev, item] : prev.filter((v) => v !== item)))
+                  }
+                />
+              ))}
+            </div>
+          </div>
 
           {formError && (
             <p role="alert" className="text-sm font-medium text-(--color-danger)">

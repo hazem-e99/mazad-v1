@@ -48,6 +48,10 @@ export interface PlateLogoDTO {
   image: string;
   isActive: boolean;
   sortOrder: number;
+  /** Empty = unrestricted on that axis — see getAllowedLogos() in
+   * src/lib/plateFormConfig.ts, the only place this filtering happens. */
+  allowedUsageTypes: UsageType[];
+  allowedShapes: PlateShape[];
   createdAt: string;
   updatedAt: string;
 }

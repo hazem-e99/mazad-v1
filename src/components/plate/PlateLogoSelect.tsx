@@ -15,6 +15,13 @@ interface PlateLogoSelectProps {
   loadError?: boolean;
   label?: string;
   id?: string;
+  /** Forces the closed/disabled state regardless of loading — used by the
+   * add-plate wizard while an earlier field in the usage-type -> shape ->
+   * logo chain hasn't been picked yet. */
+  disabled?: boolean;
+  /** Shown in the trigger instead of the "no logo" text while `disabled`
+   * is true for a dependency reason (rather than loading/error). */
+  placeholder?: string;
 }
 
 /**
@@ -26,7 +33,16 @@ interface PlateLogoSelectProps {
  * Purely presentational — the caller owns the fetch (via usePlateLogos())
  * so a page needing both the selector and a live preview only fetches once.
  */
-export function PlateLogoSelect({ value, onChange, logos, loadError = false, label, id }: PlateLogoSelectProps) {
+export function PlateLogoSelect({
+  value,
+  onChange,
+  logos,
+  loadError = false,
+  label,
+  id,
+  disabled = false,
+  placeholder,
+}: PlateLogoSelectProps) {
   const { t, locale } = useTranslations();
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -53,7 +69,7 @@ export function PlateLogoSelect({ value, onChange, logos, loadError = false, lab
   }, [open]);
 
   function openList() {
-    if (loading || loadError) return;
+    if (loading || loadError || disabled) return;
     const idx = options.findIndex((o) => (o?._id ?? null) === value);
     setActiveIndex(idx >= 0 ? idx : 0);
     setOpen(true);
@@ -111,13 +127,15 @@ export function PlateLogoSelect({ value, onChange, logos, loadError = false, lab
               openList();
             }
           }}
-          disabled={loading || loadError}
+          disabled={loading || loadError || disabled}
           className="flex h-11 w-full items-center gap-2.5 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-bg-elevated) px-3 text-sm text-(--color-text) disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)"
         >
           {loading ? (
             <span className="text-(--color-text-faint)">{t("common.loading")}</span>
           ) : loadError ? (
             <span className="text-(--color-danger)">{t("pages.plateLogosLoadError")}</span>
+          ) : disabled && placeholder ? (
+            <span className="text-(--color-text-faint)">{placeholder}</span>
           ) : selected ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element -- small fixed-size thumbnail, not worth next/image's overhead */}

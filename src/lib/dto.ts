@@ -97,6 +97,8 @@ export interface LeanPlateLogo {
   image: string;
   isActive: boolean;
   sortOrder: number;
+  allowedUsageTypes: UsageType[];
+  allowedShapes: PlateShape[];
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -109,6 +111,8 @@ export function toPlateLogoDTO(logo: LeanPlateLogo): PlateLogoDTO {
     image: logo.image,
     isActive: logo.isActive,
     sortOrder: logo.sortOrder,
+    allowedUsageTypes: logo.allowedUsageTypes ?? [],
+    allowedShapes: logo.allowedShapes ?? [],
     createdAt: dateToISOString(logo.createdAt),
     updatedAt: dateToISOString(logo.updatedAt),
   };

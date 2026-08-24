@@ -33,6 +33,12 @@ export function plateTypeLabel(type: PlateType, locale: "ar" | "en" = "ar"): str
   return locale === "en" ? PLATE_TYPE_LABELS_EN[type] : PLATE_TYPE_LABELS_AR[type];
 }
 
+// `wide` / `small_square` / `small_sport` are kept in PLATE_TYPES only so
+// legacy records (created before `shape` existed) still validate and render
+// — see TYPE_TO_SHAPE in plateSpec.ts. New listings pick shape separately,
+// so the "نوع اللوحة" select should only offer the true type dimension.
+export const PLATE_TYPE_FORM_OPTIONS: readonly PlateType[] = ["transfer", "individual", "private", "sport"];
+
 // Plate logos are no longer a hardcoded enum — see src/models/PlateLogo.ts.
 // The admin manages the list dynamically; a plate's `logo` is either an
 // ObjectId reference to one of those records, or null for "no logo".
@@ -196,11 +202,32 @@ export const AUCTION_TRANSITIONS: Record<AuctionStatus, AuctionStatus[]> = {
 export const USER_ROLES = ["user", "supervisor", "admin"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
+// Account status — independent from `role`. `isActive` (legacy boolean) is
+// kept in sync with this (`isActive = status === "active"`) so any old code
+// still reading it doesn't regress; `status` is the field new code reads.
+export const USER_STATUSES = ["active", "suspended", "disabled"] as const;
+export type UserStatus = (typeof USER_STATUSES)[number];
+
+export const USER_STATUS_LABELS_AR: Record<UserStatus, string> = {
+  active: "نشط",
+  suspended: "موقوف",
+  disabled: "معطل",
+};
+export const USER_STATUS_LABELS_EN: Record<UserStatus, string> = {
+  active: "Active",
+  suspended: "Suspended",
+  disabled: "Disabled",
+};
+export function userStatusLabel(value: UserStatus, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? USER_STATUS_LABELS_EN[value] : USER_STATUS_LABELS_AR[value];
+}
+
 export const PERMISSIONS = [
   "plate:create_featured", // إضافة لوحة مميزة
   "auction:create", // إضافة مزاد
   "auction:sell", // صلاحية البيع
   "auction:buy", // صلاحية الشراء
+  "auction:bid", // صلاحية المزايدة
   "plate:manage",
   "plate_logo:manage", // إدارة شعارات اللوحات
   "category:manage", // إدارة تصنيفات اللوحات
@@ -221,7 +248,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 // granted explicitly. Regular users get baseline bidding/purchase rights
 // since those are ordinary consumer actions, not administrative ones.
 export const ROLE_DEFAULT_PERMISSIONS: Record<UserRole, Permission[]> = {
-  user: ["auction:buy"],
+  user: ["auction:buy", "auction:bid"],
   supervisor: [],
   admin: [...PERMISSIONS],
 };

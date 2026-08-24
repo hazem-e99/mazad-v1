@@ -443,7 +443,11 @@ export interface MessageCatalog {
     submissionTypeAuctionRequestHint: string;
     classificationLabel: string;
     usageTypeLabel: string;
+    chooseUsageType: string;
+    chooseUsageTypeFirst: string;
     shapeLabel: string;
+    chooseShape: string;
+    chooseShapeFirst: string;
     sizeLabel: string;
     categoryLabel: string;
     notSpecified: string;
@@ -499,6 +503,7 @@ export interface MessageCatalog {
     stepReview: string;
     stepReviewHint: string;
     reviewPlateType: string;
+    reviewShape: string;
     reviewLetters: string;
     reviewNumbers: string;
     reviewLogo: string;
@@ -600,6 +605,10 @@ export interface MessageCatalog {
     logoImageLabel: string;
     logoActiveLabel: string;
     logoSortOrderLabel: string;
+    logoAllowedUsageTypesLabel: string;
+    logoAllowedUsageTypesHint: string;
+    logoAllowedShapesLabel: string;
+    logoAllowedShapesHint: string;
     logoImageRequired: string;
     logoCreated: string;
     logoCreateFailed: string;
@@ -1245,7 +1254,11 @@ const ar: MessageCatalog = {
     submissionTypeAuctionRequestHint: "تُرسل لوحتك للإدارة لمراجعتها وجدولتها كمزاد مباشر.",
     classificationLabel: "التصنيف",
     usageTypeLabel: "نوع الاستخدام",
-    shapeLabel: "الشكل",
+    chooseUsageType: "اختر نوع الاستخدام",
+    chooseUsageTypeFirst: "اختر نوع الاستخدام أولاً",
+    shapeLabel: "شكل اللوحة",
+    chooseShape: "اختر شكل اللوحة",
+    chooseShapeFirst: "اختر شكل اللوحة أولاً",
     sizeLabel: "الحجم",
     categoryLabel: "الفئة",
     notSpecified: "غير محدد",
@@ -1296,7 +1309,8 @@ const ar: MessageCatalog = {
     stepAppearanceHint: "اختر نوع اللوحة والشعار المناسب",
     stepReview: "المراجعة والإرسال",
     stepReviewHint: "تأكد من صحة البيانات قبل الإرسال",
-    reviewPlateType: "نوع اللوحة",
+    reviewPlateType: "نوع الاستخدام",
+    reviewShape: "شكل اللوحة",
     reviewLetters: "الأحرف",
     reviewNumbers: "الأرقام",
     reviewLogo: "الشعار",
@@ -1398,6 +1412,10 @@ const ar: MessageCatalog = {
     logoImageLabel: "صورة الشعار",
     logoActiveLabel: "مفعّل",
     logoSortOrderLabel: "ترتيب الظهور",
+    logoAllowedUsageTypesLabel: "الاستخدامات المسموحة",
+    logoAllowedUsageTypesHint: "اترك التحديد فارغًا ليظهر الشعار مع كل أنواع الاستخدام",
+    logoAllowedShapesLabel: "الأشكال المسموحة",
+    logoAllowedShapesHint: "اترك التحديد فارغًا ليظهر الشعار مع كل الأشكال",
     logoImageRequired: "صورة الشعار مطلوبة",
     logoCreated: "تم إنشاء الشعار بنجاح",
     logoCreateFailed: "تعذر إنشاء الشعار",

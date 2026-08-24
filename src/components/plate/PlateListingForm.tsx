@@ -18,19 +18,13 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { deriveLettersEn, isValidPlateLettersAr } from "@/lib/plateLetters";
 import { cn } from "@/lib/cn";
 import {
-  PLATE_TYPES,
-  plateTypeLabel,
-  PLATE_CLASSIFICATIONS,
-  plateClassificationLabel,
   USAGE_TYPES,
   usageTypeLabel,
-  PLATE_SHAPES,
   plateShapeLabel,
-  PLATE_SIZES,
-  plateSizeLabel,
   SUBMISSION_TYPES,
 } from "@/lib/constants";
-import type { PlateType, PlateClassification, UsageType, PlateShape, PlateSize, SubmissionType } from "@/lib/constants";
+import type { UsageType, PlateShape, SubmissionType } from "@/lib/constants";
+import { USAGE_TYPE_SHAPES, deriveLegacyPlateType, getAllowedLogos } from "@/lib/plateFormConfig";
 
 const PREVIEW_PLACEHOLDER = { lettersAr: "أ ب ج", lettersEn: "ABC", numbers: "1234" };
 
@@ -63,16 +57,24 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const [step, setStep] = useState(0);
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
 
-  const [type, setType] = useState<PlateType>("private");
   const [lettersAr, setLettersAr] = useState("");
   const lettersEn = useMemo(() => deriveLettersEn(lettersAr) ?? "", [lettersAr]);
   const [numbers, setNumbers] = useState("");
   const [logoId, setLogoId] = useState<string | null>(null);
-  const [classification, setClassification] = useState<PlateClassification | "">("");
   const [usageType, setUsageType] = useState<UsageType | "">("");
   const [shape, setShape] = useState<PlateShape | "">("");
-  const [size, setSize] = useState<PlateSize | "">("");
   const [categoryId, setCategoryId] = useState("");
+
+  // The wizard no longer shows the legacy `type` enum as a field of its
+  // own — it's derived from the usage type + shape the user actually
+  // picked, purely to satisfy the still-required DB/API field. See
+  // deriveLegacyPlateType() in plateFormConfig.ts.
+  const type = useMemo(() => deriveLegacyPlateType(usageType || null, shape || null), [usageType, shape]);
+  const availableShapes = useMemo(() => (usageType ? USAGE_TYPE_SHAPES[usageType] : []), [usageType]);
+  const availableLogos = useMemo(
+    () => getAllowedLogos(logos, usageType || null, shape || null),
+    [logos, usageType, shape]
+  );
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -102,6 +104,27 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     } else {
       setFieldError("lettersAr", t("validation.lettersArInvalid"));
     }
+  }
+
+  // Each choice narrows the next: a shape that no longer fits the newly
+  // chosen usage type, or a logo no longer offered for the resulting
+  // usage type + shape, is cleared right in the handler that changed its
+  // dependency — not via an effect reacting to already-committed state.
+  function onUsageTypeChange(next: UsageType | "") {
+    setUsageType(next);
+    clearField("usageType");
+    const nextShapes = next ? USAGE_TYPE_SHAPES[next] : [];
+    if (shape && !nextShapes.includes(shape)) {
+      setShape("");
+      setLogoId(null);
+    }
+  }
+
+  function onShapeChange(next: PlateShape | "") {
+    setShape(next);
+    clearField("shape");
+    const nextLogos = getAllowedLogos(logos, usageType || null, next || null);
+    if (logoId && nextLogos && !nextLogos.some((l) => l._id === logoId)) setLogoId(null);
   }
 
   const previewLogo = useMemo(
@@ -140,10 +163,8 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       lettersEn,
       numbers,
       logo: logoId,
-      classification: classification || null,
-      usageType: usageType || null,
-      shape: shape || null,
-      size: size || null,
+      usageType: usageType || undefined,
+      shape: shape || undefined,
       category: categoryId || null,
       title,
       description: description || undefined,
@@ -165,7 +186,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
    * fields, so step 1 is never blocked by a photo that belongs to step 3. */
   const STEP_FIELDS: string[][] = [
     ["submissionType", "title", "description", "price", "contactPhone", "contactEmail", "instagram", "tiktok", "snapchat"],
-    ["lettersAr", "lettersEn", "numbers", "type", "logo", "classification", "usageType", "shape", "size", "category"],
+    ["lettersAr", "lettersEn", "numbers", "type", "logo", "usageType", "shape", "category"],
     ["image"],
     [],
   ];
@@ -318,7 +339,6 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
           type={type}
           usageType={usageType || null}
           shape={shape || null}
-          classification={classification || null}
           lettersAr={lettersAr.trim() ? lettersAr : PREVIEW_PLACEHOLDER.lettersAr}
           lettersEn={lettersAr.trim() ? lettersEn : PREVIEW_PLACEHOLDER.lettersEn}
           numbers={numbers || PREVIEW_PLACEHOLDER.numbers}
@@ -534,54 +554,54 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                 />
               </div>
 
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
-                <Select label={t("pages.plateTypeLabel")} value={type} onChange={(e) => setType(e.target.value as PlateType)}>
-                  {PLATE_TYPES.map((plateType) => (
-                    <option key={plateType} value={plateType}>
-                      {plateTypeLabel(plateType, locale)}
-                    </option>
-                  ))}
-                </Select>
-                <PlateLogoSelect label={t("pages.plateLogoLabel")} value={logoId} onChange={setLogoId} logos={logos} loadError={logosLoadError} />
-              </div>
-
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {/* The dependency chain: usage type decides which shapes are
+                  offered, and usage type + shape together decide which
+                  logos are offered — see plateFormConfig.ts. Each Select
+                  stays disabled with a "pick the previous one first"
+                  placeholder until its dependency is satisfied. */}
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
                 <Select
-                  label={t("pages.classificationLabel")}
-                  value={classification}
-                  onChange={(e) => setClassification(e.target.value as PlateClassification | "")}
+                  label={t("pages.usageTypeLabel")}
+                  value={usageType}
+                  onChange={(e) => onUsageTypeChange(e.target.value as UsageType | "")}
+                  required
+                  {...fieldProps("usageType")}
                 >
-                  <option value="">{t("pages.notSpecified")}</option>
-                  {PLATE_CLASSIFICATIONS.map((item) => (
-                    <option key={item} value={item}>
-                      {plateClassificationLabel(item, locale)}
-                    </option>
-                  ))}
-                </Select>
-                <Select label={t("pages.usageTypeLabel")} value={usageType} onChange={(e) => setUsageType(e.target.value as UsageType | "")}>
-                  <option value="">{t("pages.notSpecified")}</option>
+                  <option value="" disabled hidden>
+                    {t("pages.chooseUsageType")}
+                  </option>
                   {USAGE_TYPES.map((item) => (
                     <option key={item} value={item}>
                       {usageTypeLabel(item, locale)}
                     </option>
                   ))}
                 </Select>
-                <Select label={t("pages.shapeLabel")} value={shape} onChange={(e) => setShape(e.target.value as PlateShape | "")}>
-                  <option value="">{t("pages.notSpecified")}</option>
-                  {PLATE_SHAPES.map((item) => (
+                <Select
+                  label={t("pages.shapeLabel")}
+                  value={shape}
+                  onChange={(e) => onShapeChange(e.target.value as PlateShape | "")}
+                  disabled={!usageType}
+                  required
+                  {...fieldProps("shape")}
+                >
+                  <option value="" disabled hidden>
+                    {usageType ? t("pages.chooseShape") : t("pages.chooseUsageTypeFirst")}
+                  </option>
+                  {availableShapes.map((item) => (
                     <option key={item} value={item}>
                       {plateShapeLabel(item, locale)}
                     </option>
                   ))}
                 </Select>
-                <Select label={t("pages.sizeLabel")} value={size} onChange={(e) => setSize(e.target.value as PlateSize | "")}>
-                  <option value="">{t("pages.notSpecified")}</option>
-                  {PLATE_SIZES.map((item) => (
-                    <option key={item} value={item}>
-                      {plateSizeLabel(item, locale)}
-                    </option>
-                  ))}
-                </Select>
+                <PlateLogoSelect
+                  label={t("pages.plateLogoLabel")}
+                  value={logoId}
+                  onChange={setLogoId}
+                  logos={availableLogos}
+                  loadError={logosLoadError}
+                  disabled={!shape}
+                  placeholder={!shape ? t("pages.chooseShapeFirst") : undefined}
+                />
               </div>
 
               <Select
@@ -695,7 +715,8 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                   value: submissionType === "marketplace" ? t("pages.submissionTypeMarketplace") : t("pages.submissionTypeAuctionRequest"),
                 },
                 { label: t("pages.titleLabel"), value: title },
-                { label: t("pages.reviewPlateType"), value: plateTypeLabel(type, locale) },
+                { label: t("pages.reviewPlateType"), value: usageType ? usageTypeLabel(usageType, locale) : "" },
+                { label: t("pages.reviewShape"), value: shape ? plateShapeLabel(shape, locale) : "" },
                 { label: t("pages.reviewLetters"), value: `${lettersAr} · ${lettersEn}` },
                 { label: t("pages.reviewNumbers"), value: numbers, numeric: true },
                 {

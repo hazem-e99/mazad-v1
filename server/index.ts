@@ -24,7 +24,7 @@ const dev = process.env.NODE_ENV !== "production";
 const port = Number(process.env.PORT) || 3000;
 const host = process.env.HOST || "0.0.0.0";
 
-const app = next({ dev });
+const app = next({ dev, webpack: true });
 const handle = app.getRequestHandler();
 
 async function warmPublicHome() {

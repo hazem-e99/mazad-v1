@@ -40,6 +40,8 @@ async function api(path: string, init: RequestInit & { cookie?: string } = {}) {
 function listingPayload(overrides: Record<string, unknown> = {}) {
   return {
     type: "private",
+    usageType: "private",
+    shape: "wide",
     lettersAr: "س ل ع",
     lettersEn: "SLE",
     numbers: "5001",

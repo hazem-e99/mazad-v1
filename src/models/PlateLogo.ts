@@ -1,5 +1,6 @@
 import { Schema, type InferSchemaType, type Model } from "mongoose";
 import { registerModel } from "@/models/registerModel";
+import { USAGE_TYPES, PLATE_SHAPES } from "@/lib/constants";
 
 const plateLogoSchema = new Schema(
   {
@@ -8,6 +9,12 @@ const plateLogoSchema = new Schema(
     image: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     sortOrder: { type: Number, default: 0 },
+    // Which usage types / shapes this logo may be offered for in the
+    // add-plate picker. An empty array means "no restriction on this
+    // axis" — the default, so every logo created before this field
+    // existed stays visible everywhere it always was.
+    allowedUsageTypes: { type: [String], enum: USAGE_TYPES, default: [] },
+    allowedShapes: { type: [String], enum: PLATE_SHAPES, default: [] },
     // Set only by the one-time legacy-enum migration script, to make it
     // idempotent (re-running it must not create duplicate records for the
     // same legacy value). Never set by the admin CRUD flow.
