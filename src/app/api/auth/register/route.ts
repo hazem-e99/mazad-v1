@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     const body = registerSchema.parse(await req.json());
     await connectDB();
 
-    const existing = await User.findOne({ phone: body.phone });
+    const existing = await User.findOne({ phone: body.phone, deletedAt: null });
     if (existing) throw Errors.conflict("رقم الجوال مستخدم بالفعل");
 
     const passwordHash = await hashPassword(body.password);

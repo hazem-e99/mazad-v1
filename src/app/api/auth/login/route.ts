@@ -19,14 +19,14 @@ export async function POST(req: NextRequest) {
     const body = loginSchema.parse(await req.json());
     await connectDB();
 
-    const user = await User.findOne({ phone: body.phone }).select("+passwordHash");
+    const user = await User.findOne({ phone: body.phone, deletedAt: null }).select("+passwordHash");
     if (!user) throw Errors.badRequest("رقم الجوال أو كلمة المرور غير صحيحة");
 
     if (user.lockedUntil && user.lockedUntil > new Date()) {
       throw Errors.conflict("الحساب مقفل مؤقتًا بسبب محاولات دخول فاشلة متكررة");
     }
 
-    if (!user.isActive) throw Errors.forbidden();
+    if (!user.isActive || (user.status && user.status !== "active")) throw Errors.forbidden();
 
     const valid = await verifyPassword(body.password, user.passwordHash);
     if (!valid) {

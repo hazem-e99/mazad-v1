@@ -3,6 +3,7 @@ import type {
   AuctionStatus,
   PlateType,
   UserRole,
+  UserStatus,
   Permission,
   PlateClassification,
   UsageType,
@@ -95,6 +96,16 @@ export interface PlateDTO {
   title: string | null;
   description: string | null;
   price: number | null;
+  /** "هل اللوحة مسيومة سابقاً؟" — an optional pre-existing offer amount for
+   * an auction-request listing, shown as the current highest offer until a
+   * real bid surpasses it. Only meaningful when submissionType is
+   * "auction_request"; null otherwise. */
+  existingBidAmount: number | null;
+  /** Sale-readiness answers (§ Plate Sale Readiness). null = not answered
+   * — legacy plates predating these fields. */
+  registrationValid: boolean | null;
+  inspectionValid: boolean | null;
+  insuranceAvailable: boolean | null;
   image: string | null;
   contactPhone: string | null;
   contactEmail: string | null;
@@ -171,6 +182,7 @@ export interface UserDTO {
   role: UserRole;
   permissions: Permission[];
   isActive: boolean;
+  status: UserStatus;
   createdAt: string;
   updatedAt: string;
 }

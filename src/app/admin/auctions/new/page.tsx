@@ -11,7 +11,7 @@ import { useToastStore } from "@/hooks/useToast";
 import { useFormValidation } from "@/hooks/useFormValidation";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { AUCTION_CATEGORIES } from "@/lib/constants";
-import type { AuctionCategory, PlateType } from "@/lib/constants";
+import type { AuctionCategory, PlateType, UsageType, PlateShape, PlateClassification } from "@/lib/constants";
 import type { PlateLogoDTO } from "@/types/dto";
 
 interface PlateOption {
@@ -21,6 +21,11 @@ interface PlateOption {
   lettersEn: string;
   numbers: string;
   logo: PlateLogoDTO | null;
+  usageType: UsageType | null;
+  shape: PlateShape | null;
+  classification: PlateClassification | null;
+  price: number | null;
+  existingBidAmount: number | null;
 }
 
 function toLocalInputValue(date: Date) {
@@ -58,6 +63,24 @@ export default function AdminNewAuctionPage() {
   }, []);
 
   const selectedPlate = plates.find((p) => p._id === plateId);
+
+  // Carries the seller's submitted numbers forward into the auction form
+  // instead of the admin re-typing them — "هل اللوحة مسيومة سابقاً؟"
+  // becomes the seed starting price, and the listing's proposed final
+  // price becomes the Buy Now price (reusing directPurchase, not a second
+  // purchase mechanism). Only applies once, the first time the plate
+  // arrives via ?plateId=..., so it never overwrites a value the admin has
+  // since edited by hand.
+  const prefilledRef = useRef(false);
+  useEffect(() => {
+    if (prefilledRef.current || !selectedPlate) return;
+    prefilledRef.current = true;
+    if (selectedPlate.existingBidAmount != null) setStartingPrice(String(selectedPlate.existingBidAmount));
+    if (selectedPlate.price != null) {
+      setDirectPurchaseEnabled(true);
+      setDirectPurchasePrice(String(selectedPlate.price));
+    }
+  }, [selectedPlate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

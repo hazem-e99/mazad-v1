@@ -19,6 +19,7 @@ import type { AuctionSummary, PlateSummary } from "@/types/auction";
 import type {
   PlateType,
   UserRole,
+  UserStatus,
   Permission,
   AuctionCategory,
   AuctionStatus,
@@ -181,6 +182,10 @@ export interface LeanPlate {
   title?: string | null;
   description?: string | null;
   price?: number | null;
+  existingBidAmount?: number | null;
+  registrationValid?: boolean | null;
+  inspectionValid?: boolean | null;
+  insuranceAvailable?: boolean | null;
   image?: string | null;
   contactPhone?: string | null;
   contactEmail?: string | null;
@@ -231,6 +236,10 @@ export function toPlateDTO(plate: LeanPlate): PlateDTO {
     title: plate.title ?? null,
     description: plate.description ?? null,
     price: plate.price ?? null,
+    existingBidAmount: plate.existingBidAmount ?? null,
+    registrationValid: plate.registrationValid ?? null,
+    inspectionValid: plate.inspectionValid ?? null,
+    insuranceAvailable: plate.insuranceAvailable ?? null,
     contactPhone: plate.contactPhone ?? null,
     contactEmail: plate.contactEmail ?? null,
     instagram: plate.instagram ?? null,
@@ -456,6 +465,9 @@ export interface LeanUser {
   role: UserRole;
   permissions?: Permission[];
   isActive: boolean;
+  // Absent on documents written before the field existed — normalised to
+  // "active" (its schema default) by the mapper below.
+  status?: UserStatus;
   createdAt: Date | string;
   updatedAt: Date | string;
 }
@@ -469,6 +481,7 @@ export function toUserDTO(user: LeanUser): UserDTO {
     role: user.role,
     permissions: user.permissions ?? [],
     isActive: user.isActive,
+    status: user.status ?? (user.isActive ? "active" : "suspended"),
     createdAt: dateToISOString(user.createdAt),
     updatedAt: dateToISOString(user.updatedAt),
   };

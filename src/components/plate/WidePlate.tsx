@@ -30,6 +30,7 @@ export function WidePlate({
   numbers,
   logo,
   locale = "ar",
+  englishOnly = false,
 }: {
   spec: PlateSpec;
   lettersAr: string;
@@ -37,6 +38,10 @@ export function WidePlate({
   numbers: string;
   logo: PlateLogoDTO | null;
   locale?: Locale;
+  /** Sport plates carry English letters/numbers only (§ Sports Plate rule)
+   * — drops the Arabic line from both cells and lets the Latin one take
+   * the full cell instead of being the smaller secondary line. */
+  englishOnly?: boolean;
 }) {
   // Proportions taken off the reference: the character groups dominate,
   // the crest takes a narrow middle, and the strip is a fixed slice.
@@ -55,13 +60,17 @@ export function WidePlate({
       style={{ gridTemplateColumns: columns, aspectRatio: spec.aspect }}
     >
       <Cell className="border-e-[0.4cqi] border-black">
-        <PlateDigits value={numbers} script="ar" fontSize={arSize(7.9)} tracking="0.03em" />
+        {!englishOnly && <PlateDigits value={numbers} script="ar" fontSize={arSize(7.9)} tracking="0.03em" />}
         <PlateDigits
           value={numbers}
           script="en"
-          fontSize={`clamp(0.42rem, ${(5.5 * spec.scale.numbers).toFixed(2)}cqi, 2.8rem)`}
+          fontSize={
+            englishOnly
+              ? arSize(7.9)
+              : `clamp(0.42rem, ${(5.5 * spec.scale.numbers).toFixed(2)}cqi, 2.8rem)`
+          }
           tracking="0.06em"
-          className="mt-[0.9cqi]"
+          className={englishOnly ? undefined : "mt-[0.9cqi]"}
         />
       </Cell>
 
@@ -72,13 +81,13 @@ export function WidePlate({
       )}
 
       <Cell>
-        <PlateCharacters value={lettersAr} script="ar" fontSize={arLetterSize} gap="1.7cqi" />
+        {!englishOnly && <PlateCharacters value={lettersAr} script="ar" fontSize={arLetterSize} gap="1.7cqi" />}
         <PlateCharacters
           value={lettersEn}
           script="en"
-          fontSize={enLetterSize}
+          fontSize={englishOnly ? arLetterSize : enLetterSize}
           gap="1.9cqi"
-          className="mt-[0.9cqi]"
+          className={englishOnly ? undefined : "mt-[0.9cqi]"}
         />
       </Cell>
 

@@ -81,6 +81,27 @@ export function buildSchemas(t: Translate) {
     .max(12, v("lettersTooLong"))
     .refine(isValidPlateLettersAr, v("lettersArInvalid"));
 
+  // Sport plates are English-only (no Arabic letters/numbers requirement —
+  // see requirement §15): lettersAr becomes optional at the field level,
+  // and a caller-supplied lettersEn is accepted directly instead of being
+  // derived. Every other plate type still goes through lettersAr +
+  // deriveLettersEn exactly as before — see withDerivedLettersEn below and
+  // the sport-aware refinement on listingFieldsSchema/plateBaseSchema.
+  const lettersArOptional = z
+    .string()
+    .trim()
+    .max(12, v("lettersTooLong"))
+    .refine((val) => val === "" || isValidPlateLettersAr(val), v("lettersArInvalid"))
+    .optional();
+
+  const lettersEnDirect = z
+    .string({ error: () => v("lettersArRequired") })
+    .trim()
+    .toUpperCase()
+    .min(1, v("lettersArRequired"))
+    .max(4, v("lettersTooLong"))
+    .regex(/^[A-Z]+$/, v("lettersArInvalid"));
+
   const plateNumbers = z
     .string({ error: () => v("numbersRequired") })
     .trim()
@@ -149,7 +170,11 @@ export function buildSchemas(t: Translate) {
   // must build from this one, never from the transformed export.
   const plateBaseSchema = z.object({
     type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
-    lettersAr,
+    lettersAr: lettersArOptional,
+    // Only meaningful (and only accepted as caller input) for sport plates
+    // — every other type has it derived from lettersAr and overwritten by
+    // withDerivedLettersEn regardless of what's sent here.
+    lettersEn: lettersEnDirect.optional(),
     numbers: plateNumbers,
     image: z.string().min(1, v("imageRequired")).nullable().optional(),
     // Admin-managed logo reference — a real ObjectId string, or null/absent
@@ -198,7 +223,10 @@ export function buildSchemas(t: Translate) {
    */
   const listingFieldsSchema = z.object({
     type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
-    lettersAr,
+    lettersAr: lettersArOptional,
+    // Only meaningful (and only accepted as caller input) for sport
+    // plates — see requireLettersBySportRule below.
+    lettersEn: lettersEnDirect.optional(),
     numbers: plateNumbers,
     logo: objectId.nullable().optional(),
     classification: z.enum(PLATE_CLASSIFICATIONS, { error: () => v("selectRequired") }).nullable().optional(),
@@ -211,8 +239,21 @@ export function buildSchemas(t: Translate) {
     category: objectId.nullable().optional(),
     title,
     description,
+    // Required for a fixed-price ("سعر نهائي بدون سوم") listing, optional
+    // for an auction request — see the refine below and buildPayload() in
+    // PlateListingForm, which no longer force-nulls this for auction mode.
     price: amount("pricePositive").nullable().optional(),
+    // "هل اللوحة مسيومة سابقاً؟" — optional, auction-request only.
+    existingBidAmount: amount("pricePositive").nullable().optional(),
+    // Sale-readiness answers — required for every new submission.
+    registrationValid: z.boolean({ error: () => v("selectRequired") }),
+    inspectionValid: z.boolean({ error: () => v("selectRequired") }),
+    insuranceAvailable: z.boolean({ error: () => v("selectRequired") }),
     image: z.string().min(1, v("plateImageRequired")),
+    // Required for a public (non-staff) submission — enforced in
+    // POST /api/listings, which knows whether the caller is staff; a bare
+    // z.string().min(1).optional() here keeps this schema usable for the
+    // staff-authored path too, which never collects one.
     ownershipDocument: z.string().min(1).optional(),
     contactPhone,
     contactEmail: optionalEmail,
@@ -228,6 +269,37 @@ export function buildSchemas(t: Translate) {
       { message: v("priceRequired"), path: ["price"] }
     )
     .transform(withDerivedLettersEn);
+
+  /**
+   * Sport plates are English-only; every other type still needs a real
+   * lettersAr to derive from. Applied as a plain function after
+   * `.parse()`/`.safeParse()` rather than as another chained `.refine()` on
+   * an already-large schema — a form/route calls this immediately after
+   * parsing (see /api/listings, /api/plates, and PlateListingForm's step
+   * validation). Kept here, not duplicated at each call site, so the rule
+   * itself has one definition.
+   */
+  function checkSportLetters(data: {
+    type: string;
+    usageType?: string | null;
+    lettersAr?: string | null;
+    lettersEn?: string | null;
+  }): { field: "lettersAr" | "lettersEn"; message: string } | null {
+    // `usageType` is the true signal for the wizard (`type` is a derived
+    // legacy bridge value that can land on "small_sport" instead of
+    // "sport" once a shape is picked); `/api/plates`' bare-plate schema has
+    // no `usageType` field at all, so `type` alone is the fallback there.
+    if (data.usageType === "sport" || data.type === "sport") {
+      if (!data.lettersEn || data.lettersEn.trim() === "") {
+        return { field: "lettersEn", message: v("lettersArRequired") };
+      }
+      return null;
+    }
+    if (!data.lettersAr || data.lettersAr.trim() === "") {
+      return { field: "lettersAr", message: v("lettersArRequired") };
+    }
+    return null;
+  }
 
   const listingUpdateSchema = listingFieldsSchema.partial().transform(withDerivedLettersEn);
 
@@ -330,6 +402,7 @@ export function buildSchemas(t: Translate) {
     listingFieldsSchema,
     listingSubmitSchema,
     listingUpdateSchema,
+    checkSportLetters,
     moderationDecisionSchema,
     plateLogoCreateSchema,
     plateLogoUpdateSchema,
@@ -362,6 +435,7 @@ export const {
   listingFieldsSchema,
   listingSubmitSchema,
   listingUpdateSchema,
+  checkSportLetters,
   moderationDecisionSchema,
   plateLogoCreateSchema,
   plateLogoUpdateSchema,

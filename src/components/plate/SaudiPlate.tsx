@@ -33,6 +33,11 @@ interface SaudiPlateProps {
   vip?: boolean;
   /** Selected state for pickers (admin auction builder, add-plate flow). */
   selected?: boolean;
+  /** Sport plates are English-only (§ Sports Plate rule): defaults to
+   * `type === "sport"` so every existing call site gets this for free, but
+   * can be overridden explicitly by a caller that already knows the plate's
+   * intended layout. */
+  englishOnly?: boolean;
   /** Defaults to "ar" for callers without locale context — this component
    * has no "use client" directive so it can render from server
    * components. Pass the active locale for a correct accessible name. */
@@ -91,11 +96,16 @@ export function SaudiPlate({
   vip = false,
   selected = false,
   locale = "ar",
+  englishOnly,
 }: SaudiPlateProps) {
   const spec = resolvePlateSpec({ type, numbers, lettersAr, lettersEn, usageType, shape, classification });
+  // `usageType` is the true "is this a sport plate" signal — `type` is a
+  // legacy bridge value that can land on "small_sport" instead of "sport"
+  // once a shape is picked, and would otherwise miss that case.
+  const isEnglishOnly = englishOnly ?? (usageType === "sport" || type === "sport");
 
   const logoName = logo ? (locale === "en" ? logo.nameEn : logo.nameAr) : NO_LOGO_WORD[locale];
-  const label = `${PLATE_WORD[locale]} ${lettersAr} ${numbers} — ${logoName}`;
+  const label = `${PLATE_WORD[locale]} ${isEnglishOnly ? lettersEn : lettersAr} ${numbers} — ${logoName}`;
 
   const Layout = spec.layout === "square" ? SquarePlate : WidePlate;
 
@@ -125,6 +135,7 @@ export function SaudiPlate({
           numbers={numbers}
           logo={logo}
           locale={locale}
+          englishOnly={isEnglishOnly}
         />
       </div>
     </div>

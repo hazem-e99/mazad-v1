@@ -460,12 +460,40 @@ export interface MessageCatalog {
     uploadPlatePhotoHint: string;
     ownershipDocumentLabel: string;
     ownershipDocumentHint: string;
+    ownershipDocumentUploadCta: string;
+    ownershipDocumentPrivacyHint: string;
+    ownershipDocumentRequired: string;
     contactInfoHeader: string;
     contactPhoneLabel: string;
     contactEmailLabel: string;
     instagramLabel: string;
     tiktokLabel: string;
     snapchatLabel: string;
+
+    // Sale-readiness questions
+    stepReadiness: string;
+    stepReadinessHint: string;
+    registrationValidQuestion: string;
+    registrationValidOption: string;
+    registrationExpiredOption: string;
+    inspectionValidQuestion: string;
+    insuranceAvailableQuestion: string;
+
+    // Pricing type + conditional price details — the pricing-type choice
+    // itself reuses submissionTypeMarketplace/submissionTypeAuctionRequest
+    // (same field, same labels, no duplicate copy).
+    stepPricingType: string;
+    stepPricingTypeHint: string;
+    stepPricingDetails: string;
+    stepPricingDetailsHint: string;
+    existingBidLabel: string;
+    existingBidHint: string;
+    finalPriceLabel: string;
+    finalPriceAuctionHint: string;
+
+    // Sport plate — English-only letters
+    lettersEnSportLabel: string;
+    lettersEnSportHint: string;
 
     // My Listings / edit / resubmit
     myListingsTitle: string;
@@ -687,11 +715,17 @@ export interface MessageCatalog {
     usersSubtitle: string;
     searchUsersPlaceholder: string;
     filterRole: string;
+    filterStatus: string;
     noMatchingUsers: string;
     colName: string;
     colPhone: string;
     colRole: string;
     colManage: string;
+    colRegisteredAt: string;
+    colCanBuy: string;
+    colCanSell: string;
+    colCanBid: string;
+    colCanCreateAuction: string;
     roleAdmin: string;
     roleSupervisor: string;
     roleUser: string;
@@ -701,10 +735,35 @@ export interface MessageCatalog {
     accountActive: string;
     userUpdated: string;
     userUpdateFailed: string;
+
+    // User detail page + status/permission/delete actions
+    userDetailTitle: string;
+    userDetailSubtitle: string;
+    backToUsers: string;
+    actionSuspend: string;
+    actionReactivate: string;
+    actionDelete: string;
+    confirmSuspendUser: string;
+    confirmReactivateUser: string;
+    confirmDeleteUser: string;
+    userSuspended: string;
+    userReactivated: string;
+    userDeleted: string;
+    userDeleteFailed: string;
+    fieldUserName: string;
+    fieldUserEmail: string;
+    fieldUserStatus: string;
+    corePermissionsHeader: string;
+    adminHasAllPermissionsNote: string;
+    canBuyLabel: string;
+    canSellLabel: string;
+    canBidLabel: string;
+    canCreateAuctionLabel: string;
     permCreateFeatured: string;
     permAuctionCreate: string;
     permAuctionSell: string;
     permAuctionBuy: string;
+    permAuctionBid: string;
     permPlateManage: string;
     permPlateLogoManage: string;
     permAuctionManage: string;
@@ -1246,12 +1305,12 @@ const ar: MessageCatalog = {
     numbersLabel: "الأرقام",
     pleaseSelectImage: "الرجاء اختيار صورة",
 
-    howToListQuestion: "كيف ترغب بعرض اللوحة؟",
-    chooseSubmissionTypeFirst: "الرجاء اختيار طريقة عرض اللوحة أولاً",
-    submissionTypeMarketplace: "عرض اللوحة في المنصة",
-    submissionTypeMarketplaceHint: "تُعرض لوحتك في السوق مباشرة بعد موافقة الإدارة، ويتواصل معك المشترون مباشرة.",
-    submissionTypeAuctionRequest: "تقديم اللوحة للمزاد",
-    submissionTypeAuctionRequestHint: "تُرسل لوحتك للإدارة لمراجعتها وجدولتها كمزاد مباشر.",
+    howToListQuestion: "نوع التسعير",
+    chooseSubmissionTypeFirst: "الرجاء اختيار نوع التسعير أولاً",
+    submissionTypeMarketplace: "سعر نهائي بدون سوم",
+    submissionTypeMarketplaceHint: "تُعرض لوحتك في السوق بسعر ثابت، ويتواصل معك المشترون مباشرة دون مزايدة.",
+    submissionTypeAuctionRequest: "مزايدة (سومات)",
+    submissionTypeAuctionRequestHint: "تُرسل لوحتك للإدارة لمراجعتها وجدولتها كمزاد مباشر يتنافس عليه المزايدون.",
     classificationLabel: "التصنيف",
     usageTypeLabel: "نوع الاستخدام",
     chooseUsageType: "اختر نوع الاستخدام",
@@ -1269,14 +1328,37 @@ const ar: MessageCatalog = {
     plateImageHeader: "صورة اللوحة",
     plateImageRequired: "صورة اللوحة الفعلية مطلوبة",
     uploadPlatePhotoHint: "ارفع صورة حقيقية للوحة",
-    ownershipDocumentLabel: "مستند إثبات الملكية",
-    ownershipDocumentHint: "اختياري — صورة أو ملف PDF لإثبات ملكية اللوحة، يبقى خاصًا ولا يظهر للعامة",
+    ownershipDocumentLabel: "إستمارة السيارة",
+    ownershipDocumentHint: "ارفع صورة واضحة من إستمارة السيارة لإثبات ملكية اللوحة.",
+    ownershipDocumentUploadCta: "اضغط لرفع صورة الإستمارة",
+    ownershipDocumentPrivacyHint: "تستخدم للمطابقة فقط ولن تظهر للزوار.",
+    ownershipDocumentRequired: "يجب رفع صورة إستمارة السيارة",
     contactInfoHeader: "بيانات التواصل",
     contactPhoneLabel: "رقم التواصل",
     contactEmailLabel: "البريد الإلكتروني",
     instagramLabel: "إنستغرام",
     tiktokLabel: "تيك توك",
     snapchatLabel: "سناب شات",
+
+    stepReadiness: "جاهزية اللوحة للبيع",
+    stepReadinessHint: "تأكد من جاهزية اللوحة للبيع",
+    registrationValidQuestion: "هل رخصة السير (الإستمارة) سارية؟",
+    registrationValidOption: "سارية",
+    registrationExpiredOption: "منتهية",
+    inspectionValidQuestion: "هل الفحص الدوري ساري؟",
+    insuranceAvailableQuestion: "هل يوجد تأمين على المركبة؟",
+
+    stepPricingType: "نوع التسعير",
+    stepPricingTypeHint: "اختر الطريقة التي تريد بيع لوحتك بها",
+    stepPricingDetails: "تفاصيل السعر",
+    stepPricingDetailsHint: "أدخل تفاصيل السعر المناسبة لنوع التسعير المختار",
+    existingBidLabel: "هل اللوحة مسيومة سابقاً؟",
+    existingBidHint: "سيظهر هذا المبلغ كأعلى سومة حالياً حتى وصول عرض أعلى.",
+    finalPriceLabel: "السعر النهائي",
+    finalPriceAuctionHint: "تحديد سعر نهائي يساعد في تحسين ظهور الإعلان ضمن نطاق سعري محدد.",
+
+    lettersEnSportLabel: "الأحرف (إنجليزي)",
+    lettersEnSportHint: "اللوحات الرياضية تستخدم أحرفًا وأرقامًا إنجليزية فقط",
 
     myListingsTitle: "لوحاتي",
     myListingsSubtitle: "متابعة حالة اللوحات التي عرضتها",
@@ -1494,11 +1576,17 @@ const ar: MessageCatalog = {
     usersSubtitle: "إدارة أدوار وصلاحيات المستخدمين",
     searchUsersPlaceholder: "بحث بالاسم أو الجوال...",
     filterRole: "الدور",
+    filterStatus: "الحالة",
     noMatchingUsers: "لا يوجد مستخدمون مطابقون",
-    colName: "الاسم",
-    colPhone: "الجوال",
+    colName: "المستخدم",
+    colPhone: "البريد / رقم الجوال",
     colRole: "الدور",
-    colManage: "إدارة",
+    colManage: "الإجراءات",
+    colRegisteredAt: "تاريخ التسجيل",
+    colCanBuy: "الشراء",
+    colCanSell: "البيع",
+    colCanBid: "المزايدة",
+    colCanCreateAuction: "إنشاء مزاد",
     roleAdmin: "مدير",
     roleSupervisor: "مشرف",
     roleUser: "مستخدم",
@@ -1508,10 +1596,35 @@ const ar: MessageCatalog = {
     accountActive: "الحساب نشط",
     userUpdated: "تم تحديث بيانات المستخدم",
     userUpdateFailed: "تعذر التحديث",
+
+    userDetailTitle: "تفاصيل المستخدم",
+    userDetailSubtitle: "عرض وتعديل بيانات المستخدم وصلاحياته",
+    backToUsers: "رجوع إلى المستخدمين",
+    actionSuspend: "إيقاف الحساب",
+    actionReactivate: "إعادة التفعيل",
+    actionDelete: "حذف",
+    confirmSuspendUser: "هل تريد إيقاف حساب هذا المستخدم؟",
+    confirmReactivateUser: "هل تريد إعادة تفعيل حساب هذا المستخدم؟",
+    confirmDeleteUser: "هل تريد حذف هذا المستخدم؟ لن تُحذف سجلاته السابقة من المزادات والمشتريات.",
+    userSuspended: "تم إيقاف الحساب",
+    userReactivated: "تم إعادة تفعيل الحساب",
+    userDeleted: "تم حذف المستخدم",
+    userDeleteFailed: "تعذر حذف المستخدم",
+    fieldUserName: "الاسم",
+    fieldUserEmail: "البريد الإلكتروني",
+    fieldUserStatus: "الحالة",
+    corePermissionsHeader: "صلاحيات المستخدم",
+    adminHasAllPermissionsNote: "المدير يملك جميع الصلاحيات تلقائيًا",
+    canBuyLabel: "الشراء",
+    canSellLabel: "البيع",
+    canBidLabel: "المزايدة",
+    canCreateAuctionLabel: "إنشاء مزاد",
+
     permCreateFeatured: "إضافة لوحة مميزة",
     permAuctionCreate: "إضافة مزاد",
     permAuctionSell: "صلاحية البيع",
     permAuctionBuy: "صلاحية الشراء",
+    permAuctionBid: "صلاحية المزايدة",
     permPlateManage: "إدارة اللوحات",
     permPlateLogoManage: "إدارة شعارات اللوحات",
     permAuctionManage: "إدارة المزادات",

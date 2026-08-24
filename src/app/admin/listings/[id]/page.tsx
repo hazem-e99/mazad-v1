@@ -217,17 +217,57 @@ export default async function AdminListingDetailPage({ params }: Props) {
         </CardHeader>
         <CardBody className="flex flex-col gap-4">
           <DetailGrid>
+            <Row label={t("pages.howToListQuestion")} value={
+              listing.submissionType === "auction_request"
+                ? t("pages.submissionTypeAuctionRequest")
+                : t("pages.submissionTypeMarketplace")
+            } />
             <Row label={t("pages.titleLabel")} value={listing.title ?? dash} />
             <Row
-              label={t("pages.askingPriceLabel")}
+              label={t("pages.finalPriceLabel")}
               value={listing.price != null ? formatSar(listing.price, locale) : dash}
               numeric
             />
+            {listing.submissionType === "auction_request" && (
+              <Row
+                label={t("pages.existingBidLabel")}
+                value={listing.existingBidAmount != null ? formatSar(listing.existingBidAmount, locale) : dash}
+                numeric
+              />
+            )}
           </DetailGrid>
           <div className="rounded-(--radius-md) border border-(--color-border) bg-(--color-bg-elevated) p-4">
             <p className="text-xs text-(--color-text-faint)">{t("pages.descriptionLabel")}</p>
             <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-(--color-text)">{listing.description ?? dash}</p>
           </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <h2 className="font-semibold text-(--color-text)">{t("pages.stepReadiness")}</h2>
+        </CardHeader>
+        <CardBody>
+          <DetailGrid>
+            <Row
+              label={t("pages.registrationValidQuestion")}
+              value={
+                listing.registrationValid == null
+                  ? dash
+                  : listing.registrationValid
+                    ? t("pages.registrationValidOption")
+                    : t("pages.registrationExpiredOption")
+              }
+            />
+            <Row
+              label={t("pages.inspectionValidQuestion")}
+              value={listing.inspectionValid == null ? dash : listing.inspectionValid ? t("common.yes") : t("common.no")}
+            />
+            <Row
+              label={t("pages.insuranceAvailableQuestion")}
+              value={listing.insuranceAvailable == null ? dash : listing.insuranceAvailable ? t("common.yes") : t("common.no")}
+            />
+          </DetailGrid>
         </CardBody>
       </Card>
 

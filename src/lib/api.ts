@@ -5,11 +5,13 @@ import { getServerLocale } from "@/lib/i18n-server";
 export class ApiError extends Error {
   status: number;
   code: string;
+  fieldErrors?: Record<string, string>;
 
-  constructor(status: number, code: string, message: string) {
+  constructor(status: number, code: string, message: string, fieldErrors?: Record<string, string>) {
     super(message);
     this.status = status;
     this.code = code;
+    this.fieldErrors = fieldErrors;
   }
 }
 
@@ -21,6 +23,14 @@ export const Errors = {
   badRequest: (message: string) => new ApiError(400, "bad_request", message),
   rateLimited: () => new ApiError(429, "rate_limited", "عدد كبير من المحاولات، حاول لاحقًا"),
   internal: () => new ApiError(500, "internal_error", "حدث خطأ غير متوقع"),
+  /** A single-field validation failure outside what the Zod schema can
+   * express on its own (e.g. a requirement that depends on who the caller
+   * is) — shaped exactly like a ZodError response so the client's existing
+   * "jump to the step owning the failed field" logic keeps working. */
+  validation: (fieldErrors: Record<string, string>) => {
+    const message = Object.values(fieldErrors)[0] ?? "بيانات غير صالحة";
+    return new ApiError(422, "validation_error", message, fieldErrors);
+  },
 };
 
 // Generic, finite error codes are re-localized at the response boundary
@@ -73,7 +83,10 @@ export function jsonOk<T>(data: T, status = 200) {
 export async function handleApiError(err: unknown) {
   if (err instanceof ApiError) {
     const message = await localize(err.code, err.message);
-    return NextResponse.json({ ok: false, code: err.code, message }, { status: err.status });
+    return NextResponse.json(
+      { ok: false, code: err.code, message, ...(err.fieldErrors ? { fieldErrors: err.fieldErrors } : {}) },
+      { status: err.status }
+    );
   }
   if (err instanceof ZodError) {
     const fieldErrors = fieldErrorsFromZod(err);

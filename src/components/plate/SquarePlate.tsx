@@ -31,6 +31,7 @@ export function SquarePlate({
   numbers,
   logo,
   locale = "ar",
+  englishOnly = false,
 }: {
   spec: PlateSpec;
   lettersAr: string;
@@ -38,11 +39,36 @@ export function SquarePlate({
   numbers: string;
   logo: PlateLogoDTO | null;
   locale?: Locale;
+  /** See WidePlate's `englishOnly` — same sport-plate rule, single-row
+   * layout instead of the usual Arabic-over-Latin two rows. */
+  englishOnly?: boolean;
 }) {
   const arNumbers = `clamp(0.5rem, ${(12 * spec.scale.numbers).toFixed(2)}cqi, 3.4rem)`;
   const enNumbers = `clamp(0.45rem, ${(10 * spec.scale.numbers).toFixed(2)}cqi, 2.9rem)`;
   const arLetters = `clamp(0.5rem, ${(12 * spec.scale.letters).toFixed(2)}cqi, 3.4rem)`;
   const enLetters = `clamp(0.45rem, ${(10 * spec.scale.letters).toFixed(2)}cqi, 2.9rem)`;
+
+  if (englishOnly) {
+    return (
+      <div
+        className="relative grid h-full w-full"
+        style={{
+          gridTemplateColumns: "minmax(0,1fr) minmax(0,1.12fr) clamp(1.4rem,15cqi,5rem)",
+          aspectRatio: spec.aspect,
+        }}
+      >
+        <Cell col={1} row={1} className="border-e-[0.5cqi] border-black">
+          <PlateDigits value={numbers} script="en" fontSize={arNumbers} tracking="0.03em" />
+        </Cell>
+        <Cell col={2} row={1}>
+          <PlateCharacters value={lettersEn} script="en" fontSize={arLetters} gap="1.6cqi" />
+        </Cell>
+        <div style={{ gridColumn: 3, gridRow: 1 }}>
+          <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

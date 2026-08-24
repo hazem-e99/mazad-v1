@@ -14,11 +14,17 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, Number(searchParams.get("limit")) || 20);
     const role = searchParams.get("role");
     const isActive = searchParams.get("isActive");
+    const status = searchParams.get("status");
     const search = searchParams.get("search");
 
     const filter: Record<string, unknown> = {};
+    // Soft-deleted users are excluded from the default listing — an explicit
+    // includeDeleted=true opts back in (not currently exposed in the admin
+    // UI, but available for future use).
+    if (searchParams.get("includeDeleted") !== "true") filter.deletedAt = null;
     if (role) filter.role = role;
-    if (isActive === "true") filter.isActive = true;
+    if (status) filter.status = status;
+    else if (isActive === "true") filter.isActive = true;
     else if (isActive === "false") filter.isActive = false;
     if (search) {
       filter.$or = [

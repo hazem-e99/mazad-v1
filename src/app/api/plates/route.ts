@@ -53,8 +53,12 @@ export async function POST(req: NextRequest) {
     // an admin/supervisor holding plate:create_featured may mark it VIP or
     // featured at creation time — otherwise those flags are stripped.
     const session = await requireSession();
-    const { plateSchema } = await getLocalizedSchemas();
+    const { plateSchema, checkSportLetters } = await getLocalizedSchemas();
     const body = plateSchema.parse(await req.json());
+
+    const lettersProblem = checkSportLetters(body);
+    if (lettersProblem) throw Errors.validation({ [lettersProblem.field]: lettersProblem.message });
+
     await connectDB();
 
     const canFeature = hasPermission(session, "plate:create_featured");

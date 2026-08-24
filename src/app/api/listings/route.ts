@@ -102,8 +102,23 @@ export async function POST(req: NextRequest) {
     const isStaff = hasPermission(session, "plate:manage");
     if (!isStaff && !rateLimit(`listing:${session.sub}`, 6, 60_000)) throw Errors.rateLimited();
 
-    const { listingSubmitSchema } = await getLocalizedSchemas();
+    const { listingSubmitSchema, checkSportLetters } = await getLocalizedSchemas();
     const body = listingSubmitSchema.parse(await req.json());
+
+    // Ownership proof is required for a public submission (§ Proof of
+    // Plate Ownership) — not expressible in the shared schema since it
+    // depends on who the caller is, which the schema can't see. A
+    // staff-authored listing skips this, same as it already skips
+    // moderation.
+    if (!isStaff && !body.ownershipDocument) {
+      throw Errors.validation({ ownershipDocument: "يجب رفع صورة إستمارة السيارة" });
+    }
+
+    // Sport plates are English-only; every other type needs a real
+    // lettersAr — see checkSportLetters (§ Sports Plate rule).
+    const lettersProblem = checkSportLetters(body);
+    if (lettersProblem) throw Errors.validation({ [lettersProblem.field]: lettersProblem.message });
+
     await connectDB();
 
     if (body.logo) {

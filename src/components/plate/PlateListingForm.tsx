@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Check, FileText, Gavel, IdCard, Store, Upload } from "lucide-react";
 import { PlateLogoSelect } from "@/components/plate/PlateLogoSelect";
@@ -17,16 +17,12 @@ import { usePlateCategories } from "@/hooks/usePlateCategories";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { deriveLettersEn, isValidPlateLettersAr } from "@/lib/plateLetters";
 import { cn } from "@/lib/cn";
-import {
-  USAGE_TYPES,
-  usageTypeLabel,
-  plateShapeLabel,
-  SUBMISSION_TYPES,
-} from "@/lib/constants";
+import { USAGE_TYPES, usageTypeLabel, plateShapeLabel, SUBMISSION_TYPES } from "@/lib/constants";
 import type { UsageType, PlateShape, SubmissionType } from "@/lib/constants";
 import { USAGE_TYPE_SHAPES, deriveLegacyPlateType, getAllowedLogos } from "@/lib/plateFormConfig";
 
 const PREVIEW_PLACEHOLDER = { lettersAr: "أ ب ج", lettersEn: "ABC", numbers: "1234" };
+const PREVIEW_PLACEHOLDER_SPORT = { lettersEn: "ABC", numbers: "1234" };
 
 interface PlateListingFormProps {
   /**
@@ -37,6 +33,76 @@ interface PlateListingFormProps {
    * document step and no "submitted, pending review" messaging.
    */
   variant?: "public" | "admin";
+}
+
+/** A small radio-card group — the same visual pattern used for every
+ * binary/ternary choice in this form (pricing type, each readiness
+ * question) instead of a plain <select> or tiny native radios, per the
+ * "selected option should be visually obvious" requirement. */
+function RadioCardGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  error,
+  fieldName,
+  columns = 2,
+}: {
+  label: string;
+  options: { value: T; label: string; hint?: string; icon?: React.ComponentType<{ className?: string }> }[];
+  value: T | "";
+  onChange: (value: T) => void;
+  error?: string;
+  fieldName: string;
+  columns?: 2 | 3;
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-sm font-medium text-(--color-text)">{label}</span>
+      <div
+        className={cn("grid grid-cols-1 gap-3", columns === 3 ? "sm:grid-cols-3" : "sm:grid-cols-2")}
+        role="radiogroup"
+        aria-label={label}
+        aria-invalid={error ? true : undefined}
+      >
+        {options.map((option, i) => {
+          const selected = value === option.value;
+          const Icon = option.icon;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              data-field={i === 0 ? fieldName : undefined}
+              onClick={() => onChange(option.value)}
+              aria-checked={selected}
+              className={cn(
+                "flex min-h-20 flex-col gap-2 rounded-(--radius-lg) border p-4 text-start transition-colors",
+                "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
+                selected
+                  ? "border-(--color-gold) bg-(--color-gold-tint) text-(--color-text)"
+                  : error
+                    ? "border-(--color-danger) bg-(--color-bg-elevated) text-(--color-text-muted)"
+                    : "border-(--color-border) bg-(--color-bg-elevated) text-(--color-text-muted) hover:border-(--color-gold)/50"
+              )}
+            >
+              <span className="flex items-center justify-between gap-3">
+                {Icon && <Icon className="h-5 w-5 text-(--color-gold)" />}
+                {selected && <Check className="h-4 w-4 text-(--color-gold)" aria-hidden="true" />}
+              </span>
+              <span className="font-semibold text-(--color-text)">{option.label}</span>
+              {option.hint && <span className="text-xs leading-relaxed text-(--color-text-faint)">{option.hint}</span>}
+            </button>
+          );
+        })}
+      </div>
+      {error && (
+        <p role="alert" className="text-xs font-medium text-(--color-danger)">
+          {error}
+        </p>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -58,12 +124,21 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
 
   const [lettersAr, setLettersAr] = useState("");
-  const lettersEn = useMemo(() => deriveLettersEn(lettersAr) ?? "", [lettersAr]);
+  const [lettersEnManual, setLettersEnManual] = useState("");
   const [numbers, setNumbers] = useState("");
   const [logoId, setLogoId] = useState<string | null>(null);
   const [usageType, setUsageType] = useState<UsageType | "">("");
   const [shape, setShape] = useState<PlateShape | "">("");
   const [categoryId, setCategoryId] = useState("");
+
+  // Sport is a usage-type concept (§ Sports Plate rule) — not derived from
+  // the legacy `type` bridge below, which can land on "small_sport" instead
+  // of "sport" once a shape is picked and would otherwise miss this.
+  const isSport = usageType === "sport";
+  const lettersEn = useMemo(
+    () => (isSport ? lettersEnManual.toUpperCase() : deriveLettersEn(lettersAr) ?? ""),
+    [isSport, lettersEnManual, lettersAr]
+  );
 
   // The wizard no longer shows the legacy `type` enum as a field of its
   // own — it's derived from the usage type + shape the user actually
@@ -79,6 +154,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [existingBidAmount, setExistingBidAmount] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [docFile, setDocFile] = useState<File | null>(null);
 
@@ -87,6 +163,11 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const [instagram, setInstagram] = useState("");
   const [tiktok, setTiktok] = useState("");
   const [snapchat, setSnapchat] = useState("");
+
+  // Sale-readiness answers (§ Plate Sale Readiness) — "" means unanswered.
+  const [registrationValid, setRegistrationValid] = useState<"valid" | "expired" | "">("");
+  const [inspectionValid, setInspectionValid] = useState<"yes" | "no" | "">("");
+  const [insuranceAvailable, setInsuranceAvailable] = useState<"yes" | "no" | "">("");
 
   const [loading, setLoading] = useState(false);
 
@@ -104,6 +185,12 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     } else {
       setFieldError("lettersAr", t("validation.lettersArInvalid"));
     }
+  }
+
+  function onLettersEnManualChange(value: string) {
+    const upper = value.toUpperCase().replace(/[^A-Z]/g, "");
+    setLettersEnManual(upper);
+    clearField("lettersEn");
   }
 
   // Each choice narrows the next: a shape that no longer fits the newly
@@ -147,9 +234,12 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const Back = locale === "ar" ? ArrowRight : ArrowLeft;
 
   const steps = [
-    { key: "listing", label: t("pages.listingDetailsHeader"), hint: t("pages.howToListQuestion") },
+    { key: "listing", label: t("pages.listingDetailsHeader"), hint: t("pages.stepPlateInfoHint") },
     { key: "plate", label: t("pages.stepPlateInfo"), hint: t("pages.stepPlateInfoHint") },
     { key: "media", label: t("pages.plateImageHeader"), hint: t("pages.uploadPlatePhotoHint") },
+    { key: "readiness", label: t("pages.stepReadiness"), hint: t("pages.stepReadinessHint") },
+    { key: "pricingType", label: t("pages.stepPricingType"), hint: t("pages.stepPricingTypeHint") },
+    { key: "pricingDetails", label: t("pages.stepPricingDetails"), hint: t("pages.stepPricingDetailsHint") },
     { key: "review", label: t("pages.stepReview"), hint: t("pages.stepReviewHint") },
   ];
 
@@ -159,8 +249,8 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   function buildPayload() {
     return {
       type,
-      lettersAr,
-      lettersEn,
+      lettersAr: isSport ? "" : lettersAr,
+      lettersEn: isSport ? lettersEnManual.toUpperCase() : undefined,
       numbers,
       logo: logoId,
       usageType: usageType || undefined,
@@ -168,7 +258,12 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       category: categoryId || null,
       title,
       description: description || undefined,
-      price: submissionType === "marketplace" ? (price.trim() === "" ? undefined : Number(price)) : null,
+      price: price.trim() === "" ? undefined : Number(price),
+      existingBidAmount:
+        submissionType === "auction_request" && existingBidAmount.trim() !== "" ? Number(existingBidAmount) : undefined,
+      registrationValid: registrationValid === "" ? undefined : registrationValid === "valid",
+      inspectionValid: inspectionValid === "" ? undefined : inspectionValid === "yes",
+      insuranceAvailable: insuranceAvailable === "" ? undefined : insuranceAvailable === "yes",
       // A placeholder for the not-yet-uploaded file: the real URL is
       // substituted after the upload succeeds. Only its presence is being
       // validated at this point.
@@ -185,9 +280,12 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   /** Which fields each step owns. A step is judged only on its own
    * fields, so step 1 is never blocked by a photo that belongs to step 3. */
   const STEP_FIELDS: string[][] = [
-    ["submissionType", "title", "description", "price", "contactPhone", "contactEmail", "instagram", "tiktok", "snapchat"],
+    ["title", "description", "contactPhone", "contactEmail", "instagram", "tiktok", "snapchat"],
     ["lettersAr", "lettersEn", "numbers", "type", "logo", "usageType", "shape", "category"],
-    ["image"],
+    ["image", "ownershipDocument"],
+    ["registrationValid", "inspectionValid", "insuranceAvailable"],
+    ["submissionType"],
+    ["price", "existingBidAmount"],
     [],
   ];
 
@@ -202,24 +300,34 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     if (owned.length === 0) return true;
 
     const result = schemas.listingSubmitSchema.safeParse(buildPayload());
-    if (result.success) return true;
-
     const stepErrors: Record<string, string> = {};
-    for (const issue of result.error.issues) {
-      const key = issue.path.length ? issue.path.map(String).join(".") : FORM_ERROR_KEY;
-      if (!owned.includes(key)) continue;
-      if (!(key in stepErrors)) stepErrors[key] = issue.message;
+    if (!result.success) {
+      for (const issue of result.error.issues) {
+        const key = issue.path.length ? issue.path.map(String).join(".") : FORM_ERROR_KEY;
+        if (!owned.includes(key)) continue;
+        if (!(key in stepErrors)) stepErrors[key] = issue.message;
+      }
     }
 
-    // Step 0 owns the submission type, which is a card picker rather than
-    // an input — give it its own wording instead of a generic enum error.
-    if (index === 0 && !submissionType) {
-      stepErrors.submissionType = t("pages.chooseSubmissionTypeFirst");
+    // Sport plates are English-only; every other type needs a real
+    // lettersAr — checked manually rather than in the shared schema (a
+    // cross-field refine on a schema this size made the TS compiler choke
+    // on inference). See checkSportLetters in src/lib/validation.ts.
+    if (index === 1) {
+      if (isSport && lettersEnManual.trim() === "") stepErrors.lettersEn = t("validation.lettersArRequired");
+      if (!isSport && lettersAr.trim() === "") stepErrors.lettersAr = t("validation.lettersArRequired");
     }
-    // Likewise the plate photo: the schema only sees a string.
-    if (index === 2 && !imageFile) {
-      stepErrors.image = t("validation.plateImageRequired");
+
+    // Card-picker / file steps aren't plain inputs, so the schema's generic
+    // enum/string errors get their own wording here instead.
+    if (index === 2 && !imageFile) stepErrors.image = t("validation.plateImageRequired");
+    if (index === 2 && !isAdmin && !docFile) stepErrors.ownershipDocument = t("pages.ownershipDocumentRequired");
+    if (index === 3) {
+      if (!registrationValid) stepErrors.registrationValid = t("validation.selectRequired");
+      if (!inspectionValid) stepErrors.inspectionValid = t("validation.selectRequired");
+      if (!insuranceAvailable) stepErrors.insuranceAvailable = t("validation.selectRequired");
     }
+    if (index === 4 && !submissionType) stepErrors.submissionType = t("pages.chooseSubmissionTypeFirst");
 
     if (Object.keys(stepErrors).length === 0) return true;
     report(stepErrors, { toastKey: "fixBeforeContinue", silent: options.silent });
@@ -273,11 +381,18 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     }
     // The admin flow has no ownership-document step at all — a
     // staff-authored listing doesn't need one, see PlateListingFormProps.
-    const docError = isAdmin ? null : validateUploadFile(docFile, t, "document");
-    if (docError) {
-      report({ ownershipDocument: docError });
-      setStep(2);
-      return;
+    if (!isAdmin) {
+      if (!docFile) {
+        report({ ownershipDocument: t("pages.ownershipDocumentRequired") });
+        setStep(2);
+        return;
+      }
+      const docError = validateUploadFile(docFile, t, "image");
+      if (docError) {
+        report({ ownershipDocument: docError });
+        setStep(2);
+        return;
+      }
     }
 
     setLoading(true);
@@ -339,8 +454,16 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
           type={type}
           usageType={usageType || null}
           shape={shape || null}
-          lettersAr={lettersAr.trim() ? lettersAr : PREVIEW_PLACEHOLDER.lettersAr}
-          lettersEn={lettersAr.trim() ? lettersEn : PREVIEW_PLACEHOLDER.lettersEn}
+          lettersAr={isSport ? "" : lettersAr.trim() ? lettersAr : PREVIEW_PLACEHOLDER.lettersAr}
+          lettersEn={
+            isSport
+              ? lettersEnManual.trim()
+                ? lettersEn
+                : PREVIEW_PLACEHOLDER_SPORT.lettersEn
+              : lettersAr.trim()
+                ? lettersEn
+                : PREVIEW_PLACEHOLDER.lettersEn
+          }
           numbers={numbers || PREVIEW_PLACEHOLDER.numbers}
           logo={previewLogo}
           size="lg"
@@ -363,57 +486,6 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
 
           {step === 0 && (
             <div className="flex flex-col gap-5">
-              <div
-                className="grid grid-cols-1 gap-3 sm:grid-cols-2"
-                role="radiogroup"
-                aria-label={t("pages.howToListQuestion")}
-                aria-invalid={errorFor("submissionType") ? true : undefined}
-              >
-                {SUBMISSION_TYPES.map((option) => {
-                  const selected = submissionType === option;
-                  const Icon = option === "marketplace" ? Store : Gavel;
-                  return (
-                    <button
-                      key={option}
-                      type="button"
-                      role="radio"
-                      data-field={option === SUBMISSION_TYPES[0] ? "submissionType" : undefined}
-                      onClick={() => {
-                        setSubmissionType(option);
-                        clearField("submissionType");
-                      }}
-                      aria-checked={selected}
-                      className={cn(
-                        "flex min-h-32 flex-col gap-3 rounded-(--radius-lg) border p-4 text-start transition-colors",
-                        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--color-gold)",
-                        selected
-                          ? "border-(--color-gold) bg-(--color-gold-tint) text-(--color-text)"
-                          : errorFor("submissionType")
-                            ? "border-(--color-danger) bg-(--color-bg-elevated) text-(--color-text-muted)"
-                            : "border-(--color-border) bg-(--color-bg-elevated) text-(--color-text-muted) hover:border-(--color-gold)/50"
-                      )}
-                    >
-                      <span className="flex items-center justify-between gap-3">
-                        <Icon className="h-5 w-5 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
-                        {selected && <Check className="h-4 w-4 text-(--color-gold)" aria-hidden="true" />}
-                      </span>
-                      <span className="font-semibold text-(--color-text)">
-                        {option === "marketplace" ? t("pages.submissionTypeMarketplace") : t("pages.submissionTypeAuctionRequest")}
-                      </span>
-                      <span className="text-xs leading-relaxed text-(--color-text-faint)">
-                        {option === "marketplace" ? t("pages.submissionTypeMarketplaceHint") : t("pages.submissionTypeAuctionRequestHint")}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {errorFor("submissionType") && (
-                <p role="alert" className="-mt-2 text-xs font-medium text-(--color-danger)">
-                  {errorFor("submissionType")}
-                </p>
-              )}
-
               <Input
                 label={t("pages.titleLabel")}
                 value={title}
@@ -438,22 +510,6 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
               />
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-                {submissionType === "marketplace" && (
-                  <Input
-                    label={t("pages.askingPriceLabel")}
-                    type="number"
-                    inputMode="numeric"
-                    value={price}
-                    onChange={(e) => {
-                      setPrice(e.target.value);
-                      clearField("price");
-                    }}
-                    min={1}
-                    step={1}
-                    required
-                    {...fieldProps("price")}
-                  />
-                )}
                 <Input
                   label={t("pages.contactPhoneLabel")}
                   type="tel"
@@ -518,41 +574,71 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
 
           {step === 1 && (
             <div className="flex flex-col gap-5">
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-                <Input
-                  label={t("pages.lettersArLabel")}
-                  value={lettersAr}
-                  onChange={(e) => onLettersArChange(e.target.value)}
-                  required
-                  dir="rtl"
-                  maxLength={10}
-                  placeholder={PREVIEW_PLACEHOLDER.lettersAr}
-                  {...fieldProps("lettersAr")}
-                />
-                <Input
-                  label={t("pages.lettersEnLabel")}
-                  value={lettersEn}
-                  readOnly
-                  disabled
-                  dir="ltr"
-                  placeholder={PREVIEW_PLACEHOLDER.lettersEn}
-                  hint={t("pages.lettersEnAutoHint")}
-                />
-                <Input
-                  label={t("pages.numbersLabel")}
-                  value={numbers}
-                  onChange={(e) => {
-                    setNumbers(e.target.value.replace(/[^0-9]/g, ""));
-                    clearField("numbers");
-                  }}
-                  inputMode="numeric"
-                  maxLength={4}
-                  required
-                  dir="ltr"
-                  placeholder={PREVIEW_PLACEHOLDER.numbers}
-                  {...fieldProps("numbers")}
-                />
-              </div>
+              {isSport ? (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                  <Input
+                    label={t("pages.lettersEnSportLabel")}
+                    value={lettersEnManual}
+                    onChange={(e) => onLettersEnManualChange(e.target.value)}
+                    required
+                    dir="ltr"
+                    maxLength={4}
+                    placeholder={PREVIEW_PLACEHOLDER_SPORT.lettersEn}
+                    hint={t("pages.lettersEnSportHint")}
+                    {...fieldProps("lettersEn")}
+                  />
+                  <Input
+                    label={t("pages.numbersLabel")}
+                    value={numbers}
+                    onChange={(e) => {
+                      setNumbers(e.target.value.replace(/[^0-9]/g, ""));
+                      clearField("numbers");
+                    }}
+                    inputMode="numeric"
+                    maxLength={4}
+                    required
+                    dir="ltr"
+                    placeholder={PREVIEW_PLACEHOLDER_SPORT.numbers}
+                    {...fieldProps("numbers")}
+                  />
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                  <Input
+                    label={t("pages.lettersArLabel")}
+                    value={lettersAr}
+                    onChange={(e) => onLettersArChange(e.target.value)}
+                    required
+                    dir="rtl"
+                    maxLength={10}
+                    placeholder={PREVIEW_PLACEHOLDER.lettersAr}
+                    {...fieldProps("lettersAr")}
+                  />
+                  <Input
+                    label={t("pages.lettersEnLabel")}
+                    value={lettersEn}
+                    readOnly
+                    disabled
+                    dir="ltr"
+                    placeholder={PREVIEW_PLACEHOLDER.lettersEn}
+                    hint={t("pages.lettersEnAutoHint")}
+                  />
+                  <Input
+                    label={t("pages.numbersLabel")}
+                    value={numbers}
+                    onChange={(e) => {
+                      setNumbers(e.target.value.replace(/[^0-9]/g, ""));
+                      clearField("numbers");
+                    }}
+                    inputMode="numeric"
+                    maxLength={4}
+                    required
+                    dir="ltr"
+                    placeholder={PREVIEW_PLACEHOLDER.numbers}
+                    {...fieldProps("numbers")}
+                  />
+                </div>
+              )}
 
               {/* The dependency chain: usage type decides which shapes are
                   offered, and usage type + shape together decide which
@@ -675,15 +761,26 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                     </h3>
                     <p className="mt-2 text-xs leading-relaxed text-(--color-text-muted)">{t("pages.ownershipDocumentHint")}</p>
                   </div>
-                  <label className="flex cursor-pointer flex-col gap-2 rounded-(--radius-md) border border-(--color-border-strong) bg-(--color-surface) p-4 text-sm text-(--color-text) transition-colors hover:border-(--color-gold)/50">
-                    <span>{docFile ? docFile.name : t("common.optional")}</span>
+                  <label
+                    htmlFor="ownership-document-input"
+                    className="relative flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-(--radius-md) border border-dashed border-(--color-border-strong) bg-(--color-surface) p-4 text-center transition-colors hover:border-(--color-gold)/50"
+                  >
+                    {docFile ? (
+                      <span className="text-sm font-medium text-(--color-text)">{docFile.name}</span>
+                    ) : (
+                      <>
+                        <Upload className="h-6 w-6 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
+                        <span className="text-sm font-medium text-(--color-text)">{t("pages.ownershipDocumentUploadCta")}</span>
+                      </>
+                    )}
                     <input
+                      id="ownership-document-input"
                       name="ownershipDocument"
                       type="file"
-                      accept="image/jpeg,image/png,image/webp,application/pdf"
+                      accept="image/jpeg,image/png,image/webp"
                       onChange={(e) => {
                         const picked = e.target.files?.[0] ?? null;
-                        const problem = validateUploadFile(picked, t, "document");
+                        const problem = validateUploadFile(picked, t, "image");
                         if (problem) {
                           e.target.value = "";
                           setDocFile(null);
@@ -694,9 +791,10 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                         setDocFile(picked);
                         clearField("ownershipDocument");
                       }}
-                      className="text-xs text-(--color-text-muted)"
+                      className="sr-only"
                     />
                   </label>
+                  <p className="text-xs text-(--color-text-faint)">{t("pages.ownershipDocumentPrivacyHint")}</p>
                   {errorFor("ownershipDocument") && (
                     <p role="alert" className="text-xs font-medium text-(--color-danger)">
                       {errorFor("ownershipDocument")}
@@ -708,6 +806,108 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
           )}
 
           {step === 3 && (
+            <div className="flex flex-col gap-6">
+              <RadioCardGroup
+                label={t("pages.registrationValidQuestion")}
+                fieldName="registrationValid"
+                value={registrationValid}
+                onChange={(v) => {
+                  setRegistrationValid(v);
+                  clearField("registrationValid");
+                }}
+                error={errorFor("registrationValid")}
+                options={[
+                  { value: "valid", label: t("pages.registrationValidOption") },
+                  { value: "expired", label: t("pages.registrationExpiredOption") },
+                ]}
+              />
+              <RadioCardGroup
+                label={t("pages.inspectionValidQuestion")}
+                fieldName="inspectionValid"
+                value={inspectionValid}
+                onChange={(v) => {
+                  setInspectionValid(v);
+                  clearField("inspectionValid");
+                }}
+                error={errorFor("inspectionValid")}
+                options={[
+                  { value: "yes", label: t("common.yes") },
+                  { value: "no", label: t("common.no") },
+                ]}
+              />
+              <RadioCardGroup
+                label={t("pages.insuranceAvailableQuestion")}
+                fieldName="insuranceAvailable"
+                value={insuranceAvailable}
+                onChange={(v) => {
+                  setInsuranceAvailable(v);
+                  clearField("insuranceAvailable");
+                }}
+                error={errorFor("insuranceAvailable")}
+                options={[
+                  { value: "yes", label: t("common.yes") },
+                  { value: "no", label: t("common.no") },
+                ]}
+              />
+            </div>
+          )}
+
+          {step === 4 && (
+            <RadioCardGroup
+              label={t("pages.howToListQuestion")}
+              fieldName="submissionType"
+              value={submissionType ?? ""}
+              onChange={(v) => {
+                setSubmissionType(v);
+                clearField("submissionType");
+              }}
+              error={errorFor("submissionType")}
+              options={SUBMISSION_TYPES.map((option) => ({
+                value: option,
+                label: option === "marketplace" ? t("pages.submissionTypeMarketplace") : t("pages.submissionTypeAuctionRequest"),
+                hint: option === "marketplace" ? t("pages.submissionTypeMarketplaceHint") : t("pages.submissionTypeAuctionRequestHint"),
+                icon: option === "marketplace" ? Store : Gavel,
+              }))}
+            />
+          )}
+
+          {step === 5 && (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+              {submissionType === "auction_request" && (
+                <Input
+                  label={t("pages.existingBidLabel")}
+                  type="number"
+                  inputMode="numeric"
+                  value={existingBidAmount}
+                  onChange={(e) => {
+                    setExistingBidAmount(e.target.value);
+                    clearField("existingBidAmount");
+                  }}
+                  min={1}
+                  step={1}
+                  hint={t("pages.existingBidHint")}
+                  {...fieldProps("existingBidAmount")}
+                />
+              )}
+              <Input
+                label={t("pages.finalPriceLabel")}
+                type="number"
+                inputMode="numeric"
+                value={price}
+                onChange={(e) => {
+                  setPrice(e.target.value);
+                  clearField("price");
+                }}
+                min={1}
+                step={1}
+                required={submissionType === "marketplace"}
+                hint={submissionType === "auction_request" ? t("pages.finalPriceAuctionHint") : undefined}
+                {...fieldProps("price")}
+              />
+            </div>
+          )}
+
+          {step === 6 && (
             <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-(--radius-md) border border-(--color-border) bg-(--color-border) sm:grid-cols-2">
               {[
                 {
@@ -717,7 +917,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                 { label: t("pages.titleLabel"), value: title },
                 { label: t("pages.reviewPlateType"), value: usageType ? usageTypeLabel(usageType, locale) : "" },
                 { label: t("pages.reviewShape"), value: shape ? plateShapeLabel(shape, locale) : "" },
-                { label: t("pages.reviewLetters"), value: `${lettersAr} · ${lettersEn}` },
+                { label: t("pages.reviewLetters"), value: isSport ? lettersEn : `${lettersAr} · ${lettersEn}` },
                 { label: t("pages.reviewNumbers"), value: numbers, numeric: true },
                 {
                   label: t("pages.reviewLogo"),

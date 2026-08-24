@@ -5,7 +5,11 @@ import { PLATE_TYPES, PLATE_CLASSIFICATIONS, USAGE_TYPES, PLATE_SHAPES, PLATE_SI
 const plateSchema = new Schema(
   {
     type: { type: String, enum: PLATE_TYPES, required: true },
-    lettersAr: { type: String, required: true, trim: true, maxlength: 10 },
+    // Not required at the schema level: a sport plate is English-only and
+    // legitimately has no Arabic letters. "required unless sport" is
+    // enforced in src/lib/validation.ts, the single place that already
+    // owns every other plate submission rule.
+    lettersAr: { type: String, trim: true, maxlength: 10, default: "" },
     lettersEn: { type: String, required: true, trim: true, uppercase: true, maxlength: 10 },
     numbers: { type: String, required: true, trim: true, maxlength: 4 },
     // Admin-managed, dynamic — see the PlateLogo model. `null` means "no
@@ -40,6 +44,17 @@ const plateSchema = new Schema(
     title: { type: String, trim: true, maxlength: 150, default: null },
     description: { type: String, trim: true, maxlength: 2000, default: null },
     price: { type: Number, min: 0, default: null },
+    // "هل اللوحة مسيومة سابقاً؟" — an optional pre-existing offer, only
+    // meaningful for an auction-request listing. Pre-fills the admin's
+    // create-auction startingPrice so it appears as the current highest
+    // offer until a real bid surpasses it — see admin/auctions/new.
+    existingBidAmount: { type: Number, min: 0, default: null },
+    // Sale-readiness answers — null = not answered (legacy plates predate
+    // these fields; required going forward for new submissions, enforced
+    // in src/lib/validation.ts).
+    registrationValid: { type: Boolean, default: null },
+    inspectionValid: { type: Boolean, default: null },
+    insuranceAvailable: { type: Boolean, default: null },
     // The actual uploaded photo of the physical plate — the platform never
     // generates plate artwork from letters/numbers/logo. SaudiPlate
     // remains a fallback only for records with no real photo yet.

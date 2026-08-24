@@ -9,7 +9,11 @@ import sharp from "sharp";
 // which authorizes the request before streaming bytes.
 const PRIVATE_UPLOAD_DIR = process.env.PRIVATE_UPLOAD_DIR ?? "./private-uploads";
 
-const ALLOWED_DOCUMENT_MIME = new Set(["image/jpeg", "image/png", "image/webp", "application/pdf"]);
+// Image-only going forward — a registration document is a photo of the
+// إستمارة, not a scanned PDF. The PDF branch below stays only so any
+// already-stored legacy document (uploaded before this restriction) still
+// reads back correctly; no new PDF is ever written.
+const ALLOWED_DOCUMENT_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
 const MAX_SIZE_BYTES = 8 * 1024 * 1024;
 
 export interface StoredDocument {
@@ -19,14 +23,14 @@ export interface StoredDocument {
 }
 
 /**
- * Stores an ownership/registration document privately. Images are
- * re-encoded through sharp exactly like the public upload pipeline (strips
- * metadata, normalizes size); PDFs are stored as-is — sharp cannot process
- * PDFs, and re-encoding a legal document's bytes isn't desirable anyway.
+ * Stores an ownership/registration document privately. Re-encoded through
+ * sharp exactly like the public upload pipeline (strips metadata,
+ * normalizes size). The PDF branch below only serves back a legacy
+ * document stored before uploads were restricted to images.
  */
 export async function saveOwnershipDocument(file: File, subdir: string): Promise<StoredDocument> {
   if (!ALLOWED_DOCUMENT_MIME.has(file.type)) {
-    throw new Error("نوع الملف غير مدعوم (يُسمح فقط بـ JPEG أو PNG أو WEBP أو PDF)");
+    throw new Error("نوع الملف غير مدعوم (يُسمح فقط بصور JPEG أو PNG أو WEBP)");
   }
   if (file.size > MAX_SIZE_BYTES) {
     throw new Error("حجم الملف يتجاوز الحد المسموح به (8 ميجابايت)");
@@ -35,12 +39,6 @@ export async function saveOwnershipDocument(file: File, subdir: string): Promise
   const buffer = Buffer.from(await file.arrayBuffer());
   const dir = path.join(/* turbopackIgnore: true */ PRIVATE_UPLOAD_DIR, subdir);
   await mkdir(dir, { recursive: true });
-
-  if (file.type === "application/pdf") {
-    const filename = `${crypto.randomUUID()}.pdf`;
-    await writeFile(path.join(dir, filename), buffer);
-    return { ref: `${subdir}/${filename}`, contentType: "application/pdf" };
-  }
 
   const optimized = await sharp(buffer)
     .resize({ width: 2400, withoutEnlargement: true })

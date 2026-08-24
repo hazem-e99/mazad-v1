@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { requireSession } from "@/lib/auth";
+import { requirePermission } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
 import { placeBid } from "@/services/auctionService";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
@@ -12,7 +12,7 @@ interface Params {
 export async function POST(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const session = await requireSession();
+    const session = await requirePermission("auction:bid");
 
     if (!rateLimit(`bid:${session.sub}`, 20, 10_000)) throw Errors.rateLimited();
 

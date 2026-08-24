@@ -133,6 +133,11 @@ export function plateShapeLabel(value: PlateShape, locale: "ar" | "en" = "ar"): 
   return locale === "en" ? PLATE_SHAPE_LABELS_EN[value] : PLATE_SHAPE_LABELS_AR[value];
 }
 
+// Which physical shapes a given usage type may be registered under —
+// see USAGE_TYPE_SHAPES in src/lib/plateFormConfig.ts, the single source
+// for this mapping (also drives the add-plate wizard's usage-type ->
+// shape -> logo dependency chain).
+
 // Plate size — physical dimensions, independent of shape (a real Saudi
 // traffic-authority distinction: لوحة كبيرة / لوحة صغيرة).
 export const PLATE_SIZES = ["large", "small"] as const;
@@ -296,6 +301,9 @@ export const AUDIT_ACTIONS = [
   "plate_logo.updated",
   "plate_logo.deleted",
   "user.updated",
+  "user.suspended",
+  "user.reactivated",
+  "user.deleted",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
@@ -319,6 +327,9 @@ export const AUDIT_ACTION_LABELS_AR: Record<AuditAction, string> = {
   "plate_logo.updated": "تعديل شعار لوحة",
   "plate_logo.deleted": "حذف شعار لوحة",
   "user.updated": "تعديل بيانات مستخدم",
+  "user.suspended": "إيقاف مستخدم",
+  "user.reactivated": "إعادة تفعيل مستخدم",
+  "user.deleted": "حذف مستخدم",
 };
 
 export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
@@ -341,6 +352,9 @@ export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
   "plate_logo.updated": "Plate logo updated",
   "plate_logo.deleted": "Plate logo deleted",
   "user.updated": "User updated",
+  "user.suspended": "User suspended",
+  "user.reactivated": "User reactivated",
+  "user.deleted": "User deleted",
 };
 
 /**
