@@ -138,7 +138,13 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
           <h2 className="font-semibold text-(--color-text)">{t("admin.statusManagementHeader")}</h2>
         </CardHeader>
         <CardBody>
-          <AuctionStatusActions auctionId={auction._id} status={auction.status as AuctionStatus} />
+          <AuctionStatusActions
+            auctionId={auction._id}
+            status={auction.status as AuctionStatus}
+            currentPrice={auction.currentPrice}
+            bidCount={auction.bidCount}
+            highestBidderName={auction.highestBidder?.name ?? null}
+          />
         </CardBody>
       </Card>
 

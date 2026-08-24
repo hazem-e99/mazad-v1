@@ -249,6 +249,7 @@ export const PERMISSIONS = [
   "auction:sell", // صلاحية البيع
   "auction:buy", // صلاحية الشراء
   "auction:bid", // صلاحية المزايدة
+  "auction:close_own", // إنهاء المزاد الخاص يدويًا
   "plate:manage",
   "plate_logo:manage", // إدارة شعارات اللوحات
   "category:manage", // إدارة تصنيفات اللوحات

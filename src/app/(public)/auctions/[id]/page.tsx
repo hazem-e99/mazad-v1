@@ -18,6 +18,7 @@ import { formatSar, formatDateTime } from "@/lib/format";
 import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
 import { WhatsAppContactButton } from "@/components/plate/WhatsAppContactButton";
 import { OwnerAuctionBackgroundUploader } from "@/components/auction/OwnerAuctionBackgroundUploader";
+import { OwnerFinalizeAction } from "@/components/auction/OwnerFinalizeAction";
 
 export const revalidate = 0;
 
@@ -175,6 +176,18 @@ export default async function AuctionDetailPage({ params }: Props) {
               currentStatus={auction.backgroundStatus}
               currentRejectionReason={auction.backgroundRejectionReason}
             />
+          )}
+
+          {isSeller && auction.status === "live" && hasPermission(session, "auction:close_own") && (
+            <section className="rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-5 sm:p-6">
+              <h2 className="mb-3 text-sm font-semibold text-(--color-text)">{t("pages.manageAuctionHeader")}</h2>
+              <OwnerFinalizeAction
+                auctionId={auction._id}
+                currentPrice={auction.currentPrice}
+                bidCount={auction.bidCount}
+                highestBidderName={auction.highestBidder?.name ?? null}
+              />
+            </section>
           )}
 
           {contactReveal && (

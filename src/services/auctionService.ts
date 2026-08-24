@@ -243,9 +243,16 @@ export async function purchaseDirect(params: {
  * early end) finds no matching document and is a no-op.
  *
  * @param force Skip the endAt-has-passed check — used only for an admin's
- *   explicit "end auction now" action, never by the scheduler.
+ *   or an owner's explicit "end auction now" action, never by the
+ *   scheduler.
+ * @param closedBy The session id of whoever forced this early — omitted
+ *   for the scheduler's own automatic sweep, which has no human actor.
+ * @param reason An optional free-text reason for a manual close.
  */
-export async function finalizeAuction(auctionId: string, options: { force?: boolean } = {}): Promise<AuctionDoc | null> {
+export async function finalizeAuction(
+  auctionId: string,
+  options: { force?: boolean; closedBy?: string; reason?: string } = {}
+): Promise<AuctionDoc | null> {
   await connectDB();
   const auction = await Auction.findById(auctionId);
   if (!auction) return null;
@@ -276,12 +283,22 @@ export async function finalizeAuction(auctionId: string, options: { force?: bool
   );
 
   if (updated) {
+    // A real manual close (§ Manual Close) attributes the audit entry to
+    // whoever actually clicked the button, not the auction's original
+    // creator — `closedBy` is only ever set by that path; the scheduler's
+    // automatic sweep leaves it undefined and correctly falls back to
+    // `createdBy`, since there is no human actor to record there.
     await AuditLog.create({
-      actor: auction.createdBy,
+      actor: options.closedBy ?? auction.createdBy,
       action: "auction.finalized",
       entityType: "Auction",
       entityId: auction._id,
-      metadata: { result: updated.status, finalPrice: updated.finalPrice },
+      metadata: {
+        result: updated.status,
+        finalPrice: updated.finalPrice,
+        forced: Boolean(options.force),
+        reason: options.reason ?? null,
+      },
     });
 
     const winnerName = updated.winner

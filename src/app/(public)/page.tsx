@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { unstable_cache } from "next/cache";
 import {
+  getFeaturedNumberPlates,
   getHomeCategories,
   getLatestPlates,
   getLiveAuctions,
@@ -14,6 +15,7 @@ import { StatsPanel } from "@/components/home/StatsPanel";
 import { CategoryTiles } from "@/components/home/CategoryTiles";
 import { SellPlateBanner } from "@/components/home/SellPlateBanner";
 import { LatestPlates } from "@/components/home/LatestPlates";
+import { FeaturedNumbers } from "@/components/home/FeaturedNumbers";
 import {
   CardRowSkeleton,
   CategoryTilesSkeleton,
@@ -28,17 +30,18 @@ const HOME_SECTION_TIMEOUT_MS = 20_000;
 
 const getCachedHomeData = unstable_cache(
   async () => {
-    const [featured, stats, categories, latest] = await Promise.all([
+    const [featured, stats, categories, featuredNumbers, latest] = await Promise.all([
       section("featured-ads", async () => {
         const [plates, liveAuctions] = await Promise.all([getVipPlates(10), getLiveAuctions(8)]);
         return { plates, liveAuctions };
       }),
       section("stats", () => getPlatformStats()),
       section("categories", () => getHomeCategories()),
-      section("latest-plates", () => getLatestPlates(4)),
+      section("featured-numbers", () => getFeaturedNumberPlates(8)),
+      section("latest-plates", () => getLatestPlates(10)),
     ]);
 
-    return { featured, stats, categories, latest };
+    return { featured, stats, categories, featuredNumbers, latest };
   },
   ["home-page-data"],
   { tags: ["home-page-data"], revalidate: 30 }
@@ -91,6 +94,12 @@ export default async function HomePage() {
 
       <section className="mz-container pt-12 sm:pt-16">
         <SellBlock />
+      </section>
+
+      <section className="mz-container pt-12 sm:pt-16">
+        <Suspense fallback={<CardRowSkeleton count={4} />}>
+          <FeaturedNumbersBlock data={homeData.featuredNumbers} />
+        </Suspense>
       </section>
 
       <section className="mz-container pb-10 pt-8 sm:pb-12 sm:pt-10">
@@ -157,4 +166,14 @@ function LatestBlock({ plates }: { plates: Awaited<ReturnType<typeof getCachedHo
   if (!plates) return <SectionError />;
   if (plates.length === 0) return null;
   return <LatestPlates plates={plates} />;
+}
+
+function FeaturedNumbersBlock({
+  data,
+}: {
+  data: Awaited<ReturnType<typeof getCachedHomeData>>["featuredNumbers"];
+}) {
+  if (!data) return <SectionError />;
+  if (data.vipPlates.length === 0 && data.normalPlates.length === 0) return null;
+  return <FeaturedNumbers vipPlates={data.vipPlates} normalPlates={data.normalPlates} auctionByPlate={data.auctionByPlate} />;
 }

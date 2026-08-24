@@ -99,6 +99,10 @@ export const getLatestPlates = cache(async (limit = 8) => {
     submissionType: "marketplace",
     moderationStatus: "approved",
     isVisible: true,
+    // VIP plates have their own home section (FeaturedAds) — excluded
+    // here so a plate never appears in both, per the "لا تكرر نفس Plate"
+    // requirement.
+    isVip: { $ne: true },
   })
     .sort({ createdAt: -1 })
     .limit(limit)
@@ -164,6 +168,63 @@ export const getVipPlates = cache(async (limit = 12) => {
     .populate("logo")
     .lean<LeanPlate[]>();
   return plates.map(toPlateDTO);
+});
+
+/** A card-sized view of an active auction, keyed by its plate — just
+ * enough for the featured-numbers cards to link to the right auction and
+ * show its live figures, without pulling in the full AuctionDTO (which
+ * requires a populated `plate` this call doesn't need). */
+export interface FeaturedNumberAuctionLink {
+  auctionId: string;
+  status: "scheduled" | "live";
+  currentPrice: number;
+  bidCount: number;
+  endAt: string;
+}
+
+/**
+ * Data for the home page's "الأرقام المميزة" section (§ Featured
+ * Numbers) — two tabs over the *same* Plate data every other section
+ * already reads (no separate rarity/number entity exists, confirmed
+ * during planning): أرقام VIP reuses getVipPlates verbatim, أرقام متاحة
+ * reuses the same non-VIP marketplace filter getLatestPlates uses. Each
+ * plate's linked auction (if any) is resolved in one batched query rather
+ * than one query per card.
+ */
+export const getFeaturedNumberPlates = cache(async (limit = 12) => {
+  await connectDB();
+  const [vipPlates, normalPlates] = await Promise.all([
+    getVipPlates(limit),
+    Plate.find({
+      submissionType: "marketplace",
+      moderationStatus: "approved",
+      isVisible: true,
+      isVip: { $ne: true },
+    })
+      .sort({ createdAt: -1 })
+      .limit(limit)
+      .populate("logo")
+      .lean<LeanPlate[]>()
+      .then(toPlateDTOList),
+  ]);
+
+  const plateIds = [...vipPlates, ...normalPlates].map((p) => p._id);
+  const auctions = await Auction.find({ plate: { $in: plateIds }, status: { $in: ["scheduled", "live"] } })
+    .select("plate status currentPrice bidCount endAt")
+    .lean<{ _id: unknown; plate: unknown; status: "scheduled" | "live"; currentPrice: number; bidCount: number; endAt: Date }[]>();
+
+  const auctionByPlate: Record<string, FeaturedNumberAuctionLink> = {};
+  for (const a of auctions) {
+    auctionByPlate[String(a.plate)] = {
+      auctionId: String(a._id),
+      status: a.status,
+      currentPrice: a.currentPrice,
+      bidCount: a.bidCount,
+      endAt: a.endAt.toISOString(),
+    };
+  }
+
+  return { vipPlates, normalPlates, auctionByPlate };
 });
 
 export async function getExclusiveAuctions(limit = 12) {

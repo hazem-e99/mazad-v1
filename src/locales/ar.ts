@@ -128,6 +128,11 @@ export interface MessageCatalog {
     latestTitle: string;
     latestBadge: string;
     latestSubtitle: string;
+    featuredNumbersTitle: string;
+    featuredNumbersSubtitle: string;
+    featuredNumbersVipTab: string;
+    featuredNumbersNormalTab: string;
+    featuredNumbersEmpty: string;
     latestCta: string;
   };
   auth: {
@@ -185,6 +190,8 @@ export interface MessageCatalog {
     directPurchase: string;
     recentBids: string;
     noBidsYet: string;
+    highestBidBadge: string;
+    loadMoreBids: string;
     mustLoginToBid: string;
     connected: string;
     disconnected: string;
@@ -515,6 +522,13 @@ export interface MessageCatalog {
     noListingsYet: string;
     rejectionReasonLabel: string;
     resubmitAction: string;
+    createAuctionAction: string;
+    auctionBlockedNotApproved: string;
+    auctionBlockedHidden: string;
+    auctionBlockedActiveExists: string;
+    submitAuctionForReview: string;
+    auctionSubmittedForReview: string;
+    manageAuctionHeader: string;
     editListingTitle: string;
     editListingSubtitle: string;
     listingResubmitted: string;
@@ -707,6 +721,12 @@ export interface MessageCatalog {
     currentStatusLabel: string;
     finalizeNowButton: string;
     cancelAuctionButton: string;
+    approveAuctionButton: string;
+    rejectAuctionButton: string;
+    auctionApproved: string;
+    finalizeWillSell: string;
+    finalizeWillNotSell: string;
+    closeReasonLabel: string;
     auctionCancelled: string;
     auctionCancelFailed: string;
     auctionFinalized: string;
@@ -779,11 +799,13 @@ export interface MessageCatalog {
     canSellLabel: string;
     canBidLabel: string;
     canCreateAuctionLabel: string;
+    canCloseOwnAuctionLabel: string;
     permCreateFeatured: string;
     permAuctionCreate: string;
     permAuctionSell: string;
     permAuctionBuy: string;
     permAuctionBid: string;
+    permAuctionCloseOwn: string;
     permPlateManage: string;
     permPlateLogoManage: string;
     permAuctionManage: string;
@@ -1022,6 +1044,11 @@ const ar: MessageCatalog = {
     latestTitle: "أحدث اللوحات",
     latestBadge: "جديد",
     latestSubtitle: "أحدث الإعلانات المضافة",
+    featuredNumbersTitle: "الأرقام المميزة",
+    featuredNumbersSubtitle: "تصفح الأرقام المميزة المتاحة وضمن المزادات الجارية",
+    featuredNumbersVipTab: "أرقام VIP",
+    featuredNumbersNormalTab: "أرقام متاحة",
+    featuredNumbersEmpty: "لا توجد أرقام في هذا القسم حاليًا",
     latestCta: "عرض اللوحات",
   },
   auth: {
@@ -1045,7 +1072,7 @@ const ar: MessageCatalog = {
   auction: {
     live: "مباشر",
     liveNow: "مباشر الآن",
-    draft: "مسودة",
+    draft: "قيد المراجعة",
     scheduled: "قادم",
     startsAt: "يبدأ في",
     notStartedYet: "لم يبدأ بعد",
@@ -1079,6 +1106,8 @@ const ar: MessageCatalog = {
     directPurchase: "شراء مباشر",
     recentBids: "آخر المزايدات",
     noBidsYet: "لا توجد مزايدات بعد — كن أول من يزايد",
+    highestBidBadge: "أعلى مزايدة",
+    loadMoreBids: "عرض المزيد",
     mustLoginToBid: "يجب تسجيل الدخول للمزايدة",
     connected: "متصل مباشرة",
     disconnected: "غير متصل — يتم إعادة الاتصال",
@@ -1398,6 +1427,13 @@ const ar: MessageCatalog = {
     noListingsYet: "لم تقم بعرض أي لوحة بعد",
     rejectionReasonLabel: "سبب الرفض",
     resubmitAction: "إعادة الإرسال",
+    createAuctionAction: "إنشاء مزاد",
+    auctionBlockedNotApproved: "لا يمكن إنشاء مزاد لهذه اللوحة لأنها قيد المراجعة",
+    auctionBlockedHidden: "لا يمكن إنشاء مزاد لهذه اللوحة لأنها موقوفة",
+    auctionBlockedActiveExists: "توجد بالفعل عملية مزاد نشطة لهذه اللوحة",
+    submitAuctionForReview: "إرسال المزاد للمراجعة",
+    auctionSubmittedForReview: "تم إرسال المزاد وهو الآن قيد المراجعة",
+    manageAuctionHeader: "إدارة المزاد",
     editListingTitle: "تعديل العرض",
     editListingSubtitle: "عدّل بيانات لوحتك وأعد إرسالها للمراجعة",
     listingResubmitted: "تم إرسال التعديلات للمراجعة",
@@ -1585,8 +1621,14 @@ const ar: MessageCatalog = {
     noBidsOnAuction: "لا توجد مزايدات على هذا المزاد",
     finalStateNotice: "هذا المزاد في حالة نهائية ولا يمكن تغييرها.",
     currentStatusLabel: "الحالة الحالية",
-    finalizeNowButton: "إنهاء المزاد الآن واحتساب النتيجة",
+    finalizeNowButton: "إنهاء المزاد الآن",
     cancelAuctionButton: "إلغاء المزاد",
+    approveAuctionButton: "اعتماد",
+    rejectAuctionButton: "رفض",
+    auctionApproved: "تم اعتماد المزاد",
+    finalizeWillSell: "سيتم إنهاء المزاد بحالة: مباع",
+    finalizeWillNotSell: "سيتم إنهاء المزاد بحالة: غير مباع",
+    closeReasonLabel: "سبب الإنهاء (اختياري)",
     auctionCancelled: "تم إلغاء المزاد",
     auctionCancelFailed: "تعذر إلغاء المزاد",
     auctionFinalized: "تم إنهاء المزاد واحتساب النتيجة",
@@ -1658,12 +1700,14 @@ const ar: MessageCatalog = {
     canSellLabel: "البيع",
     canBidLabel: "المزايدة",
     canCreateAuctionLabel: "إنشاء مزاد",
+    canCloseOwnAuctionLabel: "إنهاء المزاد الخاص",
 
     permCreateFeatured: "إضافة لوحة مميزة",
     permAuctionCreate: "إضافة مزاد",
     permAuctionSell: "صلاحية البيع",
     permAuctionBuy: "صلاحية الشراء",
     permAuctionBid: "صلاحية المزايدة",
+    permAuctionCloseOwn: "إنهاء المزاد الخاص",
     permPlateManage: "إدارة اللوحات",
     permPlateLogoManage: "إدارة شعارات اللوحات",
     permAuctionManage: "إدارة المزادات",

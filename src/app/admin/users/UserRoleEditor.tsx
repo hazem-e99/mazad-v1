@@ -43,6 +43,7 @@ export function UserRoleEditor({
     "auction:sell": t("admin.permAuctionSell"),
     "auction:buy": t("admin.permAuctionBuy"),
     "auction:bid": t("admin.permAuctionBid"),
+    "auction:close_own": t("admin.permAuctionCloseOwn"),
     "plate:manage": t("admin.permPlateManage"),
     "plate_logo:manage": t("admin.permPlateLogoManage"),
     "category:manage": t("admin.permCategoryManage"),

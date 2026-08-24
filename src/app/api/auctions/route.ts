@@ -4,9 +4,10 @@ import { Auction } from "@/models/Auction";
 import { Plate } from "@/models/Plate";
 import "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
-import { requirePermission } from "@/lib/auth";
+import { requirePermission, hasPermission } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
+import type { AuctionStatus } from "@/lib/constants";
 
 export async function GET(req: NextRequest) {
   try {
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await requirePermission("auction:create");
+    const isStaff = hasPermission(session, "auction:manage");
     const { auctionSchema } = await getLocalizedSchemas();
     const body = auctionSchema.parse(await req.json());
     await connectDB();
@@ -52,14 +54,45 @@ export async function POST(req: NextRequest) {
     // was rejected) must not reach the public site by being wrapped in an
     // auction. Approve the request first, then create the auction.
     if (plate.moderationStatus === "pending" || plate.moderationStatus === "rejected") {
-      throw Errors.conflict("لا يمكن إنشاء مزاد للوحة لم تتم الموافقة عليها بعد");
+      throw Errors.conflict("لا يمكن إنشاء مزاد لهذه اللوحة لأنها قيد المراجعة");
     }
 
-    const now = new Date();
-    const status = body.startAt <= now ? "live" : "scheduled";
+    let status: AuctionStatus;
+    const overrides: { category?: "regular"; backgroundStatus?: "pending" | null } = {};
+
+    if (isStaff) {
+      const now = new Date();
+      status = body.startAt <= now ? "live" : "scheduled";
+    } else {
+      // A regular user (auction:create without auction:manage) may only
+      // auction a plate they actually own, and only one active auction at
+      // a time — checked here against the database, never trusted from
+      // the client. The auction itself starts as "draft": unused by any
+      // other creation path today, repurposed as "قيد المراجعة" (see
+      // src/lib/auctionStatus.ts) until an admin approves it into
+      // "scheduled"/"live" — the existing draft->scheduled/cancelled
+      // transitions already implement that review workflow with no new
+      // status value.
+      const ownerId = String(plate.ownerUser ?? plate.createdBy ?? "");
+      if (ownerId !== session.sub) throw Errors.forbidden();
+      if (!plate.isVisible) throw Errors.conflict("لا يمكن إنشاء مزاد لهذه اللوحة لأنها موقوفة");
+
+      const activeAuction = await Auction.exists({
+        plate: plate._id,
+        status: { $in: ["draft", "scheduled", "live"] },
+      });
+      if (activeAuction) throw Errors.conflict("توجد بالفعل عملية مزاد نشطة لهذه اللوحة");
+
+      status = "draft";
+      overrides.category = "regular";
+      // Mirrors PATCH /api/auctions/[id]'s owner-upload rule: a non-staff
+      // background submission always (re-)enters moderation.
+      if (body.backgroundImage) overrides.backgroundStatus = "pending";
+    }
 
     const auction = await Auction.create({
       ...body,
+      ...overrides,
       currentPrice: body.startingPrice,
       status,
       createdBy: session.sub,

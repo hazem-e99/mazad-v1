@@ -2,9 +2,10 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { connectDB } from "@/lib/db";
 import { Plate } from "@/models/Plate";
+import { Auction } from "@/models/Auction";
 import "@/models/PlateLogo";
 import "@/models/PlateCategory";
-import { getSession } from "@/lib/auth";
+import { getSession, hasPermission } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { Card } from "@/components/ui/Card";
@@ -35,6 +36,24 @@ export default async function MyListingsPage() {
     .populate("category")
     .lean<LeanPlate[]>();
   const listings = toPlateDTOList(docs);
+
+  const canCreateAuction = hasPermission(session, "auction:create");
+  // Batched once for the whole page rather than a query per card — "one
+  // active auction per plate" mirrors the same check POST /api/auctions
+  // enforces server-side; this is only used to decide whether to *show*
+  // the action, never trusted as the actual authorization.
+  const activeAuctionPlateIds = canCreateAuction
+    ? new Set(
+        (
+          await Auction.find({
+            plate: { $in: listings.map((l) => l._id) },
+            status: { $in: ["draft", "scheduled", "live"] },
+          })
+            .select("plate")
+            .lean<{ plate: unknown }[]>()
+        ).map((a) => String(a.plate))
+      )
+    : new Set<string>();
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-10">
@@ -86,6 +105,27 @@ export default async function MyListingsPage() {
                   {t("pages.resubmitAction")}
                 </Link>
               )}
+              {canCreateAuction && (() => {
+                const hasActiveAuction = activeAuctionPlateIds.has(listing._id);
+                const reason =
+                  listing.moderationStatus !== "approved"
+                    ? t("pages.auctionBlockedNotApproved")
+                    : !listing.isVisible
+                      ? t("pages.auctionBlockedHidden")
+                      : hasActiveAuction
+                        ? t("pages.auctionBlockedActiveExists")
+                        : null;
+                return reason ? (
+                  <span className="text-xs text-(--color-text-faint) whitespace-nowrap">{reason}</span>
+                ) : (
+                  <Link
+                    href={`/my-listings/${listing._id}/auction/new`}
+                    className="text-sm font-semibold text-(--color-gold) hover:text-(--color-gold-hover) whitespace-nowrap"
+                  >
+                    {t("pages.createAuctionAction")}
+                  </Link>
+                );
+              })()}
             </Card>
           ))}
         </div>

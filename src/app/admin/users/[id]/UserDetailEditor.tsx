@@ -16,6 +16,7 @@ const CORE_PERMISSIONS: { key: Permission; labelKey: string }[] = [
   { key: "auction:sell", labelKey: "admin.canSellLabel" },
   { key: "auction:bid", labelKey: "admin.canBidLabel" },
   { key: "auction:create", labelKey: "admin.canCreateAuctionLabel" },
+  { key: "auction:close_own", labelKey: "admin.canCloseOwnAuctionLabel" },
 ];
 
 interface Props {
@@ -99,7 +100,7 @@ export function UserDetailEditor({ userId, role, name: initialName, email: initi
           {!permissionsEditable && (
             <p className="mb-2 text-xs text-(--color-text-faint)">{t("admin.adminHasAllPermissionsNote")}</p>
           )}
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {CORE_PERMISSIONS.map((perm) => (
               <Checkbox
                 key={perm.key}

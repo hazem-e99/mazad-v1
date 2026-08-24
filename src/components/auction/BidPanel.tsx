@@ -49,7 +49,37 @@ export function BidPanel({
   const [submitting, setSubmitting] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
   const [viewerCount, setViewerCount] = useState<number | null>(null);
+  const [bidsPage, setBidsPage] = useState(1);
+  const [loadingMoreBids, setLoadingMoreBids] = useState(false);
+  // The server seeds this page with the first 20 (see the auction detail
+  // page's own query) — fewer than that means there was nothing more to
+  // begin with, so "عرض المزيد" only shows once there's a real chance of
+  // more history beyond what's already loaded.
+  const [hasMoreBids, setHasMoreBids] = useState(initialBids.length >= 20);
   const lastHighestBidderId = useRef<string | undefined>(initialAuction.highestBidder?._id);
+
+  async function loadMoreBids() {
+    setLoadingMoreBids(true);
+    try {
+      const nextPage = bidsPage + 1;
+      const data = await apiFetch<{ items: RecentBid[]; pages: number }>(
+        `/api/auctions/${auction._id}/bids?page=${nextPage}&limit=20`
+      );
+      // Deduped by id: a realtime bid landing between page loads shifts the
+      // server's offset-based pages by one, which could otherwise repeat
+      // the boundary item here.
+      setBids((prev) => {
+        const seen = new Set(prev.map((b) => b._id));
+        return [...prev, ...data.items.filter((b) => !seen.has(b._id))];
+      });
+      setBidsPage(nextPage);
+      setHasMoreBids(nextPage < data.pages);
+    } catch {
+      // Best-effort — the button stays available to retry.
+    } finally {
+      setLoadingMoreBids(false);
+    }
+  }
 
   // On a reconnect after a real gap (not the initial mount), re-fetch the
   // canonical auction state rather than trusting whatever price/bid-count
@@ -362,44 +392,58 @@ export function BidPanel({
           {bids.length === 0 ? (
             <p className="py-4 text-center text-sm text-(--color-text-faint)">{t("auction.noBidsYet")}</p>
           ) : (
-            <ul className="flex max-h-80 flex-col gap-1.5 overflow-y-auto">
-              {bids.slice(0, 12).map((bid, i) => {
-                const isMine = currentUserId && bid.user._id === currentUserId;
-                return (
-                  <li
-                    key={bid._id}
-                    className={cn(
-                      "flex items-center gap-3 rounded-(--radius-md) px-3 py-2.5 text-sm",
-                      isMine
-                        ? "border border-(--color-gold)/25 bg-(--color-gold-tint)"
-                        : "bg-(--color-bg-elevated)",
-                      i === 0 && "animate-rise-in"
-                    )}
-                  >
-                    <span
+            <>
+              <ul className="flex max-h-80 flex-col gap-1.5 overflow-y-auto">
+                {bids.map((bid, i) => {
+                  const isMine = currentUserId && bid.user._id === currentUserId;
+                  return (
+                    <li
+                      key={bid._id}
                       className={cn(
-                        "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                        i === 0
-                          ? "bg-(--color-gold) text-(--color-gold-foreground)"
-                          : "bg-(--color-surface-hover) text-(--color-text-muted)"
+                        "flex items-center gap-3 rounded-(--radius-md) px-3 py-2.5 text-sm",
+                        isMine
+                          ? "border border-(--color-gold)/25 bg-(--color-gold-tint)"
+                          : "bg-(--color-bg-elevated)",
+                        i === 0 && "animate-rise-in"
                       )}
-                      aria-hidden="true"
                     >
-                      {initials(bid.user.name)}
-                    </span>
-                    <span className="min-w-0 flex-1 truncate text-(--color-text-muted)">
-                      {isMine ? t("auction.youLabel") : bid.user.name}
-                    </span>
-                    <span className="tnum shrink-0 font-semibold text-(--color-text)">
-                      {formatSar(bid.amount, locale)}
-                    </span>
-                    <span className="tnum hidden shrink-0 text-xs text-(--color-text-faint) sm:inline">
-                      {formatDateTime(bid.createdAt, locale)}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
+                      <span
+                        className={cn(
+                          "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold",
+                          i === 0
+                            ? "bg-(--color-gold) text-(--color-gold-foreground)"
+                            : "bg-(--color-surface-hover) text-(--color-text-muted)"
+                        )}
+                        aria-hidden="true"
+                      >
+                        {initials(bid.user.name)}
+                      </span>
+                      <span className="min-w-0 flex-1 truncate text-(--color-text-muted)">
+                        {isMine ? t("auction.youLabel") : bid.user.name}
+                      </span>
+                      {i === 0 && (
+                        <span className="shrink-0 rounded-(--radius-pill) bg-(--color-gold-tint) px-2 py-0.5 text-[11px] font-semibold text-(--color-gold)">
+                          {t("auction.highestBidBadge")}
+                        </span>
+                      )}
+                      <span className="tnum shrink-0 font-semibold text-(--color-text)">
+                        {formatSar(bid.amount, locale)}
+                      </span>
+                      <span className="tnum hidden shrink-0 text-xs text-(--color-text-faint) sm:inline">
+                        {formatDateTime(bid.createdAt, locale)}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ul>
+              {hasMoreBids && (
+                <div className="mt-3 flex justify-center">
+                  <Button variant="ghost" size="sm" loading={loadingMoreBids} onClick={loadMoreBids}>
+                    {t("auction.loadMoreBids")}
+                  </Button>
+                </div>
+              )}
+            </>
           )}
         </section>
       )}
