@@ -1,62 +1,92 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { connectDB } from "@/lib/db";
-import { Plate } from "@/models/Plate";
-import { Auction } from "@/models/Auction";
-import "@/models/PlateLogo";
-import "@/models/PlateCategory";
 import { getSession, hasPermission } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n-server";
-import { formatSar, formatDateTime } from "@/lib/format";
-import { Card } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { PlatePhoto } from "@/components/plate/PlatePhoto";
+import { getUserPlates, getPlateAuctionIndex } from "@/lib/accountQueries";
 import { LinkButton } from "@/components/ui/Button";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { toPlateDTOList, type LeanPlate } from "@/lib/dto";
+import { MyListingCard, type ListingAuctionLink } from "@/components/plate/MyListingCard";
+import { cn } from "@/lib/cn";
+import type { AuctionStatus } from "@/lib/constants";
 
 export const revalidate = 0;
 
-const statusTone: Record<string, "live" | "scheduled" | "sold" | "unsold" | "neutral"> = {
-  pending: "scheduled",
-  approved: "sold",
-  rejected: "unsold",
-};
+const IN_AUCTION_STATUSES: AuctionStatus[] = ["draft", "scheduled", "live"];
+const SOLD_STATUSES: AuctionStatus[] = ["sold", "purchased"];
 
-export default async function MyListingsPage() {
+type Bucket = "pending" | "inAuction" | "sold" | "inactive";
+
+interface Props {
+  searchParams: Promise<{ tab?: string }>;
+}
+
+/**
+ * "لوحاتي" — rebuilt to match the production card-grid layout (status
+ * tabs + plate-render cards) rather than the flat list this page used to
+ * be. Bucketing is derived from real data, never a separate stored field:
+ * a listing's bucket is a function of its moderation status and its most
+ * recent linked Auction's status (see classify() below), computed once
+ * per request from the same Plate/Auction records every other page reads.
+ *
+ * Data comes from getUserPlates/getPlateAuctionIndex — the same queries
+ * /account/plates uses — so this page (now the "لوحاتي" nav destination)
+ * shows exactly the same set of plates that page did, just in this
+ * card-grid-with-tabs layout instead.
+ */
+export default async function MyListingsPage({ searchParams }: Props) {
+  const { tab } = await searchParams;
   const session = await getSession();
   if (!session) redirect("/login");
 
-  await connectDB();
   const { t, locale } = await getServerTranslator();
 
-  const docs = await Plate.find({ ownerUser: session.sub, submissionType: { $ne: null } })
-    .sort({ createdAt: -1 })
-    .populate("logo")
-    .populate("category")
-    .lean<LeanPlate[]>();
-  const listings = toPlateDTOList(docs);
-
+  const listings = await getUserPlates(session.sub);
   const canCreateAuction = hasPermission(session, "auction:create");
-  // Batched once for the whole page rather than a query per card — "one
-  // active auction per plate" mirrors the same check POST /api/auctions
-  // enforces server-side; this is only used to decide whether to *show*
-  // the action, never trusted as the actual authorization.
-  const activeAuctionPlateIds = canCreateAuction
-    ? new Set(
-        (
-          await Auction.find({
-            plate: { $in: listings.map((l) => l._id) },
-            status: { $in: ["draft", "scheduled", "live"] },
-          })
-            .select("plate")
-            .lean<{ plate: unknown }[]>()
-        ).map((a) => String(a.plate))
-      )
-    : new Set<string>();
+  const plateIds = listings.map((l) => l._id);
+
+  const auctionIndex = await getPlateAuctionIndex(plateIds);
+  const auctionByPlate = new Map<string, ListingAuctionLink>();
+  for (const [plateId, auction] of auctionIndex) {
+    auctionByPlate.set(plateId, {
+      auctionId: auction._id,
+      status: auction.status as AuctionStatus,
+      currentPrice: auction.currentPrice,
+      finalPrice: auction.finalPrice,
+    });
+  }
+
+  // "One active auction per plate" — same check POST /api/auctions
+  // enforces server-side; here it only decides whether to *show* the
+  // create-auction action, never trusted as authorization.
+  const activeAuctionPlateIds = new Set(
+    [...auctionByPlate.entries()].filter(([, a]) => IN_AUCTION_STATUSES.includes(a.status)).map(([id]) => id)
+  );
+
+  function classify(listing: (typeof listings)[number]): Bucket {
+    if (listing.moderationStatus === "pending") return "pending";
+    const auction = auctionByPlate.get(listing._id);
+    if (auction && IN_AUCTION_STATUSES.includes(auction.status)) return "inAuction";
+    if (auction && SOLD_STATUSES.includes(auction.status)) return "sold";
+    return "inactive";
+  }
+
+  const buckets = listings.map((listing) => ({ listing, bucket: classify(listing) }));
+  const counts: Record<Bucket, number> = { pending: 0, inAuction: 0, sold: 0, inactive: 0 };
+  for (const { bucket } of buckets) counts[bucket] += 1;
+
+  const activeTab = (tab === "pending" || tab === "inAuction" || tab === "sold" || tab === "inactive") ? tab : "all";
+  const visible = activeTab === "all" ? buckets : buckets.filter((b) => b.bucket === activeTab);
+
+  const tabs: { key: "all" | Bucket; label: string; count: number }[] = [
+    { key: "all", label: t("pages.myListingsAllTab"), count: listings.length },
+    { key: "pending", label: t("pages.myListingsPendingTab"), count: counts.pending },
+    { key: "inAuction", label: t("pages.myListingsInAuctionTab"), count: counts.inAuction },
+    { key: "sold", label: t("pages.myListingsSoldTab"), count: counts.sold },
+    { key: "inactive", label: t("pages.myListingsInactiveTab"), count: counts.inactive },
+  ];
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-10">
+    <div className="mz-container max-w-6xl py-10">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-(--color-text)">{t("pages.myListingsTitle")}</h1>
@@ -72,62 +102,52 @@ export default async function MyListingsPage() {
         </div>
       </div>
 
-      {listings.length === 0 ? (
+      <div className="mb-6 flex flex-wrap items-center gap-2 border-b border-(--color-border) pb-3">
+        {tabs.map((tabItem) => (
+          <Link
+            key={tabItem.key}
+            href={tabItem.key === "all" ? "/my-listings" : `/my-listings?tab=${tabItem.key}`}
+            className={cn(
+              "inline-flex items-center gap-1.5 rounded-(--radius-pill) px-3.5 py-1.5 text-sm font-medium transition-colors",
+              activeTab === tabItem.key
+                ? "bg-(--color-gold) text-(--color-gold-foreground)"
+                : "text-(--color-text-muted) hover:text-(--color-text)"
+            )}
+          >
+            {tabItem.label}
+            <span className="tnum text-xs opacity-80">{tabItem.count}</span>
+          </Link>
+        ))}
+      </div>
+
+      {visible.length === 0 ? (
         <EmptyState title={t("pages.noListingsYet")} />
       ) : (
-        <div className="flex flex-col gap-3">
-          {listings.map((listing) => (
-            <Card key={listing._id} className="p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-              <div className="h-20 w-32 shrink-0 rounded-(--radius-md) overflow-hidden bg-(--color-bg-elevated)">
-                <PlatePhoto src={listing.image} alt="" className="h-full w-full object-contain p-1.5" fallback={null} />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-semibold text-(--color-text) truncate">{listing.title ?? `${listing.lettersAr} ${listing.numbers}`}</p>
-                  <Badge tone={statusTone[listing.moderationStatus ?? "pending"] ?? "neutral"}>
-                    {t(`pages.moderationStatus_${listing.moderationStatus ?? "pending"}`)}
-                  </Badge>
-                  <Badge tone="neutral">
-                    {listing.submissionType === "auction_request" ? t("pages.submissionTypeAuctionRequest") : t("pages.submissionTypeMarketplace")}
-                  </Badge>
-                  {listing.isVip && <Badge tone="vip">VIP</Badge>}
-                </div>
-                {listing.moderationStatus === "rejected" && listing.rejectionReason && (
-                  <p className="text-xs text-(--color-danger) mt-1">{t("pages.rejectionReasonLabel")}: {listing.rejectionReason}</p>
-                )}
-                <div className="flex items-center gap-3 text-xs text-(--color-text-faint) mt-1">
-                  {listing.price != null && <span className="tnum">{formatSar(listing.price, locale)}</span>}
-                  <span>{formatDateTime(listing.createdAt, locale)}</span>
-                </div>
-              </div>
-              {listing.moderationStatus === "rejected" && (
-                <Link href={`/plates/${listing._id}/edit`} className="text-sm text-(--color-gold) hover:text-(--color-gold-hover) whitespace-nowrap">
-                  {t("pages.resubmitAction")}
-                </Link>
-              )}
-              {canCreateAuction && (() => {
-                const hasActiveAuction = activeAuctionPlateIds.has(listing._id);
-                const reason =
-                  listing.moderationStatus !== "approved"
-                    ? t("pages.auctionBlockedNotApproved")
-                    : !listing.isVisible
-                      ? t("pages.auctionBlockedHidden")
-                      : hasActiveAuction
-                        ? t("pages.auctionBlockedActiveExists")
-                        : null;
-                return reason ? (
-                  <span className="text-xs text-(--color-text-faint) whitespace-nowrap">{reason}</span>
-                ) : (
-                  <Link
-                    href={`/my-listings/${listing._id}/auction/new`}
-                    className="text-sm font-semibold text-(--color-gold) hover:text-(--color-gold-hover) whitespace-nowrap"
-                  >
-                    {t("pages.createAuctionAction")}
-                  </Link>
-                );
-              })()}
-            </Card>
-          ))}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {visible.map(({ listing }) => {
+            const auction = auctionByPlate.get(listing._id);
+            const hasActiveAuction = activeAuctionPlateIds.has(listing._id);
+            const createAuctionAction = !canCreateAuction
+              ? null
+              : listing.moderationStatus !== "approved"
+                ? { kind: "blocked" as const, reason: t("pages.auctionBlockedNotApproved") }
+                : !listing.isVisible
+                  ? { kind: "blocked" as const, reason: t("pages.auctionBlockedHidden") }
+                  : hasActiveAuction
+                    ? { kind: "blocked" as const, reason: t("pages.auctionBlockedActiveExists") }
+                    : { kind: "link" as const };
+
+            return (
+              <MyListingCard
+                key={listing._id}
+                listing={listing}
+                auction={auction}
+                createAuctionAction={createAuctionAction}
+                locale={locale}
+                t={t}
+              />
+            );
+          })}
         </div>
       )}
     </div>

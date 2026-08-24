@@ -9,7 +9,10 @@ const userSchema = new Schema(
     // non-deleted users) rather than an inline `unique: true` here, so a
     // soft-deleted user's phone/email can be reused by a new account.
     phone: { type: String, required: true, trim: true },
-    email: { type: String, trim: true, lowercase: true, sparse: true },
+    // No inline `sparse`/`index` here — the explicit partial index below
+    // already covers it (and more precisely, scoped to non-deleted users);
+    // keeping both produced a duplicate-index warning at startup.
+    email: { type: String, trim: true, lowercase: true },
     passwordHash: { type: String, required: true, select: false },
     role: { type: String, enum: USER_ROLES, default: "user", required: true },
     permissions: { type: [String], enum: PERMISSIONS, default: [] },

@@ -48,7 +48,7 @@ function iconForHref(href: string): LucideIcon {
   if (href.startsWith("/auctions/exclusive")) return Sparkles;
   if (href.startsWith("/auctions")) return Gavel;
   if (href.startsWith("/vip")) return Crown;
-  if (href.startsWith("/account/plates")) return IdCard;
+  if (href.startsWith("/account/plates") || href.startsWith("/my-listings")) return IdCard;
   if (href.startsWith("/listings")) return Store;
   if (href.startsWith("/ads")) return Megaphone;
   if (href.startsWith("/chat")) return MessageCircle;
@@ -81,7 +81,7 @@ export function mainNavItems(viewer: HeaderViewer | null, configuredItems?: Site
     { href: "/listings", labelKey: "nav.marketplace", icon: Store },
     { href: "/auctions/exclusive", labelKey: "nav.exclusive", icon: Sparkles },
     { href: "/vip", labelKey: "nav.vip", icon: Crown },
-    ...(viewer ? [{ href: "/account/plates", labelKey: "nav.myPlates", icon: IdCard }] : []),
+    ...(viewer ? [{ href: "/my-listings", labelKey: "nav.myPlates", icon: IdCard }] : []),
     { href: "/ads", labelKey: "nav.ads", icon: Megaphone },
     { href: "/chat", labelKey: "nav.chat", icon: MessageCircle },
   ];
@@ -90,7 +90,7 @@ export function mainNavItems(viewer: HeaderViewer | null, configuredItems?: Site
 export function accountNavItems(viewer: HeaderViewer | null): NavItem[] {
   return [
     { href: "/account", labelKey: "nav.myAccount", icon: UserRound },
-    { href: "/account/plates", labelKey: "nav.myPlates", icon: IdCard },
+    { href: "/my-listings", labelKey: "nav.myPlates", icon: IdCard },
     { href: "/account/bids", labelKey: "nav.myBids", icon: TrendingUp },
     ...(viewer?.isStaff ? [{ href: "/admin", labelKey: "nav.dashboard", icon: LayoutDashboard }] : []),
   ];

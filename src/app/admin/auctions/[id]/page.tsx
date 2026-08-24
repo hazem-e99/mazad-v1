@@ -20,6 +20,7 @@ import {
   LiveBidCount,
   LiveHighestBidder,
   LiveStatusBadge,
+  LiveViewerCount,
   LiveEndAt,
   AdminRealtimeStatus,
 } from "@/components/admin/LiveAuctionCells";
@@ -81,7 +82,10 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
               size="md"
               locale={locale}
             />
-            <LiveStatusBadge auctionId={auction._id} status={auction.status as AuctionStatus} />
+            <div className="flex items-center gap-2">
+              <LiveStatusBadge auctionId={auction._id} status={auction.status as AuctionStatus} />
+              {auction.status === "live" && <LiveViewerCount auctionId={auction._id} />}
+            </div>
           </CardBody>
         </Card>
 

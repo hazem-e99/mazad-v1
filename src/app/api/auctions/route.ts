@@ -58,7 +58,7 @@ export async function POST(req: NextRequest) {
     }
 
     let status: AuctionStatus;
-    const overrides: { category?: "regular"; backgroundStatus?: "pending" | null } = {};
+    const overrides: { category?: "regular"; backgroundStatus?: "approved" | null } = {};
 
     if (isStaff) {
       const now = new Date();
@@ -85,9 +85,9 @@ export async function POST(req: NextRequest) {
 
       status = "draft";
       overrides.category = "regular";
-      // Mirrors PATCH /api/auctions/[id]'s owner-upload rule: a non-staff
-      // background submission always (re-)enters moderation.
-      if (body.backgroundImage) overrides.backgroundStatus = "pending";
+      // Mirrors PATCH /api/auctions/[id]'s owner-upload rule: goes live
+      // immediately, staff can still reject/disable it afterwards.
+      if (body.backgroundImage) overrides.backgroundStatus = "approved";
     }
 
     const auction = await Auction.create({

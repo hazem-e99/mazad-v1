@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { IdCard, Plus } from "lucide-react";
-import { getSession } from "@/lib/auth";
+import { getSession, hasPermission } from "@/lib/auth";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { getUserPlates, getPlateAuctionIndex } from "@/lib/accountQueries";
 import { VipPlateCard } from "@/components/plate/VipPlateCard";
@@ -31,6 +32,26 @@ function tabFor(plate: PlateDTO, auction: AuctionSummary | undefined): Exclude<P
   return "inactive";
 }
 
+/**
+ * Only ever rendered for a plate already classified "inactive" by tabFor()
+ * above — which, given tabFor's own ordering, already means approved,
+ * visible, and with no auction (of any status, draft included) attached.
+ * So no separate eligibility check is needed here; the create-auction
+ * page/route re-verifies ownership and eligibility server-side regardless.
+ */
+function CreateAuctionAction({ plate, t }: { plate: PlateDTO; t: (key: string) => string }) {
+  return (
+    <div className="text-center">
+      <Link
+        href={`/my-listings/${plate._id}/auction/new`}
+        className="text-xs font-semibold text-(--color-gold) hover:text-(--color-gold-hover)"
+      >
+        {t("pages.createAuctionAction")}
+      </Link>
+    </div>
+  );
+}
+
 export default async function AccountPlatesPage({
   searchParams,
 }: {
@@ -48,6 +69,13 @@ export default async function AccountPlatesPage({
   const auctionIndex = await getPlateAuctionIndex(plates.map((p) => p._id));
   const classified = plates.map((plate) => ({ plate, auction: auctionIndex.get(plate._id) }));
   const bucketed = classified.map((entry) => ({ ...entry, bucket: tabFor(entry.plate, entry.auction) }));
+
+  // "غير نشطة" (no auction attached yet) is the bucket a user with
+  // auction:create can act on directly — everything else already has an
+  // auction, or is still pending/rejected review. Ownership is re-checked
+  // server-side by the create-auction page/route itself; this only
+  // decides whether to *show* the action.
+  const canCreateAuction = hasPermission(session, "auction:create");
 
   const count = (key: Exclude<PlateTab, "all">) => bucketed.filter((e) => e.bucket === key).length;
   const visible = tab === "all" ? bucketed : bucketed.filter((e) => e.bucket === tab);
@@ -99,14 +127,19 @@ export default async function AccountPlatesPage({
                       />
                     </>
                   ) : (
-                    <>
-                      <Badge tone={bucket === "review" ? "info" : "neutral"}>
-                        {bucket === "review" ? t("account.plateTabReview") : t("account.plateTabInactive")}
-                      </Badge>
-                      <span className="tnum text-xs text-(--color-text-faint)">
-                        {new Date(plate.createdAt).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
-                      </span>
-                    </>
+                    <div className="flex w-full flex-col gap-2">
+                      <div className="flex items-center justify-between gap-3">
+                        <Badge tone={bucket === "review" ? "info" : "neutral"}>
+                          {bucket === "review" ? t("account.plateTabReview") : t("account.plateTabInactive")}
+                        </Badge>
+                        <span className="tnum text-xs text-(--color-text-faint)">
+                          {new Date(plate.createdAt).toLocaleDateString(locale === "ar" ? "ar-SA" : "en-US")}
+                        </span>
+                      </div>
+                      {bucket === "inactive" && canCreateAuction && (
+                        <CreateAuctionAction plate={plate} t={t} />
+                      )}
+                    </div>
                   )}
                 </div>
               }

@@ -529,6 +529,13 @@ export interface MessageCatalog {
     submitAuctionForReview: string;
     auctionSubmittedForReview: string;
     manageAuctionHeader: string;
+    listingForSale: string;
+    listingInactive: string;
+    myListingsAllTab: string;
+    myListingsPendingTab: string;
+    myListingsInAuctionTab: string;
+    myListingsSoldTab: string;
+    myListingsInactiveTab: string;
     editListingTitle: string;
     editListingSubtitle: string;
     listingResubmitted: string;
@@ -1416,7 +1423,7 @@ const ar: MessageCatalog = {
     uploadBackgroundCta: "اضغط لرفع صورة الخلفية",
     auctionBackgroundHelper: "ستظهر الخلفية داخل صفحة هذا المزاد فقط.",
     backgroundPreviewLabel: "معاينة الخلفية",
-    backgroundSubmittedForReview: "تم رفع الخلفية وهي الآن قيد المراجعة",
+    backgroundSubmittedForReview: "تم رفع الخلفية وهي ظاهرة الآن في صفحة المزاد",
 
     myListingsTitle: "لوحاتي",
     myListingsSubtitle: "متابعة حالة اللوحات التي عرضتها",
@@ -1434,6 +1441,13 @@ const ar: MessageCatalog = {
     submitAuctionForReview: "إرسال المزاد للمراجعة",
     auctionSubmittedForReview: "تم إرسال المزاد وهو الآن قيد المراجعة",
     manageAuctionHeader: "إدارة المزاد",
+    listingForSale: "معروضة للبيع",
+    listingInactive: "غير نشطة",
+    myListingsAllTab: "جميع اللوحات",
+    myListingsPendingTab: "قيد المراجعة",
+    myListingsInAuctionTab: "في المزاد",
+    myListingsSoldTab: "مباعة",
+    myListingsInactiveTab: "غير نشطة",
     editListingTitle: "تعديل العرض",
     editListingSubtitle: "عدّل بيانات لوحتك وأعد إرسالها للمراجعة",
     listingResubmitted: "تم إرسال التعديلات للمراجعة",

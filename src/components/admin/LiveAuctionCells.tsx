@@ -1,10 +1,12 @@
 "use client";
 
-import { Wifi, WifiOff, ShieldAlert, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Wifi, WifiOff, ShieldAlert, Loader2, Eye } from "lucide-react";
 import { Badge } from "@/components/ui/Badge";
 import { AuctionStatusBadge } from "@/components/auction/AuctionStatusBadge";
 import { CountdownTimer } from "@/components/auction/CountdownTimer";
 import { useAdminRealtime } from "@/components/admin/AdminRealtimeProvider";
+import { useAuctionSocket } from "@/hooks/useAuctionSocket";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { isFinalStatus } from "@/lib/auctionStatus";
@@ -66,6 +68,30 @@ export function LiveBidCount({ auctionId, bidCount }: { auctionId: string; bidCo
     <Pulse pulseKey={value}>
       <span className="tnum">{value}</span>
     </Pulse>
+  );
+}
+
+/** Joins the auction's own room (separate from the admin global feed) purely
+ * to read the "people watching" presence count the public page shows —
+ * the server excludes staff sockets from that tally, so this admin viewing
+ * it doesn't inflate the number. */
+export function LiveViewerCount({ auctionId }: { auctionId: string }) {
+  const [viewerCount, setViewerCount] = useState<number | null>(null);
+  const { t } = useTranslations();
+  useAuctionSocket(auctionId, () => {}, undefined, setViewerCount);
+
+  if (!viewerCount) return null;
+
+  return (
+    <span
+      key={viewerCount}
+      className="animate-value-pulse flex items-center gap-1.5 rounded-full bg-(--color-bg-elevated) px-2.5 py-1 text-xs font-medium text-(--color-text-muted)"
+      role="status"
+      aria-live="polite"
+    >
+      <Eye className="h-3.5 w-3.5" aria-hidden="true" strokeWidth={1.75} />
+      <span className="tnum">{t("auction.viewerCount", { count: viewerCount })}</span>
+    </span>
   );
 }
 

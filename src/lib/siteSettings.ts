@@ -120,7 +120,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsDTO = {
     { id: "marketplace", labelAr: "السوق", labelEn: "Marketplace", href: "/listings", audience: "always", enabled: true, sortOrder: 20 },
     { id: "exclusive", labelAr: "مزاد حصري", labelEn: "Exclusive", href: "/auctions/exclusive", audience: "always", enabled: true, sortOrder: 30 },
     { id: "vip", labelAr: "VIP", labelEn: "VIP", href: "/vip", audience: "always", enabled: true, sortOrder: 40 },
-    { id: "my-plates", labelAr: "لوحاتي", labelEn: "My Plates", href: "/account/plates", audience: "auth", enabled: true, sortOrder: 50 },
+    { id: "my-plates", labelAr: "لوحاتي", labelEn: "My Plates", href: "/my-listings", audience: "auth", enabled: true, sortOrder: 50 },
     { id: "ads", labelAr: "الإعلانات", labelEn: "Ads", href: "/ads", audience: "always", enabled: true, sortOrder: 60 },
     { id: "chat", labelAr: "الدردشة", labelEn: "Chat", href: "/chat", audience: "always", enabled: true, sortOrder: 70 },
   ],

@@ -89,11 +89,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
       const previousImage = auction.backgroundImage;
       auction.backgroundImage = body.backgroundImage;
-      // Staff is already the approving authority everywhere else in this
-      // codebase (bare plates, staff-authored listings) — a staff-set
-      // background skips review the same way. An owner's own upload always
-      // (re-)enters moderation, clearing whatever decision applied before.
-      auction.backgroundStatus = body.backgroundImage ? (isStaff ? "approved" : "pending") : null;
+      // Goes live immediately for staff and owner alike — no pre-approval
+      // queue to sit in. Staff keep the moderate endpoint to reject/disable
+      // an image after the fact (BACKGROUND_TRANSITIONS still allows
+      // approved -> rejected/disabled), so this is post-moderation, not no
+      // moderation.
+      auction.backgroundStatus = body.backgroundImage ? "approved" : null;
       auction.backgroundRejectionReason = null;
       await auction.save();
 
@@ -103,11 +104,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
       await AuditLog.create({
         actor: session.sub,
-        action: body.backgroundImage
-          ? isStaff
-            ? "auction.background_approved"
-            : "auction.background_submitted"
-          : "auction.background_removed",
+        action: body.backgroundImage ? "auction.background_approved" : "auction.background_removed",
         entityType: "Auction",
         entityId: auction._id,
         metadata: {},

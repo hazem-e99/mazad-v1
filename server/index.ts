@@ -85,10 +85,21 @@ async function main() {
   // what makes this correct for tab close, navigation, network loss,
   // reconnect and duplicate connections for free, with nothing to leak or
   // drift, and nothing persisted to the database.
+  //
+  // Staff sockets join the room too (so the admin page can render this same
+  // count), but are excluded from the tally itself — an admin watching a
+  // live auction shouldn't inflate the number shown as "people watching".
   const AUCTION_ROOM_PREFIX = "auction:";
   function broadcastPresence(room: string) {
     if (!room.startsWith(AUCTION_ROOM_PREFIX)) return;
-    const count = io.sockets.adapter.rooms.get(room)?.size ?? 0;
+    const memberIds = io.sockets.adapter.rooms.get(room);
+    let count = 0;
+    if (memberIds) {
+      for (const socketId of memberIds) {
+        const memberSocket = io.sockets.sockets.get(socketId);
+        if (memberSocket && !isStaff(memberSocket.data.session as SessionPayload | undefined)) count++;
+      }
+    }
     io.to(room).emit("auction:presence", { auctionId: room.slice(AUCTION_ROOM_PREFIX.length), count });
   }
   io.of("/").adapter.on("join-room", broadcastPresence);
