@@ -11,6 +11,7 @@ import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 import { ThemeToggle } from "@/components/theme/ThemeToggle";
 import { MazadLogo } from "@/components/layout/MazadLogo";
+import { NotificationBell } from "@/components/layout/NotificationBell";
 import { SocialIcon } from "@/components/layout/SocialGlyphs";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
@@ -154,6 +155,7 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
           <div className={cn(overHero && "[&_button]:border-white/55 [&_button]:bg-black/18 [&_button]:text-white [&_button:hover]:bg-black/28")}>
             <LanguageSwitcher />
           </div>
+          {viewer && <NotificationBell overHero={overHero} />}
           <LinkButton href="/plates/new" variant="secondary" size="sm">
             <Plus className="h-4 w-4" aria-hidden="true" />
             {t("nav.addPlate")}
@@ -222,6 +224,7 @@ export function Header({ viewer, settings }: { viewer: HeaderViewer | null; sett
         </div>
 
         <div className="flex items-center gap-2 lg:hidden">
+          {viewer && <NotificationBell overHero={overHero} />}
           <LinkButton href={viewer ? "/account" : "/login"} variant="gold" size="sm" className="hidden sm:inline-flex">
             {viewer ? t("nav.myAccount") : t("nav.login")}
           </LinkButton>

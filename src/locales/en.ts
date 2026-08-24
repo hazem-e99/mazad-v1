@@ -588,6 +588,7 @@ const en: MessageCatalog = {
     vipHeroTagline: "Rare plates for those who choose differently",
     exclusiveEyebrow: "Exclusive",
     adsEyebrow: "Marketplace",
+    commissionAcceptLabel: "I, the advertiser, pledge and swear that I will pay the site's fee of {percent}% of the sale value within 10 days of receiving the full amount, if the sale is made through or because of the site.",
   },
   admin: {
     navOverview: "Overview",
@@ -930,6 +931,14 @@ const en: MessageCatalog = {
     realtimeUnauthorized: "No live-feed permission",
     liveBidsHeader: "Live bids",
     awaitingLiveBids: "Waiting for the first bid — it will appear here instantly, with no page refresh.",
+    statPurchased: "Direct purchases",
+    statVisitorsToday: "Visitors today",
+  },
+  notifications: {
+    title: "Notifications",
+    empty: "No notifications yet",
+    markAllRead: "Mark all as read",
+    viewAll: "View all",
   },
 };
 

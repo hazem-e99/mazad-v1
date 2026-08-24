@@ -599,6 +599,7 @@ export interface MessageCatalog {
     vipHeroTagline: string;
     exclusiveEyebrow: string;
     adsEyebrow: string;
+    commissionAcceptLabel: string;
   };
   admin: {
     navOverview: string;
@@ -1540,6 +1541,7 @@ const ar: MessageCatalog = {
     vipHeroTagline: "لوحات نادرة لأصحاب الاختيار المميز",
     exclusiveEyebrow: "حصري",
     adsEyebrow: "السوق",
+    commissionAcceptLabel: "أنا المعلن أتعهد وأقسم بالله أن أسدد رسوم الموقع المقدرة بنسبة {percent}% من قيمة البيع خلال 10 أيام من استلام كامل المبلغ، في حال تم البيع من خلال الموقع أو بسببه.",
   },
   admin: {
     navOverview: "نظرة عامة",
@@ -1882,6 +1884,14 @@ const ar: MessageCatalog = {
     realtimeUnauthorized: "لا توجد صلاحية للبث المباشر",
     liveBidsHeader: "المزايدات المباشرة",
     awaitingLiveBids: "في انتظار أول مزايدة — ستظهر هنا فور وصولها بدون تحديث الصفحة.",
+    statPurchased: "مزادات مُشتراة مباشرة",
+    statVisitorsToday: "زوار اليوم",
+  },
+  notifications: {
+    title: "الإشعارات",
+    empty: "لا توجد إشعارات بعد",
+    markAllRead: "تعليم الكل كمقروء",
+    viewAll: "عرض الكل",
   },
 };
 

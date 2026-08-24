@@ -12,7 +12,17 @@ import {
 } from "@/lib/constants";
 import { ApiError, Errors } from "@/lib/api";
 import { emitAuctionEvent, newEventId, type AuctionSnapshot } from "@/lib/socket";
+import { notifyUser } from "@/services/notificationService";
 import type { AuctionStatus } from "@/lib/constants";
+
+/** `ownerUser` is set by staff separately from `createdBy` and may be
+ * empty — same fallback `api/auctions/[id]/route.ts` already uses to
+ * resolve "who does this plate actually belong to". */
+async function plateOwnerFor(plateId: unknown): Promise<string | null> {
+  const plate = await Plate.findById(plateId).select("ownerUser createdBy");
+  const ownerId = plate?.ownerUser ?? plate?.createdBy;
+  return ownerId ? String(ownerId) : null;
+}
 
 /**
  * Builds the realtime snapshot from the document a conditional update
@@ -153,6 +163,21 @@ export async function placeBid(params: {
     { bidderPhone: bidder?.phone ?? null, plateLabel: await plateLabelFor(updated) }
   );
 
+  // Previous highest bidder — captured from the pre-update read above,
+  // not from `updated` (which already reflects the new bidder).
+  const previousHighestBidder = auction.highestBidder ? String(auction.highestBidder) : null;
+  if (previousHighestBidder && previousHighestBidder !== userId) {
+    void notifyUser({
+      userId: previousHighestBidder,
+      type: "bid.outbid",
+      title: "تجاوزك مزايد آخر",
+      body: `تم تجاوز مزايدتك على هذه اللوحة بمبلغ ${amount} ريال`,
+      entityType: "Auction",
+      entityId: String(auction._id),
+      link: `/auctions/${auction._id}`,
+    });
+  }
+
   return { auction: updated, bidId: bid._id, amount, extended: shouldExtend };
 }
 
@@ -231,6 +256,29 @@ export async function purchaseDirect(params: {
     },
     { bidderPhone: buyer?.phone ?? null, plateLabel: await plateLabelFor(finalDoc) }
   );
+
+  const purchaseLink = `/auctions/${auction._id}`;
+  void notifyUser({
+    userId,
+    type: "auction.direct_purchase_buyer",
+    title: "تم شراء اللوحة بنجاح",
+    body: `أتممت شراء هذه اللوحة بمبلغ ${auction.directPurchasePrice} ريال`,
+    entityType: "Auction",
+    entityId: String(auction._id),
+    link: purchaseLink,
+  });
+  const ownerId = await plateOwnerFor(auction.plate);
+  if (ownerId && ownerId !== userId) {
+    void notifyUser({
+      userId: ownerId,
+      type: "auction.direct_purchase_seller",
+      title: "تم بيع لوحتك",
+      body: `تم شراء لوحتك مباشرةً بمبلغ ${auction.directPurchasePrice} ريال`,
+      entityType: "Auction",
+      entityId: String(auction._id),
+      link: purchaseLink,
+    });
+  }
 
   return { auction: finalDoc };
 }
@@ -320,6 +368,34 @@ export async function finalizeAuction(
       },
       { plateLabel: await plateLabelFor(updated) }
     );
+
+    const finalizeLink = `/auctions/${auction._id}`;
+    if (updated.winner) {
+      void notifyUser({
+        userId: String(updated.winner),
+        type: "auction.won",
+        title: "فزت بالمزاد",
+        body: `فزت بمزاد هذه اللوحة بسعر نهائي ${updated.finalPrice} ريال`,
+        entityType: "Auction",
+        entityId: String(auction._id),
+        link: finalizeLink,
+      });
+    }
+    const finalizeOwnerId = await plateOwnerFor(auction.plate);
+    if (finalizeOwnerId && finalizeOwnerId !== String(updated.winner ?? "")) {
+      void notifyUser({
+        userId: finalizeOwnerId,
+        type: updated.status === "sold" ? "auction.sold" : "auction.unsold",
+        title: updated.status === "sold" ? "تم بيع لوحتك" : "انتهى المزاد بدون بيع",
+        body:
+          updated.status === "sold"
+            ? `تم بيع لوحتك بسعر نهائي ${updated.finalPrice} ريال`
+            : "انتهى المزاد على لوحتك دون وصول أي مزايدة لسعر البيع",
+        entityType: "Auction",
+        entityId: String(auction._id),
+        link: finalizeLink,
+      });
+    }
   }
 
   // If the conditional update didn't match, something else changed this
