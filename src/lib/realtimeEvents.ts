@@ -21,6 +21,13 @@ export function auctionRoom(auctionId: string) {
  */
 export const ADMIN_AUCTION_ROOM = "admin:auctions";
 
+/** Every authenticated socket joins its own user room on connect (see
+ * server/index.ts) — this is what lets a notification be targeted at one
+ * person without a per-notification subscribe/unsubscribe handshake. */
+export function userRoom(userId: string) {
+  return `user:${userId}`;
+}
+
 /**
  * The authoritative post-write state of an auction, read back from the
  * document the conditional update returned — never assembled from what
@@ -93,6 +100,18 @@ export type AdminAuctionSocketEvent = AuctionSocketEvent & { admin: AdminEventEx
 export interface AuctionPresenceEvent {
   auctionId: string;
   count: number;
+}
+
+/** Emitted server -> `user:<id>` room whenever a notification is created
+ * for that user — the wire payload for the notification bell, distinct
+ * from AuctionSocketEvent since it isn't scoped to one auction. */
+export interface UserNotificationEvent {
+  id: string;
+  type: string;
+  title: string;
+  body: string | null;
+  link: string | null;
+  createdAt: string;
 }
 
 export function newEventId(): string {

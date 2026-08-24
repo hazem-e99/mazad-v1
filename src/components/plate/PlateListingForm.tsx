@@ -2,16 +2,18 @@
 
 import { useMemo, useRef, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Check, FileText, Gavel, IdCard, Store, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, FileText, Gavel, IdCard, ShieldAlert, Store, Upload } from "lucide-react";
 import { PlateLogoSelect } from "@/components/plate/PlateLogoSelect";
+import { PreSubmitTipsGate } from "@/components/plate/PreSubmitTipsGate";
 import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { Button } from "@/components/ui/Button";
+import { Callout } from "@/components/ui/Callout";
 import { Input, Select, Textarea } from "@/components/ui/Input";
 import { Stepper } from "@/components/ui/Stepper";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
 import { useFormValidation, FORM_ERROR_KEY } from "@/hooks/useFormValidation";
-import { validateUploadFile } from "@/lib/fileValidation";
+import { validateUploadFile, IMAGE_MIME_TYPES, MAX_UPLOAD_MB } from "@/lib/fileValidation";
 import { usePlateLogos } from "@/hooks/usePlateLogos";
 import { usePlateCategories } from "@/hooks/usePlateCategories";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
@@ -120,6 +122,10 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const { logos, loadError: logosLoadError } = usePlateLogos();
   const { categories, loadError: categoriesLoadError } = usePlateCategories();
 
+  // Staff never sees this gate — only a regular user submitting their own
+  // plate does, and only once per visit to this form.
+  const [tipsAcknowledged, setTipsAcknowledged] = useState(isAdmin);
+
   const [step, setStep] = useState(0);
   const [submissionType, setSubmissionType] = useState<SubmissionType | null>(null);
 
@@ -221,6 +227,14 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const selectedCategory = useMemo(
     () => (categoryId ? (categories ?? []).find((c) => c._id === categoryId) ?? null : null),
     [categoryId, categories]
+  );
+
+  // Reads the same MIME allow-list and size ceiling validateUploadFile()
+  // enforces (src/lib/fileValidation.ts, mirroring the server's own
+  // limits) — never a second, hand-typed copy of those numbers.
+  const allowedImageTypesLabel = useMemo(
+    () => IMAGE_MIME_TYPES.map((mime) => mime.split("/")[1]?.toUpperCase()).join(locale === "ar" ? "، " : ", "),
+    [locale]
   );
 
   const imagePreviewUrl = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : null), [imageFile]);
@@ -433,6 +447,10 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     } finally {
       setLoading(false);
     }
+  }
+
+  if (!tipsAcknowledged) {
+    return <PreSubmitTipsGate onContinue={() => setTipsAcknowledged(true)} />;
   }
 
   return (
@@ -707,101 +725,120 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
           )}
 
           {step === 2 && (
-            <div className={cn("grid grid-cols-1 gap-5", !isAdmin && "lg:grid-cols-[1fr_0.85fr]")}>
-              <label
-                htmlFor="plate-image-input"
-                className="relative flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-(--radius-lg) border border-dashed border-(--color-border-strong) bg-(--color-bg-elevated) p-6 text-center transition-colors hover:border-(--color-gold)/50"
-              >
-                {imagePreviewUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={imagePreviewUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
-                ) : (
-                  <>
-                    <Upload className="h-7 w-7 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
-                    <span className="text-sm font-medium text-(--color-text)">{t("pages.uploadPlatePhotoHint")}</span>
-                    <span className="text-xs text-(--color-text-faint)">{t("pages.plateImageRequired")}</span>
-                  </>
-                )}
-                <input
-                  id="plate-image-input"
-                  name="image"
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp"
-                  onChange={(e) => {
-                    const picked = e.target.files?.[0] ?? null;
-                    const problem = validateUploadFile(picked, t, "image");
-                    if (problem) {
-                      // Reject at the picker so the user sees why straight
-                      // away instead of after a failed upload round-trip.
-                      e.target.value = "";
-                      setImageFile(null);
-                      setFieldError("image", problem);
-                      push(problem, "error");
-                      return;
-                    }
-                    setImageFile(picked);
-                    clearField("image");
-                  }}
-                  className="sr-only"
-                  required
-                />
-              </label>
-              {errorFor("image") && (
-                <p role="alert" className="text-xs font-medium text-(--color-danger) lg:col-span-2">
-                  {errorFor("image")}
+            <div className="flex flex-col gap-5">
+              {!isAdmin && (
+                <p className="text-xs leading-relaxed text-(--color-text-muted)">
+                  {t("pages.plateImageTip")}{" "}
+                  <span className="text-(--color-text-faint)">
+                    {t("pages.uploadFileConstraints", { types: allowedImageTypesLabel, max: MAX_UPLOAD_MB })}
+                  </span>
                 </p>
               )}
-
-              {!isAdmin && (
-                <div className="flex flex-col justify-between gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-5">
-                  <div>
-                    <h3 className="flex items-center gap-2 text-sm font-semibold text-(--color-text)">
-                      <FileText className="h-4 w-4 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
-                      {t("pages.ownershipDocumentLabel")}
-                    </h3>
-                    <p className="mt-2 text-xs leading-relaxed text-(--color-text-muted)">{t("pages.ownershipDocumentHint")}</p>
-                  </div>
-                  <label
-                    htmlFor="ownership-document-input"
-                    className="relative flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-(--radius-md) border border-dashed border-(--color-border-strong) bg-(--color-surface) p-4 text-center transition-colors hover:border-(--color-gold)/50"
-                  >
-                    {docFile ? (
-                      <span className="text-sm font-medium text-(--color-text)">{docFile.name}</span>
-                    ) : (
-                      <>
-                        <Upload className="h-6 w-6 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
-                        <span className="text-sm font-medium text-(--color-text)">{t("pages.ownershipDocumentUploadCta")}</span>
-                      </>
-                    )}
-                    <input
-                      id="ownership-document-input"
-                      name="ownershipDocument"
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      onChange={(e) => {
-                        const picked = e.target.files?.[0] ?? null;
-                        const problem = validateUploadFile(picked, t, "image");
-                        if (problem) {
-                          e.target.value = "";
-                          setDocFile(null);
-                          setFieldError("ownershipDocument", problem);
-                          push(problem, "error");
-                          return;
-                        }
-                        setDocFile(picked);
-                        clearField("ownershipDocument");
-                      }}
-                      className="sr-only"
-                    />
-                  </label>
-                  <p className="text-xs text-(--color-text-faint)">{t("pages.ownershipDocumentPrivacyHint")}</p>
-                  {errorFor("ownershipDocument") && (
-                    <p role="alert" className="text-xs font-medium text-(--color-danger)">
-                      {errorFor("ownershipDocument")}
-                    </p>
+              <div className={cn("grid grid-cols-1 gap-5", !isAdmin && "lg:grid-cols-[1fr_0.85fr]")}>
+                <label
+                  htmlFor="plate-image-input"
+                  className="relative flex min-h-64 cursor-pointer flex-col items-center justify-center gap-3 overflow-hidden rounded-(--radius-lg) border border-dashed border-(--color-border-strong) bg-(--color-bg-elevated) p-6 text-center transition-colors hover:border-(--color-gold)/50"
+                >
+                  {imagePreviewUrl ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={imagePreviewUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  ) : (
+                    <>
+                      <Upload className="h-7 w-7 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
+                      <span className="text-sm font-medium text-(--color-text)">{t("pages.uploadPlatePhotoHint")}</span>
+                      <span className="text-xs text-(--color-text-faint)">{t("pages.plateImageRequired")}</span>
+                    </>
                   )}
-                </div>
-              )}
+                  <input
+                    id="plate-image-input"
+                    name="image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    onChange={(e) => {
+                      const picked = e.target.files?.[0] ?? null;
+                      const problem = validateUploadFile(picked, t, "image");
+                      if (problem) {
+                        // Reject at the picker so the user sees why straight
+                        // away instead of after a failed upload round-trip.
+                        e.target.value = "";
+                        setImageFile(null);
+                        setFieldError("image", problem);
+                        push(problem, "error");
+                        return;
+                      }
+                      setImageFile(picked);
+                      clearField("image");
+                    }}
+                    className="sr-only"
+                    required
+                  />
+                </label>
+                {errorFor("image") && (
+                  <p role="alert" className="text-xs font-medium text-(--color-danger) lg:col-span-2">
+                    {errorFor("image")}
+                  </p>
+                )}
+
+                {!isAdmin && (
+                  <div className="flex flex-col justify-between gap-4 rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated) p-5">
+                    <div>
+                      <h3 className="flex items-center gap-2 text-sm font-semibold text-(--color-text)">
+                        <FileText className="h-4 w-4 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
+                        {t("pages.ownershipDocumentLabel")}
+                      </h3>
+                      <p className="mt-2 text-xs leading-relaxed text-(--color-text-muted)">{t("pages.ownershipDocumentHint")}</p>
+                    </div>
+
+                    <Callout tone="info" icon={ShieldAlert} title={t("pages.ownershipDocumentAlertTitle")}>
+                      <p>{t("pages.ownershipDocumentAlertBody")}</p>
+                      <ul className="mt-2 flex flex-col gap-1 text-xs text-(--color-text-faint)">
+                        <li>{t("pages.ownershipDocumentAlertPlateImageNote")}</li>
+                        <li>{t("pages.ownershipDocumentAlertDocNote")}</li>
+                      </ul>
+                    </Callout>
+
+                    <label
+                      htmlFor="ownership-document-input"
+                      className="relative flex min-h-32 cursor-pointer flex-col items-center justify-center gap-2 overflow-hidden rounded-(--radius-md) border border-dashed border-(--color-border-strong) bg-(--color-surface) p-4 text-center transition-colors hover:border-(--color-gold)/50"
+                    >
+                      {docFile ? (
+                        <span className="text-sm font-medium text-(--color-text)">{docFile.name}</span>
+                      ) : (
+                        <>
+                          <Upload className="h-6 w-6 text-(--color-gold)" aria-hidden="true" strokeWidth={1.75} />
+                          <span className="text-sm font-medium text-(--color-text)">{t("pages.ownershipDocumentUploadCta")}</span>
+                          <span className="text-xs text-(--color-text-faint)">{t("pages.ownershipDocumentPrivacyHint")}</span>
+                        </>
+                      )}
+                      <input
+                        id="ownership-document-input"
+                        name="ownershipDocument"
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        onChange={(e) => {
+                          const picked = e.target.files?.[0] ?? null;
+                          const problem = validateUploadFile(picked, t, "image");
+                          if (problem) {
+                            e.target.value = "";
+                            setDocFile(null);
+                            setFieldError("ownershipDocument", problem);
+                            push(problem, "error");
+                            return;
+                          }
+                          setDocFile(picked);
+                          clearField("ownershipDocument");
+                        }}
+                        className="sr-only"
+                      />
+                    </label>
+                    {errorFor("ownershipDocument") && (
+                      <p role="alert" className="text-xs font-medium text-(--color-danger)">
+                        {errorFor("ownershipDocument")}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 

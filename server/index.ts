@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import next from "next";
 import { Server as SocketIOServer } from "socket.io";
 import { verifySession, hasPermission, type SessionPayload } from "@/lib/session";
-import { setIO, auctionRoom, ADMIN_AUCTION_ROOM } from "@/lib/socket";
+import { setIO, auctionRoom, ADMIN_AUCTION_ROOM, userRoom } from "@/lib/socket";
 import { connectDB } from "@/lib/db";
 import { ChatMessage } from "@/models/ChatMessage";
 import { User } from "@/models/User";
@@ -106,6 +106,13 @@ async function main() {
   io.of("/").adapter.on("leave-room", broadcastPresence);
 
   io.on("connection", (socket) => {
+    // Every authenticated connection auto-joins its own notification room
+    // — unlike auction rooms, there's no per-page subscribe step, since a
+    // user should receive their notifications no matter what page they're
+    // on.
+    const session = socket.data.session as SessionPayload | undefined;
+    if (session) socket.join(userRoom(session.sub));
+
     socket.on("auction:join", (auctionId: string) => {
       if (typeof auctionId !== "string" || !auctionId) return;
       socket.join(auctionRoom(auctionId));

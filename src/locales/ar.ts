@@ -20,6 +20,7 @@ export interface MessageCatalog {
     dashboard: string;
     featured: string;
     bottomNav: string;
+    whatsappFab: string;
   };
   theme: {
     switchToDark: string;
@@ -422,6 +423,22 @@ export interface MessageCatalog {
     addPlateSubtitle: string;
     submitPlate: string;
     plateSubmitted: string;
+
+    // Pre-submission tips gate — user-only, shown before the wizard itself
+    preSubmitTipsTitle: string;
+    preSubmitTipsSubtitle: string;
+    tipRealPhotoTitle: string;
+    tipRealPhotoBody: string;
+    tipAccurateDataTitle: string;
+    tipAccurateDataBody: string;
+    tipRealisticPriceTitle: string;
+    tipRealisticPriceBody: string;
+    tipTrackOffersTitle: string;
+    tipTrackOffersBody: string;
+    tipReviewBeforePublishTitle: string;
+    tipReviewBeforePublishBody: string;
+    preSubmitTipsAgree: string;
+    preSubmitTipsContinue: string;
     addAdTitle: string;
     addAdSubtitle: string;
     adTitle: string;
@@ -466,11 +483,17 @@ export interface MessageCatalog {
     plateImageHeader: string;
     plateImageRequired: string;
     uploadPlatePhotoHint: string;
+    plateImageTip: string;
+    uploadFileConstraints: string;
     ownershipDocumentLabel: string;
     ownershipDocumentHint: string;
     ownershipDocumentUploadCta: string;
     ownershipDocumentPrivacyHint: string;
     ownershipDocumentRequired: string;
+    ownershipDocumentAlertTitle: string;
+    ownershipDocumentAlertBody: string;
+    ownershipDocumentAlertPlateImageNote: string;
+    ownershipDocumentAlertDocNote: string;
     actualPlatePhotoLabel: string;
     contactInfoHeader: string;
     contactPhoneLabel: string;
@@ -918,6 +941,14 @@ export interface MessageCatalog {
     realtimeUnauthorized: string;
     liveBidsHeader: string;
     awaitingLiveBids: string;
+    statPurchased: string;
+    statVisitorsToday: string;
+  };
+  notifications: {
+    title: string;
+    empty: string;
+    markAllRead: string;
+    viewAll: string;
   };
 }
 
@@ -943,6 +974,7 @@ const ar: MessageCatalog = {
     dashboard: "لوحة التحكم",
     featured: "المميزة",
     bottomNav: "التنقل السريع",
+    whatsappFab: "تواصل عبر واتساب",
   },
   theme: {
     switchToDark: "التبديل إلى الوضع الداكن",
@@ -1342,6 +1374,22 @@ const ar: MessageCatalog = {
     addPlateSubtitle: "أدخل بيانات لوحتك لعرضها ضمن قائمة اللوحات",
     submitPlate: "إرسال اللوحة",
     plateSubmitted: "تم إرسال لوحتك بنجاح وهي الآن قيد المراجعة",
+
+    preSubmitTipsTitle: "نصائح قبل ما ترسل",
+    preSubmitTipsSubtitle: "اقرأ هذه النصائح جيدًا قبل إضافة لوحتك، فهي تساعد في تسريع المراجعة واعتماد إعلانك.",
+    tipRealPhotoTitle: "صوّر لوحتك بصورة حقيقية وواضحة",
+    tipRealPhotoBody: "استخدم صورة حقيقية للوحة/السيارة قدر الإمكان. الصور الحقيقية تساعد في زيادة مصداقية الإعلان وتسهل عملية المراجعة.",
+    tipAccurateDataTitle: "تأكد من صحة بيانات اللوحة",
+    tipAccurateDataBody: "راجع أرقام وحروف اللوحة ونوعها واستخدامها وأي بيانات أخرى قبل إرسال الطلب.",
+    tipRealisticPriceTitle: "لا تبالغ في السعر",
+    tipRealisticPriceBody: "اختر سعرًا واقعيًا ومناسبًا للوحة، ويمكنك تعديل السعر لاحقًا إذا كانت قواعد المنصة تسمح بذلك.",
+    tipTrackOffersTitle: "تابع عروضك ومزايداتك",
+    tipTrackOffersBody: "بعد نشر اللوحة تابع الطلبات والمزايدات من حسابك، لأن جميع العمليات المرتبطة بلوحتك ستظهر من خلال المنصة.",
+    tipReviewBeforePublishTitle: "المراجعة قبل النشر",
+    tipReviewBeforePublishBody: "لن يتم نشر لوحتك مباشرة إذا كانت تحتاج إلى مراجعة، وسيتم التحقق من البيانات والمرفقات أولًا.",
+    preSubmitTipsAgree: "قرأت الإرشادات وأوافق على متابعة إضافة اللوحة.",
+    preSubmitTipsContinue: "متابعة وإضافة اللوحة",
+
     addAdTitle: "أضف رقمك",
     addAdSubtitle: "أنشئ إعلانًا لبيع رقمك المميز",
     adTitle: "عنوان الإعلان",
@@ -1385,11 +1433,18 @@ const ar: MessageCatalog = {
     plateImageHeader: "صورة اللوحة",
     plateImageRequired: "صورة اللوحة الفعلية مطلوبة",
     uploadPlatePhotoHint: "ارفع صورة حقيقية للوحة",
+    plateImageTip: "يفضل رفع صورة حقيقية وواضحة للوحة أو السيارة. تجنب الصور غير الواضحة أو التي تحتوي على تعديلات مبالغ فيها، لأن الصورة قد تخضع للمراجعة قبل اعتماد الإعلان.",
+    uploadFileConstraints: "الأنواع المسموحة: {types} — بحد أقصى {max} ميجابايت",
     ownershipDocumentLabel: "إستمارة السيارة",
     ownershipDocumentHint: "ارفع صورة واضحة من إستمارة السيارة لإثبات ملكية اللوحة.",
     ownershipDocumentUploadCta: "اضغط لرفع صورة الإستمارة",
-    ownershipDocumentPrivacyHint: "تستخدم للمطابقة فقط ولن تظهر للزوار.",
+    ownershipDocumentPrivacyHint: "تستخدم للمطابقة والتحقق فقط ولن تظهر للعامة",
     ownershipDocumentRequired: "يجب رفع صورة إستمارة السيارة",
+    ownershipDocumentAlertTitle: "صورة الاستمارة لن تظهر للزوار",
+    ownershipDocumentAlertBody:
+      "تُستخدم صورة الاستمارة فقط للتحقق من ملكية اللوحة ومطابقة البيانات، ولن يتم عرضها للزوار أو المشترين ضمن الإعلان. بعد إرسال الطلب سيتم مراجعة الاستمارة والبيانات قبل اعتماد ونشر اللوحة.",
+    ownershipDocumentAlertPlateImageNote: "صورة اللوحة/السيارة: يمكن استخدامها في الإعلان حسب النظام.",
+    ownershipDocumentAlertDocNote: "صورة الاستمارة: خاصة بعملية التحقق والمراجعة ولا تظهر للعامة.",
     actualPlatePhotoLabel: "صورة اللوحة الفعلية",
     contactInfoHeader: "بيانات التواصل",
     contactPhoneLabel: "رقم التواصل",

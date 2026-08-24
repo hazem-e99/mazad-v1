@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Gavel, Clock4, CalendarDays, ArrowLeft, ArrowRight } from "lucide-react";
+import { Gavel, Zap, Clock4, CalendarDays, ArrowLeft, ArrowRight } from "lucide-react";
 import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { CountdownTimer } from "@/components/auction/CountdownTimer";
 import { AuctionStatusBadge } from "@/components/auction/AuctionStatusBadge";
+import { Badge } from "@/components/ui/Badge";
 import { VipBadge, ExclusiveBadge } from "@/components/ui/VipBadge";
 import { PriceDisplay } from "@/components/ui/PriceDisplay";
 import { statusAccent, isFinalStatus } from "@/lib/auctionStatus";
@@ -47,7 +48,15 @@ export function AuctionCard({ auction, className }: { auction: AuctionSummary; c
               {isVip && <VipBadge />}
               {auction.category === "exclusive" && <ExclusiveBadge />}
             </div>
-            <AuctionStatusBadge status={auction.status} />
+            <div className="flex items-center gap-1.5">
+              {isLive && auction.directPurchaseEnabled && (
+                <Badge tone="gold">
+                  <Zap className="h-3 w-3" aria-hidden="true" strokeWidth={2.25} />
+                  {t("auction.buyNow")}
+                </Badge>
+              )}
+              <AuctionStatusBadge status={auction.status} />
+            </div>
           </div>
 
           <div className="relative flex aspect-[4/3] items-center justify-center overflow-hidden rounded-(--radius-md) bg-(--color-bg)">
