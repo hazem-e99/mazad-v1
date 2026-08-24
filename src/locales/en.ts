@@ -339,7 +339,7 @@ const en: MessageCatalog = {
     plateRequired: "Please choose a plate.",
     plateTypeRequired: "Please choose a plate type.",
     lettersArRequired: "Please enter the plate letters in Arabic.",
-    lettersArInvalid: "Please use Arabic letters only.",
+    lettersArInvalid: "Only these plate letters are allowed: أ ب ح د ر س ص ط ع ق ك ل م ن ه و ي.",
     lettersEnRequired: "Please enter the plate letters in English.",
     lettersEnInvalid: "Please use English letters only.",
     lettersTooLong: "Letters must be at most 10 characters.",
@@ -429,6 +429,7 @@ const en: MessageCatalog = {
     plateLogosLoadError: "Failed to load logos",
     lettersArLabel: "Letters (Arabic)",
     lettersEnLabel: "Letters (English)",
+    lettersEnAutoHint: "Auto-filled from the Arabic letters",
     numbersLabel: "Numbers",
     pleaseSelectImage: "Please select an image",
 

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidPlateLettersAr, deriveLettersEn } from "@/lib/plateLetters";
 import { MESSAGES, DEFAULT_LOCALE, resolveMessage, type Locale } from "@/lib/i18n";
 import {
   PLATE_TYPES,
@@ -66,21 +67,19 @@ export function buildSchemas(t: Translate) {
 
   const socialHandle = z.string().trim().max(60, v("handleTooLong")).optional();
 
-  // Arabic block plus the space/separator characters a plate legitimately
-  // contains; anything Latin in this field is a wrong-keyboard mistake.
+  // Whitelisted against the 15 letters an official Saudi plate can
+  // actually carry (see plateLetters.ts), not just "any Arabic text" the
+  // old regex accepted. lettersEn is intentionally *not* a schema field
+  // anywhere below: it is derived from lettersAr through the one official
+  // mapping — see deriveLettersEn() and its callers in the route handlers
+  // — so a caller can never send `{ lettersAr: "...", lettersEn: "ANYTHING" }`
+  // and have the mismatch stick.
   const lettersAr = z
     .string({ error: () => v("lettersArRequired") })
     .trim()
     .min(1, v("lettersArRequired"))
-    .max(10, v("lettersTooLong"))
-    .regex(/^[؀-ۿ\s]+$/, v("lettersArInvalid"));
-
-  const lettersEn = z
-    .string({ error: () => v("lettersEnRequired") })
-    .trim()
-    .min(1, v("lettersEnRequired"))
-    .max(10, v("lettersTooLong"))
-    .regex(/^[A-Za-z\s]+$/, v("lettersEnInvalid"));
+    .max(12, v("lettersTooLong"))
+    .refine(isValidPlateLettersAr, v("lettersArInvalid"));
 
   const plateNumbers = z
     .string({ error: () => v("numbersRequired") })
@@ -128,10 +127,29 @@ export function buildSchemas(t: Translate) {
     password: z.string({ error: () => v("passwordRequired") }).min(1, v("passwordRequired")),
   });
 
-  const plateSchema = z.object({
+  /**
+   * Attaches the Latin letters the Arabic ones transliterate to.
+   *
+   * Applied as a schema transform rather than in each route handler so
+   * every write path — admin create, listing submit, listing update —
+   * gets it from one place and none can forget. `lettersAr` has already
+   * been refined against the plate letter set by this point, so the
+   * derivation cannot fail; the fallback is defensive only.
+   */
+  const withDerivedLettersEn = <T extends { lettersAr?: string }>(data: T) => ({
+    ...data,
+    ...(data.lettersAr ? { lettersEn: deriveLettersEn(data.lettersAr) ?? "" } : {}),
+  });
+
+  // Kept as the bare object (not the transformed `plateSchema` below) so
+  // `.partial()` still exists on it — ZodEffects, what `.transform()`
+  // returns, drops that method entirely, which made
+  // `plateSchema.partial()` a runtime TypeError the moment the letters
+  // derivation was added. Every caller needing a partial update schema
+  // must build from this one, never from the transformed export.
+  const plateBaseSchema = z.object({
     type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
     lettersAr,
-    lettersEn,
     numbers: plateNumbers,
     image: z.string().min(1, v("imageRequired")).nullable().optional(),
     // Admin-managed logo reference — a real ObjectId string, or null/absent
@@ -142,6 +160,14 @@ export function buildSchemas(t: Translate) {
     isFeatured: z.boolean().default(false),
     notes: z.string().trim().max(500, v("tooLong", { max: 500 })).optional(),
   });
+
+  const plateSchema = plateBaseSchema.transform(withDerivedLettersEn);
+
+  /** For PATCH /api/plates/[id]: every field optional, but a lettersAr
+   * that *is* sent still goes through the full derivation — a plate
+   * cannot end up with English letters that no longer match its Arabic
+   * ones just because the request only meant to touch the notes field. */
+  const plateUpdateSchema = plateBaseSchema.partial().transform(withDerivedLettersEn);
 
   /* A category's artwork is optional, unlike a plate logo's: categories
      predate the field, and the home tiles fall back to a default icon. The
@@ -173,7 +199,6 @@ export function buildSchemas(t: Translate) {
   const listingFieldsSchema = z.object({
     type: z.enum(PLATE_TYPES, { error: () => v("plateTypeRequired") }),
     lettersAr,
-    lettersEn,
     numbers: plateNumbers,
     logo: objectId.nullable().optional(),
     classification: z.enum(PLATE_CLASSIFICATIONS, { error: () => v("selectRequired") }).nullable().optional(),
@@ -194,12 +219,14 @@ export function buildSchemas(t: Translate) {
     submissionType: z.enum(SUBMISSION_TYPES, { error: () => v("submissionTypeRequired") }),
   });
 
-  const listingSubmitSchema = listingFieldsSchema.refine(
-    (data) => data.submissionType !== "marketplace" || (data.price != null && data.price > 0),
-    { message: v("priceRequired"), path: ["price"] }
-  );
+  const listingSubmitSchema = listingFieldsSchema
+    .refine(
+      (data) => data.submissionType !== "marketplace" || (data.price != null && data.price > 0),
+      { message: v("priceRequired"), path: ["price"] }
+    )
+    .transform(withDerivedLettersEn);
 
-  const listingUpdateSchema = listingFieldsSchema.partial();
+  const listingUpdateSchema = listingFieldsSchema.partial().transform(withDerivedLettersEn);
 
   const moderationDecisionSchema = z
     .object({

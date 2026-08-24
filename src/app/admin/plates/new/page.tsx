@@ -13,6 +13,7 @@ import { useFormValidation } from "@/hooks/useFormValidation";
 import { validateUploadFile } from "@/lib/fileValidation";
 import { usePlateLogos } from "@/hooks/usePlateLogos";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { deriveLettersEn, isValidPlateLettersAr } from "@/lib/plateLetters";
 import { PLATE_TYPES, plateTypeLabel } from "@/lib/constants";
 import type { PlateType } from "@/lib/constants";
 
@@ -23,7 +24,7 @@ export default function AdminNewPlatePage() {
   const { logos, loadError } = usePlateLogos();
   const [type, setType] = useState<PlateType>("private");
   const [lettersAr, setLettersAr] = useState("");
-  const [lettersEn, setLettersEn] = useState("");
+  const lettersEn = useMemo(() => deriveLettersEn(lettersAr) ?? "", [lettersAr]);
   const [numbers, setNumbers] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [logoId, setLogoId] = useState<string | null>(null);
@@ -33,6 +34,18 @@ export default function AdminNewPlatePage() {
   const formRef = useRef<HTMLFormElement>(null);
   const { schemas, errorFor, fieldProps, formError, validate, applyApiError, setFieldError, clearField } =
     useFormValidation(formRef);
+
+  // Flags a letter the moment it's typed, rather than waiting for submit —
+  // otherwise a rejected letter just leaves the auto-filled English field
+  // silently blank with no clue why.
+  function onLettersArChange(value: string) {
+    setLettersAr(value);
+    if (value.trim() === "" || isValidPlateLettersAr(value)) {
+      clearField("lettersAr");
+    } else {
+      setFieldError("lettersAr", t("validation.lettersArInvalid"));
+    }
+  }
 
   const previewUrl = useMemo(() => (file ? URL.createObjectURL(file) : null), [file]);
   useEffect(() => {
@@ -168,10 +181,7 @@ export default function AdminNewPlatePage() {
               <Input
                 label={t("pages.lettersArLabel")}
                 value={lettersAr}
-                onChange={(e) => {
-                  setLettersAr(e.target.value);
-                  clearField("lettersAr");
-                }}
+                onChange={(e) => onLettersArChange(e.target.value)}
                 required
                 dir="rtl"
                 maxLength={10}
@@ -180,14 +190,10 @@ export default function AdminNewPlatePage() {
               <Input
                 label={t("pages.lettersEnLabel")}
                 value={lettersEn}
-                onChange={(e) => {
-                  setLettersEn(e.target.value.toUpperCase());
-                  clearField("lettersEn");
-                }}
-                required
+                readOnly
+                disabled
                 dir="ltr"
-                maxLength={10}
-                {...fieldProps("lettersEn")}
+                hint={t("pages.lettersEnAutoHint")}
               />
               <Input
                 label={t("pages.numbersLabel")}

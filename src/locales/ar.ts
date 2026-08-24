@@ -430,6 +430,7 @@ export interface MessageCatalog {
     plateLogosLoadError: string;
     lettersArLabel: string;
     lettersEnLabel: string;
+    lettersEnAutoHint: string;
     numbersLabel: string;
     pleaseSelectImage: string;
 
@@ -1142,7 +1143,7 @@ const ar: MessageCatalog = {
     plateRequired: "يرجى اختيار اللوحة.",
     plateTypeRequired: "يرجى اختيار نوع اللوحة.",
     lettersArRequired: "يرجى إدخال حروف اللوحة بالعربية.",
-    lettersArInvalid: "يرجى إدخال حروف عربية فقط.",
+    lettersArInvalid: "الحروف المسموح بها على اللوحة فقط: أ ب ح د ر س ص ط ع ق ك ل م ن ه و ي.",
     lettersEnRequired: "يرجى إدخال حروف اللوحة بالإنجليزية.",
     lettersEnInvalid: "يرجى إدخال حروف إنجليزية فقط.",
     lettersTooLong: "الحروف يجب ألا تزيد عن 10 خانات.",
@@ -1232,6 +1233,7 @@ const ar: MessageCatalog = {
     plateLogosLoadError: "تعذر تحميل الشعارات",
     lettersArLabel: "الأحرف (عربي)",
     lettersEnLabel: "الأحرف (إنجليزي)",
+    lettersEnAutoHint: "تُكتب تلقائيًا حسب الأحرف العربية",
     numbersLabel: "الأرقام",
     pleaseSelectImage: "الرجاء اختيار صورة",
 

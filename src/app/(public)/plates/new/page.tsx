@@ -15,6 +15,7 @@ import { validateUploadFile } from "@/lib/fileValidation";
 import { usePlateLogos } from "@/hooks/usePlateLogos";
 import { usePlateCategories } from "@/hooks/usePlateCategories";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
+import { deriveLettersEn, isValidPlateLettersAr } from "@/lib/plateLetters";
 import { cn } from "@/lib/cn";
 import {
   PLATE_TYPES,
@@ -45,7 +46,7 @@ export default function NewPlatePage() {
 
   const [type, setType] = useState<PlateType>("private");
   const [lettersAr, setLettersAr] = useState("");
-  const [lettersEn, setLettersEn] = useState("");
+  const lettersEn = useMemo(() => deriveLettersEn(lettersAr) ?? "", [lettersAr]);
   const [numbers, setNumbers] = useState("");
   const [logoId, setLogoId] = useState<string | null>(null);
   const [classification, setClassification] = useState<PlateClassification | "">("");
@@ -71,6 +72,18 @@ export default function NewPlatePage() {
   const formRef = useRef<HTMLFormElement>(null);
   const { schemas, errors, errorFor, fieldProps, formError, report, applyApiError, setFieldError, clearField, clearAll } =
     useFormValidation(formRef);
+
+  // Flags a letter the moment it's typed, rather than waiting for the step
+  // transition — otherwise a rejected letter just leaves the auto-filled
+  // English field silently blank with no clue why.
+  function onLettersArChange(value: string) {
+    setLettersAr(value);
+    if (value.trim() === "" || isValidPlateLettersAr(value)) {
+      clearField("lettersAr");
+    } else {
+      setFieldError("lettersAr", t("validation.lettersArInvalid"));
+    }
+  }
 
   const previewLogo = useMemo(
     () => (logoId ? (logos ?? []).find((l) => l._id === logoId) ?? null : null),
@@ -285,8 +298,8 @@ export default function NewPlatePage() {
           usageType={usageType || null}
           shape={shape || null}
           classification={classification || null}
-          lettersAr={lettersAr || PREVIEW_PLACEHOLDER.lettersAr}
-          lettersEn={lettersEn || PREVIEW_PLACEHOLDER.lettersEn}
+          lettersAr={lettersAr.trim() ? lettersAr : PREVIEW_PLACEHOLDER.lettersAr}
+          lettersEn={lettersAr.trim() ? lettersEn : PREVIEW_PLACEHOLDER.lettersEn}
           numbers={numbers || PREVIEW_PLACEHOLDER.numbers}
           logo={previewLogo}
           size="lg"
@@ -468,10 +481,7 @@ export default function NewPlatePage() {
                 <Input
                   label={t("pages.lettersArLabel")}
                   value={lettersAr}
-                  onChange={(e) => {
-                    setLettersAr(e.target.value);
-                    clearField("lettersAr");
-                  }}
+                  onChange={(e) => onLettersArChange(e.target.value)}
                   required
                   dir="rtl"
                   maxLength={10}
@@ -481,15 +491,11 @@ export default function NewPlatePage() {
                 <Input
                   label={t("pages.lettersEnLabel")}
                   value={lettersEn}
-                  onChange={(e) => {
-                    setLettersEn(e.target.value.toUpperCase());
-                    clearField("lettersEn");
-                  }}
-                  required
+                  readOnly
+                  disabled
                   dir="ltr"
-                  maxLength={10}
                   placeholder={PREVIEW_PLACEHOLDER.lettersEn}
-                  {...fieldProps("lettersEn")}
+                  hint={t("pages.lettersEnAutoHint")}
                 />
                 <Input
                   label={t("pages.numbersLabel")}
