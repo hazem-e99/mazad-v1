@@ -11,6 +11,7 @@ import type {
   PlateSize,
   SubmissionType,
   ModerationStatus,
+  BackgroundStatus,
 } from "@/lib/constants";
 
 /**
@@ -140,6 +141,8 @@ export interface AuctionDTO {
   directPurchaseEnabled: boolean;
   directPurchasePrice: number | null;
   backgroundImage: string | null;
+  backgroundStatus: BackgroundStatus | null;
+  backgroundRejectionReason: string | null;
   highestBid: string | null;
   highestBidder: UserContactRefDTO | null;
   bidCount: number;

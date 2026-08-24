@@ -78,6 +78,22 @@ async function main() {
           hasPermission(session, "stats:view"))
     );
 
+  // Live viewer presence: Socket.IO's own adapter "join-room"/"leave-room"
+  // events fire for every membership change *including* the automatic
+  // leave a disconnect triggers — reusing that (rather than hand-rolling
+  // counters across the auction:join/leave/disconnect handlers below) is
+  // what makes this correct for tab close, navigation, network loss,
+  // reconnect and duplicate connections for free, with nothing to leak or
+  // drift, and nothing persisted to the database.
+  const AUCTION_ROOM_PREFIX = "auction:";
+  function broadcastPresence(room: string) {
+    if (!room.startsWith(AUCTION_ROOM_PREFIX)) return;
+    const count = io.sockets.adapter.rooms.get(room)?.size ?? 0;
+    io.to(room).emit("auction:presence", { auctionId: room.slice(AUCTION_ROOM_PREFIX.length), count });
+  }
+  io.of("/").adapter.on("join-room", broadcastPresence);
+  io.of("/").adapter.on("leave-room", broadcastPresence);
+
   io.on("connection", (socket) => {
     socket.on("auction:join", (auctionId: string) => {
       if (typeof auctionId !== "string" || !auctionId) return;

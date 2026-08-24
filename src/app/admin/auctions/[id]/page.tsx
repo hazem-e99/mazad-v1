@@ -12,6 +12,7 @@ import { getServerTranslator } from "@/lib/i18n-server";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { AuctionStatusActions } from "./AuctionStatusActions";
 import { AuctionBackgroundUploader } from "./AuctionBackgroundUploader";
+import { AuctionBackgroundModerationActions } from "./AuctionBackgroundModerationActions";
 import type { AuctionStatus } from "@/lib/constants";
 import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
 import {
@@ -145,8 +146,13 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
         <CardHeader>
           <h2 className="font-semibold text-(--color-text)">{t("admin.backgroundHeader")}</h2>
         </CardHeader>
-        <CardBody>
+        <CardBody className="flex flex-col gap-4">
           <AuctionBackgroundUploader auctionId={auction._id} currentImage={auction.backgroundImage} />
+          <AuctionBackgroundModerationActions
+            auctionId={auction._id}
+            status={auction.backgroundStatus}
+            rejectionReason={auction.backgroundRejectionReason}
+          />
         </CardBody>
       </Card>
 

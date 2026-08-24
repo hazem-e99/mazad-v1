@@ -171,6 +171,22 @@ export const MODERATION_TRANSITIONS: Record<ModerationStatus, ModerationStatus[]
   rejected: ["pending", "approved"],
 };
 
+// Moderation workflow for a plate owner's custom auction-background
+// upload — same shape/reasoning as MODERATION_STATUSES/TRANSITIONS above,
+// kept separate because it moderates a different thing (an image on the
+// auction, not the listing itself) with a `disabled` state the listing
+// workflow has no equivalent of (an already-approved background an admin
+// wants to pull without rejecting the underlying upload).
+export const BACKGROUND_STATUSES = ["pending", "approved", "rejected", "disabled"] as const;
+export type BackgroundStatus = (typeof BACKGROUND_STATUSES)[number];
+
+export const BACKGROUND_TRANSITIONS: Record<BackgroundStatus, BackgroundStatus[]> = {
+  pending: ["approved", "rejected"],
+  approved: ["rejected", "disabled"],
+  rejected: ["pending", "approved"],
+  disabled: ["approved"],
+};
+
 export const AUCTION_CATEGORIES = ["regular", "exclusive"] as const;
 export type AuctionCategory = (typeof AUCTION_CATEGORIES)[number];
 
@@ -304,6 +320,11 @@ export const AUDIT_ACTIONS = [
   "user.suspended",
   "user.reactivated",
   "user.deleted",
+  "auction.background_submitted",
+  "auction.background_approved",
+  "auction.background_rejected",
+  "auction.background_disabled",
+  "auction.background_removed",
 ] as const;
 export type AuditAction = (typeof AUDIT_ACTIONS)[number];
 
@@ -330,6 +351,11 @@ export const AUDIT_ACTION_LABELS_AR: Record<AuditAction, string> = {
   "user.suspended": "إيقاف مستخدم",
   "user.reactivated": "إعادة تفعيل مستخدم",
   "user.deleted": "حذف مستخدم",
+  "auction.background_submitted": "رفع خلفية مزاد",
+  "auction.background_approved": "اعتماد خلفية مزاد",
+  "auction.background_rejected": "رفض خلفية مزاد",
+  "auction.background_disabled": "تعطيل خلفية مزاد",
+  "auction.background_removed": "إزالة خلفية مزاد",
 };
 
 export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
@@ -355,6 +381,11 @@ export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
   "user.suspended": "User suspended",
   "user.reactivated": "User reactivated",
   "user.deleted": "User deleted",
+  "auction.background_submitted": "Auction background submitted",
+  "auction.background_approved": "Auction background approved",
+  "auction.background_rejected": "Auction background rejected",
+  "auction.background_disabled": "Auction background disabled",
+  "auction.background_removed": "Auction background removed",
 };
 
 /**

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from "react";
 import { acquireSocket, releaseSocket, createEventDeduper } from "@/lib/realtimeClient";
-import type { AuctionSocketEvent } from "@/lib/realtimeEvents";
+import type { AuctionSocketEvent, AuctionPresenceEvent } from "@/lib/realtimeEvents";
 
-export type { AuctionSocketEvent, AuctionSnapshot } from "@/lib/realtimeEvents";
+export type { AuctionSocketEvent, AuctionSnapshot, AuctionPresenceEvent } from "@/lib/realtimeEvents";
 
 /**
  * Joins the given auction's realtime room and invokes onEvent for every
@@ -16,20 +16,26 @@ export type { AuctionSocketEvent, AuctionSnapshot } from "@/lib/realtimeEvents";
  *   re-read authoritative state for whatever it missed while offline.
  * - Drops repeat deliveries by event id, so a redelivered bid never
  *   double-counts.
+ * - Optionally reports live viewer presence via onPresence — kept in this
+ *   one hook (the single realtime entry point for an auction page) rather
+ *   than a second parallel socket subscription.
  */
 export function useAuctionSocket(
   auctionId: string,
   onEvent: (event: AuctionSocketEvent) => void,
-  onResync?: () => void
+  onResync?: () => void,
+  onPresence?: (count: number) => void
 ) {
   const [connected, setConnected] = useState(false);
   const onEventRef = useRef(onEvent);
   const onResyncRef = useRef(onResync);
+  const onPresenceRef = useRef(onPresence);
 
   useEffect(() => {
     onEventRef.current = onEvent;
     onResyncRef.current = onResync;
-  }, [onEvent, onResync]);
+    onPresenceRef.current = onPresence;
+  }, [onEvent, onResync, onPresence]);
 
   useEffect(() => {
     if (!auctionId) return;
@@ -55,10 +61,15 @@ export function useAuctionSocket(
       if (!dedupe.accept(event.eventId)) return;
       onEventRef.current(event);
     };
+    const handlePresence = (event: AuctionPresenceEvent) => {
+      if (event.auctionId !== auctionId) return;
+      onPresenceRef.current?.(event.count);
+    };
 
     socket.on("connect", handleConnect);
     socket.on("disconnect", handleDisconnect);
     socket.on("auction:event", handleEvent);
+    socket.on("auction:presence", handlePresence);
 
     // The shared socket may already be connected when this mounts, in
     // which case "connect" has fired and will not fire again.
@@ -77,6 +88,7 @@ export function useAuctionSocket(
       socket.off("connect", handleConnect);
       socket.off("disconnect", handleDisconnect);
       socket.off("auction:event", handleEvent);
+      socket.off("auction:presence", handlePresence);
       releaseSocket();
     };
   }, [auctionId]);

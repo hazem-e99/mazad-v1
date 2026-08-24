@@ -1,6 +1,6 @@
 import { Schema, type InferSchemaType, type Model } from "mongoose";
 import { registerModel } from "@/models/registerModel";
-import { AUCTION_CATEGORIES, AUCTION_STATUSES } from "@/lib/constants";
+import { AUCTION_CATEGORIES, AUCTION_STATUSES, BACKGROUND_STATUSES } from "@/lib/constants";
 
 const auctionSchema = new Schema(
   {
@@ -19,6 +19,14 @@ const auctionSchema = new Schema(
     directPurchasePrice: { type: Number, default: null, min: 0 },
 
     backgroundImage: { type: String, default: null },
+    // null = no background uploaded yet, OR a legacy admin-set background
+    // that predates this field (still rendered publicly for backward
+    // compatibility — see the public auction page's render gate). A real
+    // owner submission always starts at "pending"; staff uploads (already
+    // the approving authority elsewhere in this codebase) go straight to
+    // "approved".
+    backgroundStatus: { type: String, enum: BACKGROUND_STATUSES, default: null },
+    backgroundRejectionReason: { type: String, trim: true, maxlength: 500, default: null },
 
     highestBid: { type: Schema.Types.ObjectId, ref: "Bid", default: null },
     highestBidder: { type: Schema.Types.ObjectId, ref: "User", default: null },

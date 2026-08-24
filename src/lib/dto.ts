@@ -29,6 +29,7 @@ import type {
   PlateSize,
   SubmissionType,
   ModerationStatus,
+  BackgroundStatus,
 } from "@/lib/constants";
 
 /**
@@ -283,6 +284,8 @@ export interface LeanAuction {
   directPurchaseEnabled: boolean;
   directPurchasePrice?: number | null;
   backgroundImage?: string | null;
+  backgroundStatus?: BackgroundStatus | null;
+  backgroundRejectionReason?: string | null;
   highestBid?: ObjectIdLike | null;
   highestBidder?: LeanUserContactRef | ObjectIdLike | null;
   bidCount: number;
@@ -321,6 +324,8 @@ export function toAuctionDTO(auction: LeanAuction): AuctionDTO {
     directPurchaseEnabled: auction.directPurchaseEnabled,
     directPurchasePrice: auction.directPurchasePrice ?? null,
     backgroundImage: auction.backgroundImage ?? null,
+    backgroundStatus: auction.backgroundStatus ?? null,
+    backgroundRejectionReason: auction.backgroundRejectionReason ?? null,
     highestBid: toIdOrNull(auction.highestBid ?? null),
     highestBidder: toUserContactRefDTO(auction.highestBidder),
     bidCount: auction.bidCount,

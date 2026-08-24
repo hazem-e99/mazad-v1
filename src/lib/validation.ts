@@ -10,6 +10,7 @@ import {
   PLATE_SIZES,
   SUBMISSION_TYPES,
   MODERATION_STATUSES,
+  BACKGROUND_STATUSES,
 } from "@/lib/constants";
 
 /**
@@ -74,13 +75,7 @@ export function buildSchemas(t: Translate) {
   // mapping — see deriveLettersEn() and its callers in the route handlers
   // — so a caller can never send `{ lettersAr: "...", lettersEn: "ANYTHING" }`
   // and have the mismatch stick.
-  const lettersAr = z
-    .string({ error: () => v("lettersArRequired") })
-    .trim()
-    .min(1, v("lettersArRequired"))
-    .max(12, v("lettersTooLong"))
-    .refine(isValidPlateLettersAr, v("lettersArInvalid"));
-
+  //
   // Sport plates are English-only (no Arabic letters/numbers requirement —
   // see requirement §15): lettersAr becomes optional at the field level,
   // and a caller-supplied lettersEn is accepted directly instead of being
@@ -313,6 +308,19 @@ export function buildSchemas(t: Translate) {
       path: ["rejectionReason"],
     });
 
+  // Same shape as moderationDecisionSchema, over BACKGROUND_STATUSES
+  // instead of MODERATION_STATUSES — a real duplicate is clearer here than
+  // a shared generic wrapper for a two-field object.
+  const backgroundModerationDecisionSchema = z
+    .object({
+      status: z.enum(BACKGROUND_STATUSES, { error: () => v("selectRequired") }),
+      rejectionReason: z.string().trim().max(500, v("tooLong", { max: 500 })).optional(),
+    })
+    .refine((data) => data.status !== "rejected" || Boolean(data.rejectionReason), {
+      message: v("rejectionReasonRequired"),
+      path: ["rejectionReason"],
+    });
+
   const plateLogoCreateSchema = z.object({
     nameAr: z.string().trim().min(1, v("nameArRequired")).max(100, v("nameTooLong")),
     nameEn: z.string().trim().min(1, v("nameEnRequired")).max(100, v("nameTooLong")),
@@ -404,6 +412,7 @@ export function buildSchemas(t: Translate) {
     listingUpdateSchema,
     checkSportLetters,
     moderationDecisionSchema,
+    backgroundModerationDecisionSchema,
     plateLogoCreateSchema,
     plateLogoUpdateSchema,
     auctionSchema,
@@ -437,6 +446,7 @@ export const {
   listingUpdateSchema,
   checkSportLetters,
   moderationDecisionSchema,
+  backgroundModerationDecisionSchema,
   plateLogoCreateSchema,
   plateLogoUpdateSchema,
   auctionSchema,

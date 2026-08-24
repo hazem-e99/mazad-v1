@@ -1,39 +1,48 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
 import sharp from "sharp";
-import { saveImage, imageExists } from "@/lib/storage";
+import { saveImageAt } from "@/lib/storage";
 import { PlateLogo } from "@/models/PlateLogo";
 
 export interface LegacyLogoSpec {
   legacySlug: string;
   nameAr: string;
   nameEn: string;
-  svg: string;
   sortOrder: number;
+  /** Inline placeholder artwork, rasterized via sharp — used only where no
+   * real approved asset exists yet. */
+  svg?: string;
+  /** A real approved asset file, relative to the project root. Takes
+   * precedence over `svg` when both are present. */
+  sourcePath?: string;
 }
 
 function svgDoc(inner: string) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="256" height="256">${inner}</svg>`;
 }
 
-function swordsPalmPaths(color: string) {
-  return `<path d="M24 6c-1.5 4-1.5 9 0 13-1.5-4-1.5 9 0-13z" fill="${color}" />
-    <path d="M24 8v14" stroke="${color}" stroke-width="1.6" stroke-linecap="round" />
-    <ellipse cx="24" cy="9" rx="6" ry="3.2" fill="${color}" />
-    <path d="M12 40l10-20 2 1-9 20z" fill="${color}" />
-    <path d="M36 40L26 20l-2 1 9 20z" fill="${color}" />
-    <path d="M9 41h30" stroke="${color}" stroke-width="2" stroke-linecap="round" />`;
-}
-
 /**
- * The exact shapes the old hardcoded PlateLogoIcon switch/case used to
- * draw inline for each legacy enum value — reused here (not reinvented)
- * so the one-time migration and the dev seed both produce real logo
- * artwork instead of a placeholder image.
+ * The six plate logo options the product requires (§ Plate Logos /
+ * Emblems). Four have real approved artwork; the other two
+ * (رؤية المملكة 2030, مدائن صالح) have no clean approved asset available
+ * yet — see the placeholder note on each — so they fall back to a plain
+ * inline placeholder mark until real artwork is supplied. Swapping either
+ * in later needs no code change: the admin's existing logo-edit upload
+ * (src/app/admin/plate-logos) replaces `image` on the same record.
+ *
+ * Slugs are kept stable across renames (`swords_palm_green` still reads
+ * "ملون", not "أخضر" — see nameAr) so this list's idempotent upsert (keyed
+ * on legacySlug, see ensureLegacyPlateLogo below) updates the existing
+ * record in place instead of creating a duplicate.
  */
 export const LEGACY_LOGO_SPECS: LegacyLogoSpec[] = [
   {
+    // No real Vision 2030 emblem asset is available (the supplied
+    // logo_01_mosaic.png reference carries a visible stock-photo
+    // watermark and can't ship) — placeholder until a clean asset exists.
     legacySlug: "vision",
-    nameAr: "شعار الرؤية",
-    nameEn: "Vision Emblem",
+    nameAr: "رؤية المملكة 2030",
+    nameEn: "Saudi Vision 2030",
     sortOrder: 1,
     svg: svgDoc(
       `<circle cx="24" cy="24" r="15" fill="none" stroke="#0f6b4f" stroke-width="2.5" />
@@ -42,68 +51,80 @@ export const LEGACY_LOGO_SPECS: LegacyLogoSpec[] = [
   },
   {
     legacySlug: "swords_palm_black",
-    nameAr: "سيفين ونخلة أسود",
-    nameEn: "Crossed Swords & Palm (Black)",
+    nameAr: "السيفان والنخلة — أسود",
+    nameEn: "Crossed Swords & Palm — Black",
     sortOrder: 2,
-    svg: svgDoc(swordsPalmPaths("#151515")),
+    sourcePath: "public/images/logo_02_black.png",
   },
   {
     legacySlug: "swords_palm_green",
-    nameAr: "سيفين ونخلة أخضر",
-    nameEn: "Crossed Swords & Palm (Green)",
+    nameAr: "السيفان والنخلة — ملون",
+    nameEn: "Crossed Swords & Palm — Colored",
     sortOrder: 3,
-    svg: svgDoc(swordsPalmPaths("#0f6b4f")),
+    sourcePath: "public/images/logo_03_colored.png",
+  },
+  {
+    // No Madain Saleh asset has ever existed in this project (confirmed
+    // absent even from the old hardcoded enum this migration replaces) —
+    // placeholder rock-formation mark until real artwork is supplied.
+    legacySlug: "madain_saleh",
+    nameAr: "مدائن صالح",
+    nameEn: "Madain Saleh",
+    sortOrder: 4,
+    svg: svgDoc(
+      `<path d="M6 38l6-14 5 6 4-10 5 8 4-6 6 16z" fill="none" stroke="#8a6d2f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" />
+       <path d="M4 38h40" stroke="#8a6d2f" stroke-width="2" stroke-linecap="round" />`
+    ),
   },
   {
     legacySlug: "diriyah",
     nameAr: "الدرعية",
     nameEn: "Diriyah",
-    sortOrder: 4,
-    svg: svgDoc(
-      `<rect x="10" y="22" width="6" height="16" fill="#8a6d2f" />
-       <rect x="18" y="16" width="6" height="22" fill="#8a6d2f" />
-       <rect x="26" y="20" width="6" height="18" fill="#8a6d2f" />
-       <rect x="34" y="12" width="6" height="26" fill="#8a6d2f" />
-       <path d="M8 38h32" stroke="#8a6d2f" stroke-width="2" stroke-linecap="round" />`
-    ),
+    sortOrder: 5,
+    sourcePath: "public/images/brand1.png",
   },
 ];
 
 /**
- * Rasterizes one of the legacy SVG marks into a real stored image file
- * through the existing upload/storage pipeline (sharp + saveImage) — the
- * same path every other upload in the app uses, not a parallel one.
+ * Produces one legacy mark's real stored image file through the existing
+ * upload/storage pipeline (sharp + saveImageAt) — the same path every
+ * other upload in the app uses, not a parallel one. A stable key (the
+ * legacySlug) rather than a random one, so re-running the seed heals the
+ * same SiteAsset row instead of orphaning a new one each time.
  */
-async function rasterizeAndSave(svg: string, filename: string): Promise<string> {
-  const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
-  const file = new File([new Uint8Array(pngBuffer)], filename, { type: "image/png" });
-  return saveImage(file, "plate-logos");
+async function rasterizeAndSave(spec: LegacyLogoSpec): Promise<string> {
+  const buffer = spec.sourcePath
+    ? await readFile(path.join(process.cwd(), spec.sourcePath))
+    : await sharp(Buffer.from(spec.svg!)).png().toBuffer();
+  return saveImageAt(buffer, "plate-logos", spec.legacySlug);
 }
 
 /**
  * Idempotently ensures a PlateLogo record exists for the given legacy
- * enum value *and* that the file it points at is actually on disk — safe
- * to call repeatedly (used by the dev seed, the one-time migration script
- * and the image repair script) since it upserts on the stable
- * `legacySlug`, never creating a duplicate.
+ * enum value, with up-to-date name/art — safe to call repeatedly (used by
+ * the dev seed, the one-time migration script and the image repair
+ * script) since it upserts on the stable `legacySlug`, never creating a
+ * duplicate, and `rasterizeAndSave` writes to a stable SiteAsset key so
+ * re-running never orphans a previous row.
  *
- * The two halves can drift apart: the record lives in the shared
- * database, the artwork lives in gitignored local storage. A clone that
- * never ran the seed itself inherits the rows without the files, which
- * renders as a broken image in the plate picker and the admin list — so
- * a record whose image has gone missing is re-rasterized from `spec.svg`
- * rather than returned as-is.
+ * Always refreshes `nameAr`/`nameEn`/`sortOrder`/`image` on an existing
+ * record rather than short-circuiting when one is found: this is what
+ * lets correcting a name or swapping placeholder art for a real asset
+ * (edit LEGACY_LOGO_SPECS, re-run) actually take effect on already-seeded
+ * records instead of only affecting brand-new ones.
  */
 export async function ensureLegacyPlateLogo(spec: LegacyLogoSpec, createdBy: string | null) {
+  const image = await rasterizeAndSave(spec);
   const existing = await PlateLogo.findOne({ legacySlug: spec.legacySlug });
   if (existing) {
-    if (await imageExists(existing.image)) return existing;
-    existing.image = await rasterizeAndSave(spec.svg, `${spec.legacySlug}.png`);
+    existing.nameAr = spec.nameAr;
+    existing.nameEn = spec.nameEn;
+    existing.sortOrder = spec.sortOrder;
+    existing.image = image;
     await existing.save();
     return existing;
   }
 
-  const image = await rasterizeAndSave(spec.svg, `${spec.legacySlug}.png`);
   return PlateLogo.create({
     nameAr: spec.nameAr,
     nameEn: spec.nameEn,

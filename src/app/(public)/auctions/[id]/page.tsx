@@ -17,6 +17,7 @@ import { plateTypeLabel } from "@/lib/constants";
 import { formatSar, formatDateTime } from "@/lib/format";
 import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
 import { WhatsAppContactButton } from "@/components/plate/WhatsAppContactButton";
+import { OwnerAuctionBackgroundUploader } from "@/components/auction/OwnerAuctionBackgroundUploader";
 
 export const revalidate = 0;
 
@@ -45,6 +46,14 @@ export default async function AuctionDetailPage({ params }: Props) {
   const recentBids = toBidDTOList(recentBidsDocs);
   const Arrow = locale === "ar" ? ArrowRight : ArrowLeft;
   const isVip = auction.plate.isVip;
+  // Only an approved background ever renders publicly — pending/rejected/
+  // disabled always fall back to the default hero. `backgroundStatus ==
+  // null` with an image present is a legacy admin-set background from
+  // before this field existed, kept working for backward compatibility.
+  const approvedBackground =
+    auction.backgroundImage && (auction.backgroundStatus === "approved" || auction.backgroundStatus == null)
+      ? auction.backgroundImage
+      : null;
 
   const sellerId = auction.plate.ownerUser ?? auction.plate.createdBy;
   const isSeller = Boolean(session) && session!.sub === sellerId;
@@ -114,9 +123,9 @@ export default async function AuctionDetailPage({ params }: Props) {
                 ? "border-(--color-vip-border) bg-(--color-vip-surface)"
                 : "border-(--color-border) bg-(--color-bg-elevated)")
             }
-            style={auction.backgroundImage ? { backgroundImage: `url(${auction.backgroundImage})` } : undefined}
+            style={approvedBackground ? { backgroundImage: `url(${approvedBackground})` } : undefined}
           >
-            {auction.backgroundImage && <span className="absolute inset-0 bg-black/55" aria-hidden="true" />}
+            {approvedBackground && <span className="absolute inset-0 bg-black/55" aria-hidden="true" />}
 
             <div className="relative flex flex-wrap items-center justify-center gap-1.5">
               <AuctionStatusBadge status={auction.status} />
@@ -156,6 +165,17 @@ export default async function AuctionDetailPage({ params }: Props) {
               ))}
             </dl>
           </section>
+
+          {isSeller && (
+            <OwnerAuctionBackgroundUploader
+              auctionId={auction._id}
+              auctionStatus={auction.status}
+              plate={auction.plate}
+              currentImage={auction.backgroundImage}
+              currentStatus={auction.backgroundStatus}
+              currentRejectionReason={auction.backgroundRejectionReason}
+            />
+          )}
 
           {contactReveal && (
             <section className="rounded-(--radius-lg) border border-(--color-border) bg-(--color-surface) p-5 sm:p-6">

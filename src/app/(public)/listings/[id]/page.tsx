@@ -110,28 +110,39 @@ export default async function ListingDetailPage({ params }: Props) {
             />
           )}
 
-          <PlatePhoto
-            src={listing.image}
-            alt={name}
-            className="relative max-h-64 w-full object-contain"
-            fallback={
-              <SaudiPlate
-                type={listing.type}
-                usageType={listing.usageType}
-                shape={listing.shape}
-                classification={listing.classification}
-                lettersAr={listing.lettersAr}
-                lettersEn={listing.lettersEn}
-                numbers={listing.numbers}
-                logo={listing.logo}
-                size="xl"
-                vip={listing.isVip}
-                locale={locale}
-                className="relative"
-              />
-            }
+          {/* Drawn from the record, never the uploaded photo — the exact
+              same source every card (ListingCard/VipPlateCard/AuctionCard)
+              and the auction details page already render, so a plate can
+              never look different here than it does anywhere else. */}
+          <SaudiPlate
+            type={listing.type}
+            usageType={listing.usageType}
+            shape={listing.shape}
+            classification={listing.classification}
+            lettersAr={listing.lettersAr}
+            lettersEn={listing.lettersEn}
+            numbers={listing.numbers}
+            logo={listing.logo}
+            size="xl"
+            vip={listing.isVip}
+            locale={locale}
+            className="relative"
           />
         </div>
+
+        {listing.image && (
+          <div className="lg:col-span-2 lg:order-last">
+            <p className="mb-2 text-xs font-medium text-(--color-text-faint)">{t("pages.actualPlatePhotoLabel")}</p>
+            <div className="overflow-hidden rounded-(--radius-lg) border border-(--color-border) bg-(--color-bg-elevated)">
+              <PlatePhoto
+                src={listing.image}
+                alt={name}
+                className="max-h-56 w-full object-contain p-3"
+                fallback={null}
+              />
+            </div>
+          </div>
+        )}
 
         {/* ── Identity + commerce ───────────────────────────────────── */}
         <div className="flex flex-col rounded-(--radius-xl) border border-(--color-border) bg-(--color-surface) p-6 shadow-(--shadow-soft) sm:p-8">

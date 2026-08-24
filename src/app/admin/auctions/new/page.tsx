@@ -58,29 +58,30 @@ export default function AdminNewAuctionPage() {
 
   useEffect(() => {
     apiFetch<{ items: PlateOption[] }>("/api/plates?limit=100")
-      .then((res) => setPlates(res.items))
+      .then((res) => {
+        setPlates(res.items);
+        // Carries the seller's submitted numbers forward into the auction
+        // form instead of the admin re-typing them — "هل اللوحة مسيومة
+        // سابقاً؟" becomes the seed starting price, and the listing's
+        // proposed final price becomes the Buy Now price (reusing
+        // directPurchase, not a second purchase mechanism). Applied once,
+        // right after the plate list this page needs to resolve `plateId`
+        // arrives — not a separate effect reacting to derived state.
+        const prefillPlate = res.items.find((p) => p._id === plateId);
+        if (prefillPlate?.existingBidAmount != null) setStartingPrice(String(prefillPlate.existingBidAmount));
+        if (prefillPlate?.price != null) {
+          setDirectPurchaseEnabled(true);
+          setDirectPurchasePrice(String(prefillPlate.price));
+        }
+      })
       .catch(() => undefined);
+    // Only ever runs once at mount — `plateId` is read from the URL via a
+    // lazy initializer and never changes after that, so it's intentionally
+    // omitted from the dependency array rather than re-running this fetch.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const selectedPlate = plates.find((p) => p._id === plateId);
-
-  // Carries the seller's submitted numbers forward into the auction form
-  // instead of the admin re-typing them — "هل اللوحة مسيومة سابقاً؟"
-  // becomes the seed starting price, and the listing's proposed final
-  // price becomes the Buy Now price (reusing directPurchase, not a second
-  // purchase mechanism). Only applies once, the first time the plate
-  // arrives via ?plateId=..., so it never overwrites a value the admin has
-  // since edited by hand.
-  const prefilledRef = useRef(false);
-  useEffect(() => {
-    if (prefilledRef.current || !selectedPlate) return;
-    prefilledRef.current = true;
-    if (selectedPlate.existingBidAmount != null) setStartingPrice(String(selectedPlate.existingBidAmount));
-    if (selectedPlate.price != null) {
-      setDirectPurchaseEnabled(true);
-      setDirectPurchasePrice(String(selectedPlate.price));
-    }
-  }, [selectedPlate]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();

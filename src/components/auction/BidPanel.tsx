@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Wifi, WifiOff, Minus, Plus, Gavel, Trophy, Zap } from "lucide-react";
+import { Wifi, WifiOff, Minus, Plus, Gavel, Trophy, Zap, Eye } from "lucide-react";
 import { useAuctionSocket } from "@/hooks/useAuctionSocket";
 import { CountdownTimer } from "@/components/auction/CountdownTimer";
 import { AuctionStatusBadge } from "@/components/auction/AuctionStatusBadge";
@@ -48,9 +48,45 @@ export function BidPanel({
   const [bidAmount, setBidAmount] = useState<number>(initialAuction.currentPrice + initialAuction.minIncrement);
   const [submitting, setSubmitting] = useState(false);
   const [purchasing, setPurchasing] = useState(false);
+  const [viewerCount, setViewerCount] = useState<number | null>(null);
   const lastHighestBidderId = useRef<string | undefined>(initialAuction.highestBidder?._id);
 
-  const { connected } = useAuctionSocket(auction._id, (event) => {
+  // On a reconnect after a real gap (not the initial mount), re-fetch the
+  // canonical auction state rather than trusting whatever price/bid-count
+  // this tab had cached while offline — a missed event during the gap
+  // would otherwise never get corrected.
+  async function resync() {
+    try {
+      const data = await apiFetch<{
+        auction: {
+          status: AuctionSummary["status"];
+          currentPrice: number;
+          bidCount: number;
+          endAt: string;
+          finalPrice: number | null;
+        };
+      }>(`/api/auctions/${auction._id}`);
+      // Only the scalar fields this panel actually drives are merged — the
+      // raw endpoint's `plate`/`highestBidder`/etc. shapes aren't the same
+      // DTO this component was seeded with, so they're deliberately left
+      // untouched rather than risking a shape mismatch.
+      setAuction((prev) => ({
+        ...prev,
+        status: data.auction.status,
+        currentPrice: data.auction.currentPrice,
+        bidCount: data.auction.bidCount,
+        endAt: data.auction.endAt,
+        finalPrice: data.auction.finalPrice,
+      }));
+    } catch {
+      // Best-effort — the socket stays the primary source of truth for
+      // subsequent live events either way.
+    }
+  }
+
+  const { connected } = useAuctionSocket(
+    auction._id,
+    (event) => {
     if (event.auctionId !== auction._id) return;
 
     if (event.type === "bid_accepted") {
@@ -85,7 +121,10 @@ export function BidPanel({
       setAuction((prev) => ({ ...prev, status: "purchased" }));
       push(t("auction.purchaseCompleted"), "info");
     }
-  });
+    },
+    resync,
+    setViewerCount
+  );
 
   async function submitBid() {
     if (submitting) return;
@@ -139,8 +178,21 @@ export function BidPanel({
         )}
         aria-label={t("auction.auctionDetails")}
       >
-        <div className="relative mb-5 flex items-center justify-between gap-3">
-          <AuctionStatusBadge status={auction.status} className="px-3 py-1.5 text-sm" />
+        <div className="relative mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <AuctionStatusBadge status={auction.status} className="px-3 py-1.5 text-sm" />
+            {isLive && viewerCount != null && viewerCount > 0 && (
+              <span
+                key={viewerCount}
+                className="animate-value-pulse flex items-center gap-1.5 rounded-full bg-(--color-bg-elevated) px-2.5 py-1 text-xs font-medium text-(--color-text-muted)"
+                role="status"
+                aria-live="polite"
+              >
+                <Eye className="h-3.5 w-3.5" aria-hidden="true" strokeWidth={1.75} />
+                <span className="tnum">{t("auction.viewerCount", { count: viewerCount })}</span>
+              </span>
+            )}
+          </div>
           <span
             className={cn(
               "flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium",

@@ -80,6 +80,21 @@ export interface AdminEventExtras {
 
 export type AdminAuctionSocketEvent = AuctionSocketEvent & { admin: AdminEventExtras };
 
+/**
+ * How many sockets currently sit in an auction's room — a live viewer
+ * count, not auction state. Deliberately separate from AuctionSocketEvent:
+ * it carries no `version`, since a viewer count isn't something a client
+ * should ever reject as "stale" the way a stale price/bid-count would be.
+ * Broadcast on every join/leave (including the automatic leave-on-
+ * disconnect) — see server/index.ts's adapter "join-room"/"leave-room"
+ * listeners, which is what makes this connection-based rather than a
+ * counter that could drift or leak.
+ */
+export interface AuctionPresenceEvent {
+  auctionId: string;
+  count: number;
+}
+
 export function newEventId(): string {
   return globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }

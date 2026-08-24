@@ -188,6 +188,7 @@ export interface MessageCatalog {
     mustLoginToBid: string;
     connected: string;
     disconnected: string;
+    viewerCount: string;
     winner: string;
     endedNoBids: string;
     bidAccepted: string;
@@ -463,6 +464,7 @@ export interface MessageCatalog {
     ownershipDocumentUploadCta: string;
     ownershipDocumentPrivacyHint: string;
     ownershipDocumentRequired: string;
+    actualPlatePhotoLabel: string;
     contactInfoHeader: string;
     contactPhoneLabel: string;
     contactEmailLabel: string;
@@ -494,6 +496,14 @@ export interface MessageCatalog {
     // Sport plate — English-only letters
     lettersEnSportLabel: string;
     lettersEnSportHint: string;
+
+    // Custom auction background (owner-facing)
+    auctionBackgroundHeader: string;
+    auctionBackgroundDescription: string;
+    uploadBackgroundCta: string;
+    auctionBackgroundHelper: string;
+    backgroundPreviewLabel: string;
+    backgroundSubmittedForReview: string;
 
     // My Listings / edit / resubmit
     myListingsTitle: string;
@@ -710,6 +720,16 @@ export interface MessageCatalog {
     chooseBackground: string;
     uploadAndSave: string;
     removeCurrentBackground: string;
+    backgroundStatusPending: string;
+    backgroundStatusApproved: string;
+    backgroundStatusRejected: string;
+    backgroundStatusDisabled: string;
+    backgroundApproved: string;
+    backgroundRejectedToast: string;
+    backgroundDisabledToast: string;
+    approveBackgroundAction: string;
+    rejectBackgroundAction: string;
+    disableBackgroundAction: string;
 
     usersTitle: string;
     usersSubtitle: string;
@@ -1062,6 +1082,7 @@ const ar: MessageCatalog = {
     mustLoginToBid: "يجب تسجيل الدخول للمزايدة",
     connected: "متصل مباشرة",
     disconnected: "غير متصل — يتم إعادة الاتصال",
+    viewerCount: "{count} متواجد الآن",
     winner: "الفائز",
     endedNoBids: "انتهى المزاد دون تسجيل أي مزايدة",
     bidAccepted: "تم قبول مزايدتك",
@@ -1333,6 +1354,7 @@ const ar: MessageCatalog = {
     ownershipDocumentUploadCta: "اضغط لرفع صورة الإستمارة",
     ownershipDocumentPrivacyHint: "تستخدم للمطابقة فقط ولن تظهر للزوار.",
     ownershipDocumentRequired: "يجب رفع صورة إستمارة السيارة",
+    actualPlatePhotoLabel: "صورة اللوحة الفعلية",
     contactInfoHeader: "بيانات التواصل",
     contactPhoneLabel: "رقم التواصل",
     contactEmailLabel: "البريد الإلكتروني",
@@ -1359,6 +1381,13 @@ const ar: MessageCatalog = {
 
     lettersEnSportLabel: "الأحرف (إنجليزي)",
     lettersEnSportHint: "اللوحات الرياضية تستخدم أحرفًا وأرقامًا إنجليزية فقط",
+
+    auctionBackgroundHeader: "خلفية صفحة المزاد",
+    auctionBackgroundDescription: "يمكنك رفع صورة خلفية خاصة بصفحة مزاد لوحتك.",
+    uploadBackgroundCta: "اضغط لرفع صورة الخلفية",
+    auctionBackgroundHelper: "ستظهر الخلفية داخل صفحة هذا المزاد فقط.",
+    backgroundPreviewLabel: "معاينة الخلفية",
+    backgroundSubmittedForReview: "تم رفع الخلفية وهي الآن قيد المراجعة",
 
     myListingsTitle: "لوحاتي",
     myListingsSubtitle: "متابعة حالة اللوحات التي عرضتها",
@@ -1571,6 +1600,16 @@ const ar: MessageCatalog = {
     chooseBackground: "اختر صورة الخلفية",
     uploadAndSave: "رفع وحفظ",
     removeCurrentBackground: "إزالة الخلفية الحالية",
+    backgroundStatusPending: "قيد المراجعة",
+    backgroundStatusApproved: "معتمدة",
+    backgroundStatusRejected: "مرفوضة",
+    backgroundStatusDisabled: "معطلة",
+    backgroundApproved: "تم اعتماد الخلفية",
+    backgroundRejectedToast: "تم رفض الخلفية",
+    backgroundDisabledToast: "تم تعطيل الخلفية",
+    approveBackgroundAction: "اعتماد الخلفية",
+    rejectBackgroundAction: "رفض الخلفية",
+    disableBackgroundAction: "تعطيل الخلفية",
 
     usersTitle: "المستخدمون",
     usersSubtitle: "إدارة أدوار وصلاحيات المستخدمين",

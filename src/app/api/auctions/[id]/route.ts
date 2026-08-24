@@ -2,10 +2,10 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Auction } from "@/models/Auction";
 import { Bid } from "@/models/Bid";
-import "@/models/Plate";
+import { Plate } from "@/models/Plate";
 import "@/models/PlateLogo";
 import { AuditLog } from "@/models/AuditLog";
-import { requirePermission } from "@/lib/auth";
+import { requireSession, requirePermission, hasPermission } from "@/lib/auth";
 import { AUCTION_TRANSITIONS, type AuctionStatus } from "@/lib/constants";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { deleteImage } from "@/lib/storage";
@@ -44,9 +44,13 @@ export async function GET(_req: NextRequest, { params }: Params) {
 export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
-    const session = await requirePermission("auction:manage");
     const body = (await req.json()) as { status?: AuctionStatus; backgroundImage?: string | null };
     await connectDB();
+
+    // `status` changes stay staff-only; `backgroundImage` is also allowed
+    // for the plate's own owner — checked below against the DB, never
+    // trusted from the client. Session is required either way.
+    const session = body.status ? await requirePermission("auction:manage") : await requireSession();
 
     const auction = await Auction.findById(id);
     if (!auction) throw Errors.notFound("المزاد");
@@ -76,8 +80,21 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }
 
     if (body.backgroundImage !== undefined) {
+      const isStaff = hasPermission(session, "auction:manage");
+      if (!isStaff) {
+        const plate = await Plate.findById(auction.plate).select("ownerUser createdBy");
+        const ownerId = String(plate?.ownerUser ?? plate?.createdBy ?? "");
+        if (ownerId !== session.sub) throw Errors.forbidden();
+      }
+
       const previousImage = auction.backgroundImage;
       auction.backgroundImage = body.backgroundImage;
+      // Staff is already the approving authority everywhere else in this
+      // codebase (bare plates, staff-authored listings) — a staff-set
+      // background skips review the same way. An owner's own upload always
+      // (re-)enters moderation, clearing whatever decision applied before.
+      auction.backgroundStatus = body.backgroundImage ? (isStaff ? "approved" : "pending") : null;
+      auction.backgroundRejectionReason = null;
       await auction.save();
 
       if (previousImage && previousImage !== body.backgroundImage) {
@@ -86,7 +103,11 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 
       await AuditLog.create({
         actor: session.sub,
-        action: body.backgroundImage ? "auction.background_updated" : "auction.background_removed",
+        action: body.backgroundImage
+          ? isStaff
+            ? "auction.background_approved"
+            : "auction.background_submitted"
+          : "auction.background_removed",
         entityType: "Auction",
         entityId: auction._id,
         metadata: {},
