@@ -94,7 +94,13 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const session = await requireSession();
-    if (!rateLimit(`listing:${session.sub}`, 6, 60_000)) throw Errors.rateLimited();
+    // A plate:manage holder authoring a listing through /admin/plates/new
+    // is the approving authority, same as the bare-plate creation path in
+    // /api/plates — there's no one else to review it, and no reason to
+    // throttle staff the way an anonymous flood of user submissions is
+    // throttled.
+    const isStaff = hasPermission(session, "plate:manage");
+    if (!isStaff && !rateLimit(`listing:${session.sub}`, 6, 60_000)) throw Errors.rateLimited();
 
     const { listingSubmitSchema } = await getLocalizedSchemas();
     const body = listingSubmitSchema.parse(await req.json());
@@ -111,24 +117,25 @@ export async function POST(req: NextRequest) {
 
     const { ownershipDocument, contactEmail, ...rest } = body;
 
-    // Every user submission enters review as "pending", whatever its
+    // A regular user's submission enters review as "pending", whatever its
     // submission type: a marketplace listing is no more self-evidently
     // legitimate than an auction request, and nothing a user creates may
-    // reach the public site before a moderator acts on it. Only the
-    // staff-only moderate endpoint moves a listing out of this state.
+    // reach the public site before a moderator acts on it. A staff-authored
+    // listing skips straight to "approved" for the same reason /api/plates
+    // skips it for bare plates — the author already is the moderator.
     const plate = await Plate.create({
       ...rest,
       contactEmail: contactEmail || null,
       ownershipDocument: ownershipDocument ?? null,
       ownerUser: session.sub,
       createdBy: session.sub,
-      moderationStatus: "pending",
+      moderationStatus: isStaff ? "approved" : "pending",
       isVisible: true,
     });
 
     await AuditLog.create({
       actor: session.sub,
-      action: "listing.submitted",
+      action: isStaff ? "listing.created" : "listing.submitted",
       entityType: "Plate",
       entityId: plate._id,
       metadata: { submissionType: body.submissionType, title: body.title },
