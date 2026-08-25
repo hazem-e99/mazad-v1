@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import sharp from "sharp";
 import { connectDB } from "@/lib/db";
 import { SiteAsset } from "@/models/SiteAsset";
 
@@ -23,6 +22,15 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
   }
 
   const buffer = Buffer.from(await file.arrayBuffer());
+
+  // Imported lazily (not as a static top-level import) so that a module
+  // merely importing this file for deleteImage()/imageExists() — e.g. an
+  // API route with no image upload of its own — never forces sharp's
+  // native binding to load. That binding is platform-specific; deferring
+  // it to first actual use here keeps a native-loading failure scoped to
+  // image-processing requests instead of crashing every route's build-time
+  // page-data collection.
+  const sharp = (await import("sharp")).default;
 
   // The declared MIME type is caller-supplied and trivially forged, so the
   // real check is whether sharp can decode the bytes at all. Its own
@@ -67,6 +75,7 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
  * that already references it heals without a rewrite.
  */
 export async function saveImageAt(source: Buffer, subdir: string, filename: string): Promise<string> {
+  const sharp = (await import("sharp")).default;
   const optimized = await sharp(source)
     .resize({ width: 1920, withoutEnlargement: true })
     .webp({ quality: 82 })

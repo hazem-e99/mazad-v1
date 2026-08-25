@@ -132,11 +132,26 @@ set_env_var() {
 
 set_env_var "NODE_ENV" "production"
 set_env_var "HOST" "127.0.0.1"
-set_env_var "PORT" "$APP_PORT"
+# PORT is operational config the operator may have deliberately set
+# (e.g. 4100) — seed a default only if it's genuinely absent, never
+# overwrite an existing value. Every other script derives its port from
+# this file (see lib/common.sh:resolve_app_port), so this stays the one
+# source of truth.
+if [[ -z "$(env_get "$SHARED_ENV_FILE" PORT)" ]]; then
+  set_env_var "PORT" "$APP_PORT_DEFAULT"
+fi
 # Moving from Render to lwh7.com: this is the one URL that must change.
 set_env_var "NEXT_PUBLIC_SITE_URL" "https://${DOMAIN}"
 chmod 600 "$SHARED_ENV_FILE"
 chown "$APP_USER:$APP_GROUP" "$SHARED_ENV_FILE"
+
+# Re-resolve now that the shared .env definitely exists (it may not have
+# when lib/common.sh first ran resolve_app_port() at source time) — this
+# becomes the authoritative port for the rest of this script (Nginx
+# upstream, health checks).
+APP_PORT="$(env_get "$SHARED_ENV_FILE" PORT)"
+[[ -n "$APP_PORT" ]] || APP_PORT="$APP_PORT_DEFAULT"
+log "Application port: $APP_PORT (from $SHARED_ENV_FILE)"
 
 MONGODB_URI_VAL="$(env_get "$SHARED_ENV_FILE" MONGODB_URI)"
 AUTH_SECRET_VAL="$(env_get "$SHARED_ENV_FILE" AUTH_SECRET)"

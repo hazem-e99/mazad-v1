@@ -55,3 +55,21 @@ wait_for_http_ok() {
   done
   return 1
 }
+
+# The shared .env is the single source of truth for which port the app is
+# actually running on — never a hardcoded number. Falls back to
+# $APP_PORT_DEFAULT only when no shared .env exists yet (first deploy,
+# before it has been seeded).
+resolve_app_port() {
+  local from_env=""
+  if [[ -f "${SHARED_ENV_FILE:-}" ]]; then
+    from_env="$(env_get "$SHARED_ENV_FILE" PORT)"
+  fi
+  echo "${from_env:-$APP_PORT_DEFAULT}"
+}
+
+# Every script sources config.sh then this file, in that order, so this
+# runs automatically as soon as both are loaded — callers don't need to
+# remember to invoke resolve_app_port() themselves. deploy.sh re-resolves
+# it again after seeding a brand-new .env (see deploy.sh step 6).
+APP_PORT="$(resolve_app_port)"

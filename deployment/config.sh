@@ -24,9 +24,12 @@ CURRENT_LINK="$APP_DIR/current"
 KEEP_RELEASES=5
 
 # --- Runtime ------------------------------------------------------------
-# Must match PORT in the shared .env (deploy.sh/update.sh keep them in
-# sync); Nginx proxies to 127.0.0.1:$APP_PORT.
-APP_PORT="3000"
+# Default PORT used only to seed a brand-new shared .env on the very first
+# deploy. On every run, lib/common.sh resolves the *real* APP_PORT from
+# the shared .env itself (source of truth) and overrides this — so an
+# operator-chosen PORT (e.g. 4100) is never clobbered back to this
+# default. Never hardcode "3000" elsewhere; use $APP_PORT.
+APP_PORT_DEFAULT="3000"
 NODE_MAJOR="22"
 
 # --- systemd --------------------------------------------------------

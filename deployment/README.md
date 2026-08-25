@@ -21,7 +21,7 @@ Internet
 https://lwh7.com  (Nginx: TLS, www + http redirects, /socket.io upgrade)
    |
    v
-127.0.0.1:3000  (lwh7-app.service: Next.js + Socket.IO, one Node process)
+127.0.0.1:$PORT  (lwh7-app.service: Next.js + Socket.IO, one Node process)
    |
    v
 MongoDB Atlas (MONGODB_URI)
@@ -74,8 +74,13 @@ it survives every redeploy and is never touched by `git`.
 
 - The only values the script sets/overwrites itself are deployment
   infrastructure, not secrets: `NODE_ENV=production`, `HOST=127.0.0.1`,
-  `PORT=3000`, and `NEXT_PUBLIC_SITE_URL=https://lwh7.com` (this replaces
-  the Render URL — see "Render → lwh7.com changes" below).
+  and `NEXT_PUBLIC_SITE_URL=https://lwh7.com` (this replaces the Render
+  URL — see "Render → lwh7.com changes" below). `PORT` is only *seeded*
+  (default `3000`) if the file doesn't already have one — an existing
+  `PORT` (e.g. `4100`) is never overwritten. Every script resolves the
+  real port from this file at runtime (`lib/common.sh:resolve_app_port`),
+  so Nginx, health checks, and the systemd unit always agree with it —
+  there's nothing else to update if you change it.
 
 Variables actually read by the app (see repo's own `README.md` /
 `.env.example`): `MONGODB_URI`, `AUTH_SECRET`, `NODE_ENV`, `PORT`,
@@ -170,7 +175,7 @@ either.
 
 | Component | Bind | Notes |
 |---|---|---|
-| App (`lwh7-app.service`) | `127.0.0.1:3000` | Next.js + Socket.IO in one process; not reachable from the internet directly |
+| App (`lwh7-app.service`) | `127.0.0.1:$PORT` | `$PORT` comes from `/opt/lwh7/shared/env/.env` (defaults to `3000` if unset — this VPS currently runs `4100`); Next.js + Socket.IO in one process, not reachable from the internet directly |
 | Nginx | `0.0.0.0:80`, `0.0.0.0:443` | Only public entry point (UFW allows just SSH/80/443) |
 | MongoDB | n/a | Atlas, over the internet via `MONGODB_URI`; port 27017 is never opened on this VPS |
 

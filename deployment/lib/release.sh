@@ -39,10 +39,22 @@ build_release() {
   mkdir -p "$SHARED_UPLOADS_DIR"
   ln -sfn "$SHARED_UPLOADS_DIR" "$NEW_RELEASE/private-uploads"
 
-  log "Installing dependencies (npm ci)..."
-  (cd "$NEW_RELEASE" && npm ci --include=dev)
+  # --include=dev is the real fix (it installs devDependencies regardless
+  # of NODE_ENV), but an ambient NODE_ENV=production in the caller's shell
+  # is a known footgun on this project (it previously caused a manually
+  # run `npm ci` with no flags to install ~132 packages instead of ~500,
+  # silently omitting build-only tools like cross-env) — unset it too, for
+  # a build step that can't be affected by whatever shell state a future
+  # operator happens to be in.
+  log "Installing dependencies (npm ci --include=dev)..."
+  (cd "$NEW_RELEASE" && unset NODE_ENV && npm ci --include=dev)
+  [[ -f "$NEW_RELEASE/node_modules/.bin/cross-env" ]] || fail "cross-env missing after npm ci --include=dev — devDependencies were not installed. Do not export NODE_ENV=production before this step without --include=dev."
 
   log "Building application (next build)..."
+  # NODE_ENV=production for this step only, via the project's own
+  # `cross-env NODE_ENV=production next build` script — not exported into
+  # this shell, so it can never leak back and affect the npm ci above on a
+  # re-run.
   (cd "$NEW_RELEASE" && NODE_OPTIONS="--max-old-space-size=2048" npm run build)
 
   [[ -f "$NEW_RELEASE/.next/BUILD_ID" ]] || fail "Build did not produce .next/BUILD_ID — aborting before touching the live release."
