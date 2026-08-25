@@ -17,6 +17,7 @@
     "migrate:plate-listing-fields": "tsx --env-file=.env server/migratePlateListingFields.ts",
     "repair:plate-logos": "tsx --env-file=.env server/repairPlateLogoImages.ts",
     "repair:plate-images": "tsx --env-file=.env server/repairPlateImages.ts",
+    "repair:user-indexes": "tsx --env-file=.env server/repairUserIndexes.ts",
     "test": "vitest run",
     "test:unit": "vitest run src/services src/lib/__tests__",
     "test:api": "next build && vitest run src/__tests__/api"
