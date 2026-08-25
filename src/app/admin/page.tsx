@@ -16,6 +16,7 @@ import {
   Activity,
 } from "lucide-react";
 import { getDashboardStats, getRecentAuditLogs, getVisitorStats } from "@/lib/adminQueries";
+import { auditActionLabel } from "@/lib/constants";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -144,7 +145,9 @@ export default async function AdminDashboardPage() {
                         <Icon className="h-4 w-4" aria-hidden="true" strokeWidth={2} />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-(--color-text)">{log.action}</div>
+                        <div className="truncate font-medium text-(--color-text)" title={log.action}>
+                          {auditActionLabel(log.action, locale)}
+                        </div>
                         <div className="text-xs text-(--color-text-faint)">{log.entityType}</div>
                       </div>
                       <span className="tnum shrink-0 text-[11px] text-(--color-text-faint)">{formatDateTime(log.createdAt, locale)}</span>

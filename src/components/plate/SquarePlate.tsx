@@ -40,8 +40,8 @@ export function SquarePlate({
   logo: PlateLogoDTO | null;
   locale?: Locale;
   /** See WidePlate's `englishOnly` — same sport-plate rule, single-row
-   * layout instead of the usual Arabic-over-Latin two rows, and drops the
-   * KSA strip column entirely. */
+   * layout instead of the usual Arabic-over-Latin two rows. Unlike the wide
+   * plate, the square stock keeps its KSA strip for sport plates too. */
   englishOnly?: boolean;
 }) {
   const arNumbers = `clamp(0.5rem, ${(12 * spec.scale.numbers).toFixed(2)}cqi, 3.4rem)`;
@@ -54,7 +54,7 @@ export function SquarePlate({
       <div
         className="relative grid h-full w-full"
         style={{
-          gridTemplateColumns: "minmax(0,1fr) minmax(0,1.12fr)",
+          gridTemplateColumns: "minmax(0,1fr) minmax(0,1.12fr) clamp(1.4rem,15cqi,5rem)",
           aspectRatio: spec.aspect,
         }}
       >
@@ -64,6 +64,9 @@ export function SquarePlate({
         <Cell col={2} row={1}>
           <PlateCharacters value={lettersEn} script="en" fontSize={arLetters} gap="1.6cqi" />
         </Cell>
+        <div style={{ gridColumn: 3, gridRow: 1 }}>
+          <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
+        </div>
       </div>
     );
   }
