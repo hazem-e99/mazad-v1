@@ -11,6 +11,7 @@ DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_DIR="$(cd "$DEPLOY_DIR/.." && pwd)"
 source "$DEPLOY_DIR/config.sh"
 source "$DEPLOY_DIR/lib/common.sh"
+source "$DEPLOY_DIR/lib/uploads.sh"
 source "$DEPLOY_DIR/lib/release.sh"
 
 require_root
@@ -43,6 +44,10 @@ sleep 3
 if ! systemctl is-active --quiet "$SERVICE_NAME" || ! wait_for_http_ok "http://127.0.0.1:${APP_PORT}/api/health" 20 2; then
   warn "New release failed health check — rolling back to $PREVIOUS_RELEASE"
   journalctl -u "$SERVICE_NAME" -n 50 --no-pager || true
+  # Same guarantee as manual rollback.sh: verify (and, only if entirely
+  # missing, recreate) the previous release's public/uploads symlink —
+  # never copy or mutate anything inside the shared directory itself.
+  ensure_release_uploads_symlink "$PREVIOUS_RELEASE"
   ln -sfn "$PREVIOUS_RELEASE" "$CURRENT_LINK"
   systemctl restart "$SERVICE_NAME"
   sleep 3

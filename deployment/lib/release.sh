@@ -4,8 +4,8 @@
 # $CURRENT_LINK to point at it. Never touches the currently-running
 # release until the new build has actually succeeded.
 #
-# Expects config.sh + lib/common.sh already sourced by the caller.
-# Sets NEW_RELEASE (absolute path) on success.
+# Expects config.sh + lib/common.sh + lib/uploads.sh already sourced by
+# the caller. Sets NEW_RELEASE (absolute path) on success.
 
 build_release() {
   local source_dir="$1"
@@ -70,6 +70,13 @@ build_release() {
   mkdir -p "$SHARED_PUBLIC_UPLOADS_DIR"
   mkdir -p "$NEW_RELEASE/public"
   ln -sfn "$SHARED_PUBLIC_UPLOADS_DIR" "$NEW_RELEASE/public/uploads"
+
+  # Loop guards (see lib/uploads.sh): fail fast, before spending a minute
+  # or two on npm ci/next build, if the shared directory or this
+  # release's symlink are wrong. Activation (the `current` swap below)
+  # never happens for a release that fails either check.
+  assert_no_public_uploads_loop
+  assert_release_uploads_symlink "$NEW_RELEASE"
 
   # --include=dev is the real fix (it installs devDependencies regardless
   # of NODE_ENV), but an ambient NODE_ENV=production in the caller's shell

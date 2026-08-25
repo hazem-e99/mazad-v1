@@ -180,6 +180,26 @@ root-anchored rsync patterns — from the copy that builds each release,
 specifically so that `releases/` (which contains the release currently
 being built) is never copied into itself.
 
+**Public-uploads safety (`deployment/lib/uploads.sh`).** The only valid
+layout is the symlink above — nothing is ever copied into a release for
+this. Before every release is activated, `assert_no_public_uploads_loop`
+and `assert_release_uploads_symlink` verify that: (1) the shared
+directory contains no self-referential entries (specifically, it must
+never contain `public-uploads/public-uploads` or `public-uploads/uploads`
+— the exact corruption pattern a previous incident produced) and no
+symlink inside it loops back into itself/`releases/`/`current`, and (2)
+the new release's `public/uploads` resolves *exactly* to
+`shared/public-uploads`. Either check failing aborts the deploy before
+`current` is ever switched — a broken persistence layout never reaches
+production traffic. `migrate_public_uploads` (run once by `deploy.sh`,
+idempotent) safely pulls in any real, pre-existing uploads from the
+checkout's own `public/uploads` or an older release — but only from a
+real directory, never through a symlink, and never overwriting a file
+already in the shared directory. `rollback.sh` and `update.sh`'s
+auto-rollback only ever verify-and-recreate a *missing* release-local
+symlink (`ensure_release_uploads_symlink`) — they never touch a file
+inside the shared directory itself.
+
 ## 9. Ports & processes
 
 | Component | Bind | Notes |

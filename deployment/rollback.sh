@@ -8,6 +8,7 @@ set -Eeuo pipefail
 DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$DEPLOY_DIR/config.sh"
 source "$DEPLOY_DIR/lib/common.sh"
+source "$DEPLOY_DIR/lib/uploads.sh"
 
 require_root
 
@@ -23,6 +24,16 @@ fi
 
 [[ -n "$TARGET" && -d "$TARGET" ]] || fail "No target release found to roll back to. Available: $(ls "$RELEASES_DIR")"
 [[ "$TARGET" != "$CURRENT" ]] || fail "Target release is already the current release."
+
+# Public uploads are never copied or mutated by rollback — only the
+# release-local symlink is checked and, if entirely missing, recreated;
+# nothing inside $SHARED_PUBLIC_UPLOADS_DIR is ever touched here. Fails
+# loudly (aborts before switching `current`) if the shared directory
+# itself is corrupted or the target's symlink exists but points
+# somewhere unexpected, rather than silently rolling back onto a broken
+# persistence layout.
+assert_no_public_uploads_loop
+ensure_release_uploads_symlink "$TARGET"
 
 log "Rolling back: $CURRENT -> $TARGET"
 ln -sfn "$TARGET" "$CURRENT_LINK"
