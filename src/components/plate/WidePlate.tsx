@@ -51,54 +51,88 @@ export function WidePlate({
     : "minmax(0,1fr) minmax(0,1.06fr) clamp(1.5rem,9.5cqi,4.6rem)";
 
   const arSize = (base: number) => `clamp(0.5rem, ${(base * spec.scale.numbers).toFixed(2)}cqi, 3.8rem)`;
+  const enSize = `clamp(0.42rem, ${(5.5 * spec.scale.numbers).toFixed(2)}cqi, 2.8rem)`;
   const arLetterSize = `clamp(0.5rem, ${(7.9 * spec.scale.letters).toFixed(2)}cqi, 4rem)`;
   const enLetterSize = `clamp(0.42rem, ${(5.5 * spec.scale.letters).toFixed(2)}cqi, 2.8rem)`;
 
+  const numbersCol = 1;
+  const lettersCol = logo ? 3 : 2;
+  const ksaCol = logo ? 4 : 3;
+
+  const logoCell = logo && (
+    <div
+      className="relative z-10 flex items-center justify-center border-e-[0.4cqi] border-black px-[1.2cqi] py-[1cqi]"
+      style={{ gridColumn: 2, gridRow: englishOnly ? 1 : "1 / span 2" }}
+    >
+      <PlateLogoIcon logo={logo} locale={locale} className="max-h-[74%] max-w-[80%] object-contain" />
+    </div>
+  );
+
+  if (englishOnly) {
+    return (
+      <div className="relative grid h-full w-full" style={{ gridTemplateColumns: columns, aspectRatio: spec.aspect }}>
+        <Cell col={numbersCol} row={1} className="border-e-[0.4cqi] border-black">
+          <PlateDigits value={numbers} script="en" fontSize={arSize(7.9)} tracking="0.03em" />
+        </Cell>
+        {logoCell}
+        <Cell col={lettersCol} row={1}>
+          <PlateCharacters value={lettersEn} script="en" fontSize={arLetterSize} gap="1.9cqi" />
+        </Cell>
+        <div style={{ gridColumn: ksaCol, gridRow: 1 }}>
+          <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
+        </div>
+      </div>
+    );
+  }
+
+  // A shared two-row grid, not two independently-centered cells: the
+  // divider is a `border-b` on the row-1 track itself, so it lands on the
+  // exact same grid line under both the numbers and the letters — lining
+  // each cell up on its own (as the wide plate used to) let unequal
+  // Arabic/Latin text heights push the two "lines" to different Y
+  // positions, which is what made them look broken/offset across the
+  // vertical divider. Mirrors SquarePlate's already-correct pattern.
   return (
     <div
       className="relative grid h-full w-full"
-      style={{ gridTemplateColumns: columns, aspectRatio: spec.aspect }}
+      style={{ gridTemplateColumns: columns, gridTemplateRows: "1fr 1fr", aspectRatio: spec.aspect }}
     >
-      <Cell className="border-e-[0.4cqi] border-black">
-        {!englishOnly && <PlateDigits value={numbers} script="ar" fontSize={arSize(7.9)} tracking="0.03em" />}
-        <PlateDigits
-          value={numbers}
-          script="en"
-          fontSize={
-            englishOnly
-              ? arSize(7.9)
-              : `clamp(0.42rem, ${(5.5 * spec.scale.numbers).toFixed(2)}cqi, 2.8rem)`
-          }
-          tracking="0.06em"
-          className={englishOnly ? undefined : "mt-[0.9cqi]"}
-        />
+      <Cell col={numbersCol} row={1} className="border-e-[0.4cqi] border-b-[0.9cqi] border-black">
+        <PlateDigits value={numbers} script="ar" fontSize={arSize(7.9)} tracking="0.03em" />
+      </Cell>
+      <Cell col={lettersCol} row={1} className="border-b-[0.9cqi] border-black">
+        <PlateCharacters value={lettersAr} script="ar" fontSize={arLetterSize} gap="1.7cqi" />
       </Cell>
 
-      {logo && (
-        <div className="relative z-10 flex items-center justify-center border-e-[0.4cqi] border-black px-[1.2cqi] py-[1cqi]">
-          <PlateLogoIcon logo={logo} locale={locale} className="max-h-[74%] max-w-[80%] object-contain" />
-        </div>
-      )}
-
-      <Cell>
-        {!englishOnly && <PlateCharacters value={lettersAr} script="ar" fontSize={arLetterSize} gap="1.7cqi" />}
-        <PlateCharacters
-          value={lettersEn}
-          script="en"
-          fontSize={englishOnly ? arLetterSize : enLetterSize}
-          gap="1.9cqi"
-          className={englishOnly ? undefined : "mt-[0.9cqi]"}
-        />
+      <Cell col={numbersCol} row={2} className="border-e-[0.4cqi] border-black">
+        <PlateDigits value={numbers} script="en" fontSize={enSize} tracking="0.06em" />
+      </Cell>
+      <Cell col={lettersCol} row={2}>
+        <PlateCharacters value={lettersEn} script="en" fontSize={enLetterSize} gap="1.9cqi" />
       </Cell>
 
-      <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
+      {logoCell}
+      <div style={{ gridColumn: ksaCol, gridRow: "1 / span 2" }}>
+        <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
+      </div>
     </div>
   );
 }
 
-function Cell({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+function Cell({
+  children,
+  col,
+  row,
+  className = "",
+}: {
+  children: React.ReactNode;
+  col: number;
+  row: number;
+  className?: string;
+}) {
   return (
     <div
+      style={{ gridColumn: col, gridRow: row }}
       className={`relative z-10 flex min-w-0 flex-col items-center justify-center overflow-hidden px-[1.4cqi] py-[1cqi] text-center ${className}`}
     >
       {children}
