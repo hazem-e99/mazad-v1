@@ -99,10 +99,23 @@ else
   log "System user '$APP_USER' already exists."
 fi
 
-mkdir -p "$RELEASES_DIR" "$SHARED_ENV_DIR" "$SHARED_UPLOADS_DIR"
+mkdir -p "$RELEASES_DIR" "$SHARED_ENV_DIR" "$SHARED_UPLOADS_DIR" "$SHARED_PUBLIC_UPLOADS_DIR"
 chown -R "$APP_USER:$APP_GROUP" "$APP_DIR"
 chmod 750 "$SHARED_ENV_DIR"
 ok "Directory layout ready under $APP_DIR"
+
+# ---------------------------------------------------------------------
+# 5b. Public uploads: refuse to proceed if the shared directory is
+#     already corrupted, then safely pull in any pre-existing real
+#     uploads (checkout's own public/uploads, and — if this VPS already
+#     has a release from before this persistence system existed — that
+#     release's public/uploads too). Idempotent; safe to re-run.
+# ---------------------------------------------------------------------
+source "$DEPLOY_DIR/lib/uploads.sh"
+assert_no_public_uploads_loop
+migrate_public_uploads "$REPO_DIR/public/uploads" "$CURRENT_LINK/public/uploads"
+chown -R "$APP_USER:$APP_GROUP" "$SHARED_PUBLIC_UPLOADS_DIR"
+ok "Shared public-uploads directory verified at $SHARED_PUBLIC_UPLOADS_DIR"
 
 # ---------------------------------------------------------------------
 # 6. Environment file (preserve existing values; never fabricate secrets)

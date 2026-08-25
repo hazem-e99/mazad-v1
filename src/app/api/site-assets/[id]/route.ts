@@ -5,7 +5,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  if (!/^[a-f0-9-]+\.webp$/i.test(id)) {
+  // Usually .webp (sharp re-encodes every upload to WebP), but a host
+  // where sharp is unavailable stores the original, unconverted format
+  // instead — see getImageCapability() in src/lib/imageProcessor.ts.
+  if (!/^[a-f0-9-]+\.(webp|jpe?g|png)$/i.test(id)) {
     return new Response("Not found", { status: 404 });
   }
 

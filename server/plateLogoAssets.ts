@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
+import { getImageCapability } from "@/lib/imageProcessor";
 import { saveImageAt } from "@/lib/storage";
 import { PlateLogo } from "@/models/PlateLogo";
 
@@ -93,9 +93,26 @@ export const LEGACY_LOGO_SPECS: LegacyLogoSpec[] = [
  * same SiteAsset row instead of orphaning a new one each time.
  */
 async function rasterizeAndSave(spec: LegacyLogoSpec): Promise<string> {
-  const buffer = spec.sourcePath
-    ? await readFile(path.join(process.cwd(), spec.sourcePath))
-    : await sharp(Buffer.from(spec.svg!)).png().toBuffer();
+  if (spec.sourcePath) {
+    const buffer = await readFile(path.join(process.cwd(), spec.sourcePath));
+    return saveImageAt(buffer, "plate-logos", spec.legacySlug);
+  }
+
+  // SVG-to-PNG rasterization has no fallback (there's nothing to "save
+  // unprocessed" — the input isn't a raster image at all), and this is
+  // CLI-only seed/migration tooling, never imported by the running app —
+  // see imageProcessor.ts. Fail with a clear, specific message rather
+  // than the generic one saveImageAt()'s own getSharp() call would throw.
+  const capability = await getImageCapability();
+  if (!capability.available) {
+    throw new Error(
+      `Cannot rasterize placeholder artwork for "${spec.legacySlug}": image processing (sharp) is ` +
+        "unavailable on this host (unsupported CPU for both the native binary and the WebAssembly " +
+        "fallback). Run this script on a host where sharp works, or add a real `sourcePath` asset " +
+        "for this logo instead of relying on the inline SVG placeholder."
+    );
+  }
+  const buffer = await capability.sharp(Buffer.from(spec.svg!)).png().toBuffer();
   return saveImageAt(buffer, "plate-logos", spec.legacySlug);
 }
 

@@ -1,6 +1,7 @@
 import { writeFile, mkdir, unlink, readFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { extensionForMime, getImageCapability, mimeForExtension } from "@/lib/imageProcessor";
 
 // Deliberately OUTSIDE `public/` — nothing under this directory is ever
 // served by Next's static file handler. The only way to read a file back
@@ -24,8 +25,11 @@ export interface StoredDocument {
 /**
  * Stores an ownership/registration document privately. Re-encoded through
  * sharp exactly like the public upload pipeline (strips metadata,
- * normalizes size). The PDF branch below only serves back a legacy
- * document stored before uploads were restricted to images.
+ * normalizes size) when sharp is available on this host; otherwise the
+ * validated original bytes are saved as-is — see getImageCapability() in
+ * imageProcessor.ts. The PDF branch in readOwnershipDocument() below only
+ * serves back a legacy document stored before uploads were restricted to
+ * images.
  */
 export async function saveOwnershipDocument(file: File, subdir: string): Promise<StoredDocument> {
   if (!ALLOWED_DOCUMENT_MIME.has(file.type)) {
@@ -39,21 +43,38 @@ export async function saveOwnershipDocument(file: File, subdir: string): Promise
   const dir = path.join(/* turbopackIgnore: true */ PRIVATE_UPLOAD_DIR, subdir);
   await mkdir(dir, { recursive: true });
 
-  // Imported lazily — see the identical reasoning in src/lib/storage.ts.
-  const sharp = (await import("sharp")).default;
-  const optimized = await sharp(buffer)
-    .resize({ width: 2400, withoutEnlargement: true })
-    .webp({ quality: 88 })
-    .toBuffer();
-  const filename = `${crypto.randomUUID()}.webp`;
-  await writeFile(path.join(dir, filename), optimized);
-  return { ref: `${subdir}/${filename}`, contentType: "image/webp" };
+  const capability = await getImageCapability();
+  let data: Buffer;
+  let contentType: string;
+  if (capability.available) {
+    data = await capability.sharp(buffer)
+      .resize({ width: 2400, withoutEnlargement: true })
+      .webp({ quality: 88 })
+      .toBuffer();
+    contentType = "image/webp";
+  } else {
+    // No image processing available on this host — store the already
+    // MIME/size-validated original bytes as-is. contentType (and the
+    // filename's extension) reflects the real, unconverted format.
+    data = buffer;
+    contentType = file.type;
+  }
+
+  const filename = `${crypto.randomUUID()}.${extensionForMime(contentType)}`;
+  await writeFile(path.join(dir, filename), data);
+  return { ref: `${subdir}/${filename}`, contentType };
 }
 
 export async function readOwnershipDocument(ref: string): Promise<{ buffer: Buffer; contentType: string }> {
   const fullPath = path.join(/* turbopackIgnore: true */ PRIVATE_UPLOAD_DIR, ref);
   const buffer = await readFile(fullPath);
-  const contentType = ref.endsWith(".pdf") ? "application/pdf" : "image/webp";
+  // No separate content-type field is persisted alongside `ref` (see the
+  // Plate model's `ownershipDocument`, a plain string) — this has always
+  // been the sole source of truth for what to serve it back as, so it
+  // must match whatever extension saveOwnershipDocument() actually wrote,
+  // not assume every non-PDF file is a `.webp` sharp produced.
+  const extension = path.extname(ref).slice(1);
+  const contentType = extension === "pdf" ? "application/pdf" : (mimeForExtension(extension) ?? "application/octet-stream");
   return { buffer, contentType };
 }
 
