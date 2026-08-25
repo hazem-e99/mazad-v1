@@ -9,20 +9,19 @@ import type { PlateLogoDTO } from "@/types/dto";
  */
 
 /**
- * Which physical stock a usage type can be cut from. A real-world call,
- * not sourced from the reference sheet like the accent colours: the small
- * square/sport stock is optional purchasable stock for private cars only,
- * never offered for taxis, commercial trucks, diplomatic or temporary
- * registrations, so those stay on the long strip.
+ * Which physical stock a usage type can be cut from. The square shape used
+ * to be private-only purchasable stock; it's now offered across every
+ * usage type. Sport keeps its own dedicated small sport stock (also still
+ * available to private, same as before) alongside the general square one.
  */
 export const USAGE_TYPE_SHAPES: Record<UsageType, readonly PlateShape[]> = {
   private: ["wide", "small_square", "small_sport"],
-  transport: ["wide"],
-  private_transport: ["wide"],
-  commercial: ["wide"],
-  sport: ["wide", "small_sport"],
-  diplomatic: ["wide"],
-  temporary: ["wide"],
+  transport: ["wide", "small_square"],
+  private_transport: ["wide", "small_square"],
+  commercial: ["wide", "small_square"],
+  sport: ["wide", "small_square", "small_sport"],
+  diplomatic: ["wide", "small_square"],
+  temporary: ["wide", "small_square"],
 };
 
 /**
