@@ -377,6 +377,9 @@ export interface MessageCatalog {
     invalidId: string;
     messageRequired: string;
     messageTooLong: string;
+    blockedWordRequired: string;
+    blockedWordTooLong: string;
+    blockedWordSingleToken: string;
   };
   errors: {
     notFoundTitle: string;
@@ -846,6 +849,43 @@ export interface MessageCatalog {
     permUploadManage: string;
     permStatsView: string;
     permAuditView: string;
+    permChatModerate: string;
+
+    navChatModeration: string;
+    navBlockedWords: string;
+
+    chatModerationTitle: string;
+    chatModerationSubtitle: string;
+    chatViolationsHeader: string;
+    noChatViolationsYet: string;
+    colViolationMessage: string;
+    colViolationReason: string;
+    colUserViolationCount: string;
+    recentChatMessagesHeader: string;
+    noChatMessagesYet: string;
+    markReviewedAction: string;
+    markPendingAction: string;
+    confirmDeleteChatMessage: string;
+    chatMessageDeleted: string;
+    deleteMessageAction: string;
+    confirmBlockUserFromChat: string;
+    userBlockedFromChat: string;
+    userUnblockedFromChat: string;
+    blockFromChatAction: string;
+    unblockFromChatAction: string;
+
+    blockedWordsTitle: string;
+    blockedWordsSubtitle: string;
+    noBlockedWordsYet: string;
+    blockedWordLabel: string;
+    blockedWordPlaceholder: string;
+    addBlockedWordButton: string;
+    blockedWordAdded: string;
+    blockedWordUpdated: string;
+    blockedWordActivated: string;
+    blockedWordDeactivated: string;
+    blockedWordDeleted: string;
+    confirmDeleteBlockedWord: string;
 
     bidsTitle: string;
     bidsSubtitle: string;
@@ -1329,6 +1369,9 @@ const ar: MessageCatalog = {
     invalidId: "معرّف غير صالح.",
     messageRequired: "يرجى كتابة رسالة قبل الإرسال.",
     messageTooLong: "الرسالة يجب ألا تزيد عن 500 حرف.",
+    blockedWordRequired: "يرجى إدخال الكلمة.",
+    blockedWordTooLong: "الكلمة يجب ألا تزيد عن 100 حرف.",
+    blockedWordSingleToken: "أدخل كلمة واحدة فقط بدون مسافات — أضف كل كلمة كسطر منفصل.",
   },
   errors: {
     notFoundTitle: "الصفحة غير موجودة",
@@ -1788,6 +1831,43 @@ const ar: MessageCatalog = {
     permUploadManage: "إدارة الرفع",
     permStatsView: "عرض الإحصائيات",
     permAuditView: "عرض سجل النشاطات",
+    permChatModerate: "مراقبة الدردشة وإدارة الكلمات المحظورة",
+
+    navChatModeration: "مراقبة الدردشة",
+    navBlockedWords: "الكلمات المحظورة",
+
+    chatModerationTitle: "مراقبة الدردشة",
+    chatModerationSubtitle: "الرسائل المرفوضة تلقائيًا ورسائل الدردشة الحالية",
+    chatViolationsHeader: "المخالفات",
+    noChatViolationsYet: "لا توجد مخالفات مسجلة بعد",
+    colViolationMessage: "الرسالة المخالفة",
+    colViolationReason: "السبب",
+    colUserViolationCount: "عدد مخالفات المستخدم",
+    recentChatMessagesHeader: "أحدث رسائل الدردشة",
+    noChatMessagesYet: "لا توجد رسائل بعد",
+    markReviewedAction: "تمت المراجعة",
+    markPendingAction: "إعادة لبانتظار المراجعة",
+    confirmDeleteChatMessage: "هل أنت متأكد من حذف هذه الرسالة؟ ستختفي فورًا من الدردشة لدى الجميع.",
+    chatMessageDeleted: "تم حذف الرسالة",
+    deleteMessageAction: "حذف الرسالة",
+    confirmBlockUserFromChat: "هل أنت متأكد من حظر هذا المستخدم من المشاركة في الدردشة؟",
+    userBlockedFromChat: "تم حظر المستخدم من الدردشة",
+    userUnblockedFromChat: "تم رفع الحظر عن المستخدم",
+    blockFromChatAction: "حظر من الدردشة",
+    unblockFromChatAction: "رفع الحظر",
+
+    blockedWordsTitle: "الكلمات المحظورة",
+    blockedWordsSubtitle: "إدارة قائمة الكلمات المحظورة في الدردشة",
+    noBlockedWordsYet: "لا توجد كلمات محظورة بعد",
+    blockedWordLabel: "الكلمة",
+    blockedWordPlaceholder: "أدخل كلمة محظورة",
+    addBlockedWordButton: "إضافة كلمة",
+    blockedWordAdded: "تمت إضافة الكلمة",
+    blockedWordUpdated: "تم تعديل الكلمة",
+    blockedWordActivated: "تم تفعيل الكلمة",
+    blockedWordDeactivated: "تم تعطيل الكلمة",
+    blockedWordDeleted: "تم حذف الكلمة",
+    confirmDeleteBlockedWord: "هل أنت متأكد من حذف هذه الكلمة من القائمة؟",
 
     bidsTitle: "المزايدات",
     bidsSubtitle: "سجل كامل لجميع المزايدات المقدمة على المنصة",

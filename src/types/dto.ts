@@ -223,3 +223,29 @@ export interface AuditLogDTO {
   createdAt: string;
   updatedAt: string;
 }
+
+/** One entry in the chat's blocked-word list — see src/models/BlockedWord.ts. */
+export interface BlockedWordDTO {
+  _id: string;
+  word: string;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** A rejected chat message an admin/moderator can review — see
+ * src/models/ChatModerationLog.ts. `auctionId` is always null today: the
+ * site's chat is one global room, not per-auction (see that model's own
+ * docstring). */
+export interface ChatModerationLogDTO {
+  _id: string;
+  user: UserContactRefDTO | null;
+  auctionId: string | null;
+  messageText: string;
+  reason: string;
+  violationType: ChatViolationType;
+  matchedWords: string[];
+  status: ChatModerationLogStatus;
+  createdAt: string;
+  updatedAt: string;
+}

@@ -38,6 +38,12 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, msg]);
     });
     socket.on("chat:error", (message: string) => setError(message));
+    // A moderator removed a message after it was already broadcast — drop
+    // it from every connected client's view immediately, not just on next
+    // load.
+    socket.on("chat:message_deleted", ({ id }: { id: string }) => {
+      setMessages((prev) => prev.filter((m) => (m.id ?? m._id) !== id));
+    });
 
     return () => {
       socket.disconnect();

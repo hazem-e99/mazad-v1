@@ -263,6 +263,7 @@ export const PERMISSIONS = [
   "upload:manage",
   "stats:view",
   "audit:view",
+  "chat:moderate", // مراجعة سجل مخالفات الدردشة وإدارة الكلمات المحظورة
 ] as const;
 export type Permission = (typeof PERMISSIONS)[number];
 
@@ -330,6 +331,12 @@ export const AUDIT_ACTIONS = [
   "user.suspended",
   "user.reactivated",
   "user.deleted",
+  "user.chat_blocked",
+  "user.chat_unblocked",
+  "chat_message.deleted",
+  "blocked_word.created",
+  "blocked_word.updated",
+  "blocked_word.deleted",
   "auction.background_submitted",
   "auction.background_approved",
   "auction.background_rejected",
@@ -365,6 +372,12 @@ export const AUDIT_ACTION_LABELS_AR: Record<AuditAction, string> = {
   "user.suspended": "إيقاف مستخدم",
   "user.reactivated": "إعادة تفعيل مستخدم",
   "user.deleted": "حذف مستخدم",
+  "user.chat_blocked": "حظر مستخدم من الدردشة",
+  "user.chat_unblocked": "رفع الحظر عن مستخدم في الدردشة",
+  "chat_message.deleted": "حذف رسالة دردشة",
+  "blocked_word.created": "إضافة كلمة محظورة",
+  "blocked_word.updated": "تعديل كلمة محظورة",
+  "blocked_word.deleted": "حذف كلمة محظورة",
   "auction.background_submitted": "رفع خلفية مزاد",
   "auction.background_approved": "اعتماد خلفية مزاد",
   "auction.background_rejected": "رفض خلفية مزاد",
@@ -399,6 +412,12 @@ export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
   "user.suspended": "User suspended",
   "user.reactivated": "User reactivated",
   "user.deleted": "User deleted",
+  "user.chat_blocked": "User blocked from chat",
+  "user.chat_unblocked": "User unblocked from chat",
+  "chat_message.deleted": "Chat message deleted",
+  "blocked_word.created": "Blocked word added",
+  "blocked_word.updated": "Blocked word updated",
+  "blocked_word.deleted": "Blocked word deleted",
   "auction.background_submitted": "Auction background submitted",
   "auction.background_approved": "Auction background approved",
   "auction.background_rejected": "Auction background rejected",
@@ -416,4 +435,41 @@ export const AUDIT_ACTION_LABELS_EN: Record<AuditAction, string> = {
 export function auditActionLabel(action: string, locale: "ar" | "en" = "ar"): string {
   const labels = locale === "en" ? AUDIT_ACTION_LABELS_EN : AUDIT_ACTION_LABELS_AR;
   return labels[action as AuditAction] ?? action;
+}
+
+// Chat moderation — kept as its own small enum set (distinct from
+// AUDIT_ACTIONS above) since a moderation log entry is a record of a
+// *rejected* message, not an admin action. `violationType` stays a single
+// value today ("blocked_word") but is a real enum rather than a boolean so
+// a future detector (e.g. a rate-based spam heuristic) is a new member,
+// not a schema change.
+export const CHAT_VIOLATION_TYPES = ["blocked_word"] as const;
+export type ChatViolationType = (typeof CHAT_VIOLATION_TYPES)[number];
+
+export const CHAT_VIOLATION_TYPE_LABELS_AR: Record<ChatViolationType, string> = {
+  blocked_word: "كلمة محظورة",
+};
+export const CHAT_VIOLATION_TYPE_LABELS_EN: Record<ChatViolationType, string> = {
+  blocked_word: "Blocked word",
+};
+export function chatViolationTypeLabel(value: ChatViolationType, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? CHAT_VIOLATION_TYPE_LABELS_EN[value] : CHAT_VIOLATION_TYPE_LABELS_AR[value];
+}
+
+// Workflow status for one moderation log row — separate from the message
+// itself (which is already permanently rejected the moment the row exists;
+// this only tracks whether a moderator has looked at it yet).
+export const CHAT_MODERATION_LOG_STATUSES = ["pending", "reviewed"] as const;
+export type ChatModerationLogStatus = (typeof CHAT_MODERATION_LOG_STATUSES)[number];
+
+export const CHAT_MODERATION_LOG_STATUS_LABELS_AR: Record<ChatModerationLogStatus, string> = {
+  pending: "بانتظار المراجعة",
+  reviewed: "تمت المراجعة",
+};
+export const CHAT_MODERATION_LOG_STATUS_LABELS_EN: Record<ChatModerationLogStatus, string> = {
+  pending: "Pending review",
+  reviewed: "Reviewed",
+};
+export function chatModerationLogStatusLabel(value: ChatModerationLogStatus, locale: "ar" | "en" = "ar"): string {
+  return locale === "en" ? CHAT_MODERATION_LOG_STATUS_LABELS_EN[value] : CHAT_MODERATION_LOG_STATUS_LABELS_AR[value];
 }

@@ -56,6 +56,7 @@ export function UserRoleEditor({
     "upload:manage": t("admin.permUploadManage"),
     "stats:view": t("admin.permStatsView"),
     "audit:view": t("admin.permAuditView"),
+    "chat:moderate": t("admin.permChatModerate"),
   };
 
   function togglePermission(p: Permission) {

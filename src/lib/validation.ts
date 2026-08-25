@@ -346,6 +346,27 @@ export function buildSchemas(t: Translate) {
     allowedShapes: z.array(z.enum(PLATE_SHAPES)).optional(),
   });
 
+  // Matching (see src/lib/chatModeration.ts) compares single tokens — a
+  // stored entry containing whitespace could never match anything, since
+  // tokenizing an incoming message always splits on whitespace. Rejecting
+  // it here is cheaper than shipping a silently-dead blocked-word row.
+  const blockedWordText = z
+    .string()
+    .trim()
+    .min(1, v("blockedWordRequired"))
+    .max(100, v("blockedWordTooLong"))
+    .refine((val) => !/\s/.test(val), v("blockedWordSingleToken"));
+
+  const blockedWordCreateSchema = z.object({
+    word: blockedWordText,
+    isActive: z.boolean().default(true),
+  });
+
+  const blockedWordUpdateSchema = z.object({
+    word: blockedWordText.optional(),
+    isActive: z.boolean().optional(),
+  });
+
   const auctionSchema = z
     .object({
       plate: z.string({ error: () => v("plateRequired") }).min(1, v("plateRequired")),
@@ -420,6 +441,8 @@ export function buildSchemas(t: Translate) {
     backgroundModerationDecisionSchema,
     plateLogoCreateSchema,
     plateLogoUpdateSchema,
+    blockedWordCreateSchema,
+    blockedWordUpdateSchema,
     auctionSchema,
     bidSchema,
     createAdSchema,
@@ -454,6 +477,8 @@ export const {
   backgroundModerationDecisionSchema,
   plateLogoCreateSchema,
   plateLogoUpdateSchema,
+  blockedWordCreateSchema,
+  blockedWordUpdateSchema,
   auctionSchema,
   bidSchema,
   createAdSchema,

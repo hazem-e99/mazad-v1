@@ -17,6 +17,8 @@ import {
   ClipboardCheck,
   FolderTree,
   Settings,
+  MessageSquareWarning,
+  ShieldBan,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/cn";
@@ -69,6 +71,8 @@ export function useAdminNavGroups(): AdminNavGroup[] {
       items: [
         { href: "/admin/users", label: t("admin.navUsers"), icon: Users },
         { href: "/admin/ads", label: t("admin.navAds"), icon: Megaphone },
+        { href: "/admin/chat-moderation", label: t("admin.navChatModeration"), icon: MessageSquareWarning },
+        { href: "/admin/chat-moderation/blocked-words", label: t("admin.navBlockedWords"), icon: ShieldBan },
         { href: "/admin/site-settings", label: t("admin.navSiteSettings"), icon: Settings },
       ],
     },

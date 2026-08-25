@@ -5,8 +5,11 @@ import { verifySession, hasPermission, type SessionPayload } from "@/lib/session
 import { setIO, auctionRoom, ADMIN_AUCTION_ROOM, userRoom } from "@/lib/socket";
 import { connectDB } from "@/lib/db";
 import { ChatMessage } from "@/models/ChatMessage";
+import { ChatModerationLog } from "@/models/ChatModerationLog";
 import { User } from "@/models/User";
 import { rateLimit } from "@/lib/rate-limit";
+import { chatMessageSchema } from "@/lib/validation";
+import { checkMessage } from "@/lib/chatModeration";
 
 // Loaded lazily (not as a static top-level import) because this module
 // transitively imports `next/server`. Statically importing it here — before
@@ -139,23 +142,65 @@ async function main() {
       socket.leave(auctionRoom(auctionId));
     });
 
-    socket.on("chat:message", async (text: string) => {
+    // Send -> server validation -> moderation check -> only then save +
+    // broadcast. Never send -> display -> delete: a rejected message must
+    // never reach ChatMessage or io.emit, not even for a moment, so no
+    // other connected client — including the sender's own other tabs —
+    // can ever see it.
+    socket.on("chat:message", async (rawText: unknown) => {
       const session = socket.data.session as { sub: string } | undefined;
       if (!session) {
         socket.emit("chat:error", "يجب تسجيل الدخول للمشاركة في الدردشة");
         return;
       }
-      if (typeof text !== "string" || !text.trim() || text.length > 500) return;
+
+      // Gate on rate limit before any validation/DB work so a flooding
+      // client is turned away as cheaply as possible.
       if (!rateLimit(`chat:${session.sub}`, 10, 10_000)) {
         socket.emit("chat:error", "الرجاء الانتظار قبل إرسال رسالة أخرى");
         return;
       }
 
+      const parsed = chatMessageSchema.safeParse({ text: rawText });
+      if (!parsed.success) {
+        socket.emit("chat:error", parsed.error.issues[0]?.message ?? "رسالة غير صالحة");
+        return;
+      }
+      const text = parsed.data.text;
+
       try {
-        const [message, user] = await Promise.all([
-          ChatMessage.create({ user: session.sub, text: text.trim() }),
-          User.findById(session.sub).select("name"),
-        ]);
+        // One lookup covers both the chat-block gate and (on the success
+        // path below) the display name, instead of querying User twice.
+        const user = await User.findById(session.sub).select("name chatBlocked");
+        if (user?.chatBlocked) {
+          socket.emit("chat:error", "تم حظرك من المشاركة في الدردشة.");
+          return;
+        }
+
+        const moderation = await checkMessage(text);
+        if (!moderation.allowed) {
+          // The log survives even though the message never does — the
+          // whole point is an admin can still see what was attempted.
+          // Never let a logging failure be the reason a bad message
+          // reaches the chat, so this is caught on its own.
+          try {
+            await ChatModerationLog.create({
+              user: session.sub,
+              messageText: text,
+              reason: "الرسالة تحتوي على كلمة محظورة",
+              violationType: "blocked_word",
+              matchedWords: moderation.matchedWords ?? [],
+            });
+          } catch (logErr) {
+            console.error("chat moderation log write failed:", logErr);
+          }
+          // Deliberately generic — the blocked-word list itself is never
+          // exposed to the sender.
+          socket.emit("chat:error", "لم يتم إرسال رسالتك لأنها تحتوي على محتوى غير مسموح.");
+          return;
+        }
+
+        const message = await ChatMessage.create({ user: session.sub, text });
 
         io.emit("chat:message", {
           id: String(message._id),

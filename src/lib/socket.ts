@@ -45,3 +45,16 @@ export function emitUserNotification(userId: string, payload: UserNotificationEv
   if (!io) return;
   io.to(userRoom(userId)).emit("notification:new", payload);
 }
+
+/**
+ * Tells every connected chat client a message was removed by a moderator,
+ * so it disappears live rather than only after the next page load. Called
+ * from the (HTTP, not socket) message-delete route — `getIO()` reaches the
+ * same server instance set up in server/index.ts since both run in the
+ * one Node process.
+ */
+export function emitChatMessageDeleted(messageId: string) {
+  const io = getIO();
+  if (!io) return;
+  io.emit("chat:message_deleted", { id: messageId });
+}

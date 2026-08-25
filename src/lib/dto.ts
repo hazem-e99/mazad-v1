@@ -14,6 +14,8 @@ import type {
   AdvertisementDTO,
   ChatMessageDTO,
   AuditLogDTO,
+  BlockedWordDTO,
+  ChatModerationLogDTO,
 } from "@/types/dto";
 import type { AuctionSummary, PlateSummary } from "@/types/auction";
 import type {
@@ -30,6 +32,8 @@ import type {
   SubmissionType,
   ModerationStatus,
   BackgroundStatus,
+  ChatViolationType,
+  ChatModerationLogStatus,
 } from "@/lib/constants";
 
 /**
@@ -590,4 +594,62 @@ export function toAuditLogDTO(log: LeanAuditLog): AuditLogDTO {
 
 export function toAuditLogDTOList(logs: LeanAuditLog[]): AuditLogDTO[] {
   return logs.map(toAuditLogDTO);
+}
+
+// ---- BlockedWord --------------------------------------------------------------
+
+export interface LeanBlockedWord {
+  _id: ObjectIdLike;
+  word: string;
+  isActive: boolean;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export function toBlockedWordDTO(word: LeanBlockedWord): BlockedWordDTO {
+  return {
+    _id: idToString(word._id),
+    word: word.word,
+    isActive: word.isActive,
+    createdAt: dateToISOString(word.createdAt),
+    updatedAt: dateToISOString(word.updatedAt),
+  };
+}
+
+export function toBlockedWordDTOList(words: LeanBlockedWord[]): BlockedWordDTO[] {
+  return words.map(toBlockedWordDTO);
+}
+
+// ---- ChatModerationLog --------------------------------------------------------------
+
+export interface LeanChatModerationLog {
+  _id: ObjectIdLike;
+  user: LeanUserContactRef | ObjectIdLike | null;
+  auctionId?: ObjectIdLike | null;
+  messageText: string;
+  reason: string;
+  violationType: ChatViolationType;
+  matchedWords?: string[];
+  status: ChatModerationLogStatus;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+}
+
+export function toChatModerationLogDTO(log: LeanChatModerationLog): ChatModerationLogDTO {
+  return {
+    _id: idToString(log._id),
+    user: toUserContactRefDTO(log.user),
+    auctionId: log.auctionId ? idToString(log.auctionId) : null,
+    messageText: log.messageText,
+    reason: log.reason,
+    violationType: log.violationType,
+    matchedWords: log.matchedWords ?? [],
+    status: log.status,
+    createdAt: dateToISOString(log.createdAt),
+    updatedAt: dateToISOString(log.updatedAt),
+  };
+}
+
+export function toChatModerationLogDTOList(logs: LeanChatModerationLog[]): ChatModerationLogDTO[] {
+  return logs.map(toChatModerationLogDTO);
 }

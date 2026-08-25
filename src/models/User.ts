@@ -21,6 +21,12 @@ const userSchema = new Schema(
     // code path still reading it. `status` is the field new code uses.
     isActive: { type: Boolean, default: true },
     status: { type: String, enum: USER_STATUSES, default: "active" },
+    // Chat-only restriction, deliberately separate from `status`: blocking
+    // someone from the chat must never touch their bidding/purchase
+    // eligibility (§ chat moderation scope). Set only via the dedicated
+    // /api/users/[id]/chat-block route, gated by `chat:moderate` rather
+    // than the full `user:manage` a `status` change requires.
+    chatBlocked: { type: Boolean, default: false },
     // Soft delete: preserves historical bids/auctions/purchases that
     // reference this user's _id. `null` = not deleted.
     deletedAt: { type: Date, default: null },
