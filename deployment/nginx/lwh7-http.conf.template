@@ -1,0 +1,62 @@
+# Mazad (lwh7.com) — HTTP-only Nginx config, used before a TLS
+# certificate exists. deployment/setup-ssl.sh replaces this file with
+# lwh7-ssl.conf.template once a certificate has been issued.
+#
+# Placeholders (__DOMAIN__, __WWW_DOMAIN__, __APP_PORT__) are substituted
+# by deployment/deploy.sh — do not edit the deployed copy by hand for
+# anything other than emergency fixes; edit the template and re-run.
+
+upstream lwh7_upstream {
+    server 127.0.0.1:__APP_PORT__;
+    keepalive 64;
+}
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__ __WWW_DOMAIN__ _;
+
+    server_tokens off;
+    client_max_body_size 10m;
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+
+    # Required for Let's Encrypt HTTP-01 validation, both now and for
+    # ongoing renewals after HTTPS is enabled.
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Socket.IO shares the same HTTP server/port as Next.js (see
+    # server/index.ts) — same upstream, just needs the upgrade headers.
+    location /socket.io/ {
+        proxy_pass http://lwh7_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+    }
+
+    location / {
+        proxy_pass http://lwh7_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90s;
+        proxy_send_timeout 90s;
+    }
+
+    location /api/health {
+        proxy_pass http://lwh7_upstream;
+        access_log off;
+    }
+}
