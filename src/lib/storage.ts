@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 import { connectDB } from "@/lib/db";
-import { getSharp } from "@/lib/imageProcessor";
+import { extensionForMime, getImageCapability, getSharp } from "@/lib/imageProcessor";
 import { SiteAsset } from "@/models/SiteAsset";
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp"]);
@@ -24,42 +24,53 @@ export async function saveImage(file: File, subdir: string): Promise<string> {
 
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  // Loaded lazily via the shared helper (not as a static top-level
+  // Checked lazily via the shared helper (not as a static top-level sharp
   // import) so that a module merely importing this file for
   // deleteImage()/imageExists() — e.g. an API route with no image upload
   // of its own — never forces sharp to load. See imageProcessor.ts for
-  // why: it keeps a native/WASM loading failure scoped to actual
-  // image-processing requests instead of crashing every route's
-  // build-time page-data collection.
-  const sharp = await getSharp();
+  // why, and for why this is non-throwing: on a host where sharp genuinely
+  // cannot run (old-CPU VPS — unsupported for both the native binary and
+  // its WASM fallback), the upload still succeeds, just unoptimized,
+  // instead of failing outright.
+  const capability = await getImageCapability();
 
-  // The declared MIME type is caller-supplied and trivially forged, so the
-  // real check is whether sharp can decode the bytes at all. Its own
-  // failure text is English and internal ("Input buffer contains
-  // unsupported image format"), which is not something to show a user.
-  let optimized: Buffer;
-  try {
-    optimized = await sharp(buffer)
-      .rotate()
-      .resize({ width: 1920, withoutEnlargement: true })
-      .webp({ quality: 82 })
-      .toBuffer();
-  } catch {
-    throw new Error("تعذر قراءة الملف كصورة صالحة، يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP");
-  }
-
-  if (optimized.byteLength > MAX_STORED_BYTES) {
-    throw new Error("حجم الصورة بعد التحسين كبير جدًا، يرجى اختيار صورة أصغر");
+  let data: Buffer;
+  let contentType: string;
+  if (capability.available) {
+    // The declared MIME type is caller-supplied and trivially forged, so
+    // the real check is whether sharp can decode the bytes at all. Its
+    // own failure text is English and internal ("Input buffer contains
+    // unsupported image format"), which is not something to show a user.
+    try {
+      data = await capability.sharp(buffer)
+        .rotate()
+        .resize({ width: 1920, withoutEnlargement: true })
+        .webp({ quality: 82 })
+        .toBuffer();
+    } catch {
+      throw new Error("تعذر قراءة الملف كصورة صالحة، يرجى اختيار صورة بصيغة JPG أو PNG أو WEBP");
+    }
+    if (data.byteLength > MAX_STORED_BYTES) {
+      throw new Error("حجم الصورة بعد التحسين كبير جدًا، يرجى اختيار صورة أصغر");
+    }
+    contentType = "image/webp";
+  } else {
+    // No image processing available on this host — store the already
+    // MIME/size-validated original bytes as-is rather than failing the
+    // upload. contentType (and therefore the stored key's extension)
+    // reflects the real, unconverted format — never falsely ".webp".
+    data = buffer;
+    contentType = file.type;
   }
 
   await connectDB();
-  const key = `${crypto.randomUUID()}.webp`;
+  const key = `${crypto.randomUUID()}.${extensionForMime(contentType)}`;
   await SiteAsset.create({
     key,
-    data: optimized,
-    contentType: "image/webp",
+    data,
+    contentType,
     originalName: file.name,
-    size: optimized.byteLength,
+    size: data.byteLength,
     subdir,
   });
 
