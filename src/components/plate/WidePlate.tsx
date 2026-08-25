@@ -40,15 +40,23 @@ export function WidePlate({
   locale?: Locale;
   /** Sport plates carry English letters/numbers only (§ Sports Plate rule)
    * — drops the Arabic line from both cells and lets the Latin one take
-   * the full cell instead of being the smaller secondary line. */
+   * the full cell instead of being the smaller secondary line. Also drops
+   * the KSA strip column entirely — sport plates don't carry it. */
   englishOnly?: boolean;
 }) {
   // Proportions taken off the reference: the character groups dominate,
   // the crest takes a narrow middle, and the strip is a fixed slice.
   // Without a logo the two groups share the space the crest gave up.
+  // Sport plates drop the KSA strip entirely (§ Sports Plate rule) rather
+  // than leaving its column empty, so the remaining groups take the width
+  // it gave up.
   const columns = logo
-    ? "minmax(0,1.2fr) minmax(1.5rem,0.58fr) minmax(0,1.3fr) clamp(1.5rem,9.5cqi,4.6rem)"
-    : "minmax(0,1fr) minmax(0,1.06fr) clamp(1.5rem,9.5cqi,4.6rem)";
+    ? englishOnly
+      ? "minmax(0,1.2fr) minmax(1.5rem,0.58fr) minmax(0,1.3fr)"
+      : "minmax(0,1.2fr) minmax(1.5rem,0.58fr) minmax(0,1.3fr) clamp(1.5rem,9.5cqi,4.6rem)"
+    : englishOnly
+      ? "minmax(0,1fr) minmax(0,1.06fr)"
+      : "minmax(0,1fr) minmax(0,1.06fr) clamp(1.5rem,9.5cqi,4.6rem)";
 
   const arSize = (base: number) => `clamp(0.5rem, ${(base * spec.scale.numbers).toFixed(2)}cqi, 3.8rem)`;
   const enSize = `clamp(0.42rem, ${(5.5 * spec.scale.numbers).toFixed(2)}cqi, 2.8rem)`;
@@ -78,9 +86,6 @@ export function WidePlate({
         <Cell col={lettersCol} row={1}>
           <PlateCharacters value={lettersEn} script="en" fontSize={arLetterSize} gap="1.9cqi" />
         </Cell>
-        <div style={{ gridColumn: ksaCol, gridRow: 1 }}>
-          <PlateKsaStrip accent={spec.accent} logo={logo} locale={locale} />
-        </div>
       </div>
     );
   }
