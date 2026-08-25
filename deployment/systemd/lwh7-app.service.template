@@ -1,0 +1,35 @@
+[Unit]
+Description=Mazad (lwh7.com) — Next.js + Socket.IO application server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__APP_USER__
+Group=__APP_GROUP__
+WorkingDirectory=__CURRENT_LINK__
+EnvironmentFile=__ENV_FILE__
+Environment=NODE_ENV=production
+# Mirrors the project's own PM2 config (ecosystem.config.js) for how the
+# custom server is invoked — direct node+tsx, no npm wrapper, so SIGTERM
+# reaches the process for the graceful-shutdown handler in server/index.ts.
+ExecStart=/usr/bin/node __CURRENT_LINK__/node_modules/tsx/dist/cli.mjs __CURRENT_LINK__/server/index.ts
+
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+
+# Hardening — does not restrict anything the app legitimately needs
+# (network out to MongoDB Atlas, and read/write only within its own
+# working directory / the shared uploads dir it's symlinked to).
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=lwh7-app
+
+[Install]
+WantedBy=multi-user.target

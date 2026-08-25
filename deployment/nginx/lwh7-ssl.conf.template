@@ -1,0 +1,125 @@
+# Mazad (lwh7.com) — full HTTPS Nginx config, installed by
+# deployment/setup-ssl.sh once a Let's Encrypt certificate exists.
+#
+# Routing:
+#   http(s)://www.lwh7.com/*  -> 301 https://lwh7.com/*
+#   http://lwh7.com/*         -> 301 https://lwh7.com/*
+#   https://lwh7.com/*        -> proxied to the app (Next.js + Socket.IO,
+#                                 a single process — see server/index.ts)
+#
+# Placeholders (__DOMAIN__, __WWW_DOMAIN__, __APP_PORT__) are substituted
+# by deployment/setup-ssl.sh.
+
+upstream lwh7_upstream {
+    server 127.0.0.1:__APP_PORT__;
+    keepalive 64;
+}
+
+# ACME renewal + unconditional HTTP -> HTTPS (non-www) redirect.
+server {
+    listen 80;
+    listen [::]:80;
+    server_name __DOMAIN__ __WWW_DOMAIN__;
+    server_tokens off;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    location / {
+        return 301 https://__DOMAIN__$request_uri;
+    }
+}
+
+# www -> non-www (https)
+server {
+    listen 443 ssl;
+    http2 on;
+    listen [::]:443 ssl;
+    server_name __WWW_DOMAIN__;
+    server_tokens off;
+
+    ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+
+    return 301 https://__DOMAIN__$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    http2 on;
+    listen [::]:443 ssl;
+    server_name __DOMAIN__;
+
+    server_tokens off;
+    client_max_body_size 10m;
+
+    ssl_certificate     /etc/letsencrypt/live/__DOMAIN__/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/__DOMAIN__/privkey.pem;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 1d;
+
+    # Security headers that don't interfere with the app's own auth
+    # cookies (httpOnly, sameSite=lax, secure — see src/lib/auth.ts) or
+    # its Socket.IO / API traffic. No CSP here: the app doesn't define
+    # one today, so adding a strict one from the infra layer risks
+    # breaking inline styles/scripts Next.js relies on.
+    add_header X-Content-Type-Options nosniff always;
+    add_header X-Frame-Options SAMEORIGIN always;
+    add_header Referrer-Policy strict-origin-when-cross-origin always;
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+
+    gzip on;
+    gzip_comp_level 5;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript image/svg+xml;
+
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+
+    # Socket.IO shares the same HTTP server/port as Next.js (see
+    # server/index.ts) — same upstream, just needs the upgrade headers.
+    location /socket.io/ {
+        proxy_pass http://lwh7_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 86400s;
+    }
+
+    # Next.js static build assets — safe to cache aggressively; each
+    # filename is content-hashed by the build.
+    location /_next/static/ {
+        proxy_pass http://lwh7_upstream;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "public, max-age=31536000, immutable" always;
+    }
+
+    location / {
+        proxy_pass http://lwh7_upstream;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 90s;
+        proxy_send_timeout 90s;
+    }
+
+    location /api/health {
+        proxy_pass http://lwh7_upstream;
+        access_log off;
+    }
+}

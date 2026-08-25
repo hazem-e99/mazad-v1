@@ -46,7 +46,7 @@ function urlOrUndefined(value: string): URL | undefined {
 }
 
 function getFallbackSiteUrl(): string {
-  return process.env.NEXT_PUBLIC_SITE_URL || "https://mazad-v1.onrender.com";
+  return process.env.NEXT_PUBLIC_SITE_URL || "https://lwh7.com";
 }
 
 export async function generateMetadata(): Promise<Metadata> {
