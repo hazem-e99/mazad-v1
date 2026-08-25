@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
-import sharp from "sharp";
+import { getSharp } from "@/lib/imageProcessor";
 import { saveImageAt } from "@/lib/storage";
 import { PlateLogo } from "@/models/PlateLogo";
 
@@ -93,9 +93,12 @@ export const LEGACY_LOGO_SPECS: LegacyLogoSpec[] = [
  * same SiteAsset row instead of orphaning a new one each time.
  */
 async function rasterizeAndSave(spec: LegacyLogoSpec): Promise<string> {
-  const buffer = spec.sourcePath
-    ? await readFile(path.join(process.cwd(), spec.sourcePath))
-    : await sharp(Buffer.from(spec.svg!)).png().toBuffer();
+  if (spec.sourcePath) {
+    const buffer = await readFile(path.join(process.cwd(), spec.sourcePath));
+    return saveImageAt(buffer, "plate-logos", spec.legacySlug);
+  }
+  const sharp = await getSharp();
+  const buffer = await sharp(Buffer.from(spec.svg!)).png().toBuffer();
   return saveImageAt(buffer, "plate-logos", spec.legacySlug);
 }
 

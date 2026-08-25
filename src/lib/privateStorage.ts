@@ -1,6 +1,7 @@
 import { writeFile, mkdir, unlink, readFile } from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
+import { getSharp } from "@/lib/imageProcessor";
 
 // Deliberately OUTSIDE `public/` — nothing under this directory is ever
 // served by Next's static file handler. The only way to read a file back
@@ -39,8 +40,8 @@ export async function saveOwnershipDocument(file: File, subdir: string): Promise
   const dir = path.join(/* turbopackIgnore: true */ PRIVATE_UPLOAD_DIR, subdir);
   await mkdir(dir, { recursive: true });
 
-  // Imported lazily — see the identical reasoning in src/lib/storage.ts.
-  const sharp = (await import("sharp")).default;
+  // Loaded lazily via the shared helper — see imageProcessor.ts.
+  const sharp = await getSharp();
   const optimized = await sharp(buffer)
     .resize({ width: 2400, withoutEnlargement: true })
     .webp({ quality: 88 })

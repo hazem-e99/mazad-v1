@@ -40,6 +40,9 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.15"
   },
+  "optionalDependencies": {
+    "@img/sharp-wasm32": "0.35.3"
+  },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
