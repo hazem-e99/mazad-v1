@@ -99,7 +99,7 @@ else
   log "System user '$APP_USER' already exists."
 fi
 
-mkdir -p "$RELEASES_DIR" "$SHARED_ENV_DIR" "$SHARED_UPLOADS_DIR"
+mkdir -p "$RELEASES_DIR" "$SHARED_ENV_DIR" "$SHARED_UPLOADS_DIR" "$SHARED_PUBLIC_UPLOADS_DIR"
 chown -R "$APP_USER:$APP_GROUP" "$APP_DIR"
 chmod 750 "$SHARED_ENV_DIR"
 ok "Directory layout ready under $APP_DIR"

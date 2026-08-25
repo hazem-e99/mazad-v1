@@ -146,8 +146,8 @@ run over uncommitted local changes), builds a **new** release directory,
 and only swaps `/opt/lwh7/current` and restarts the service once the
 build succeeds. If the new release fails its health check after
 restart, it **automatically rolls back** to the previous release. The
-shared `.env` and the private-uploads directory are untouched by every
-update — they live outside the release tree.
+shared `.env`, private-uploads, and public-uploads directories are
+untouched by every update — they live outside the release tree.
 
 Manual rollback to an older release:
 
@@ -164,12 +164,21 @@ sudo ./deployment/rollback.sh 20260825120000   # a specific release
 ├── releases/<timestamp>/                 # one full build per deploy (npm ci + next build)
 └── shared/
     ├── env/.env                          # production secrets, mode 600, persists forever
-    └── private-uploads/                  # ownership-document uploads, persists forever
+    ├── private-uploads/                  # ownership-document uploads, persists forever
+    └── public-uploads/                   # persists forever (release symlinks this at public/uploads)
 ```
 
-Each release directory symlinks `.env` and `private-uploads` back to the
-shared copies, so nothing in a release is ever the source of truth for
-either.
+Each release directory symlinks `.env`, `private-uploads`, and
+`public/uploads` back to these shared copies, so nothing in a release is
+ever the source of truth for any of them.
+
+If the source checkout you run `deploy-production.sh`/`update.sh` from
+*is* `/opt/lwh7` itself (cloning straight into the deploy path, rather
+than into a separate checkout elsewhere), `deployment/lib/release.sh`
+explicitly excludes `/current`, `/releases`, and `/shared` — using
+root-anchored rsync patterns — from the copy that builds each release,
+specifically so that `releases/` (which contains the release currently
+being built) is never copied into itself.
 
 ## 9. Ports & processes
 
