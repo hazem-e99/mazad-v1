@@ -22,6 +22,7 @@ import { chatViolationTypeLabel, chatModerationLogStatusLabel } from "@/lib/cons
 import { ChatModerationLogRowActions } from "./ChatModerationLogRowActions";
 import { BlockUserButton } from "./BlockUserButton";
 import { LiveChatMessagesFeed } from "./LiveChatMessagesFeed";
+import { ClearChatButton } from "./ClearChatButton";
 
 export const revalidate = 0;
 
@@ -173,8 +174,9 @@ export default async function AdminChatModerationPage({ searchParams }: Props) {
       </Card>
 
       <Card className="overflow-hidden">
-        <CardHeader>
+        <CardHeader className="flex items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-(--color-text)">{t("admin.recentChatMessagesHeader")}</h2>
+          <ClearChatButton />
         </CardHeader>
         <LiveChatMessagesFeed initial={messages} blockedByUser={blockedByUserObj} />
       </Card>

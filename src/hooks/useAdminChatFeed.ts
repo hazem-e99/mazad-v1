@@ -28,6 +28,12 @@ export interface LiveChatMessage {
 export function useAdminChatFeed(historyLimit = 30) {
   const [messages, setMessages] = useState<LiveChatMessage[]>([]);
   const [deletedIds, setDeletedIds] = useState<Set<string>>(() => new Set());
+  // Set the moment a "clear whole chat" broadcast arrives — a consumer
+  // merging this against its server-rendered initial list should drop
+  // that entire initial list once this is non-null, since every one of
+  // those rows was just wiped too (not just whatever had already arrived
+  // through this hook).
+  const [clearedAt, setClearedAt] = useState<number | null>(null);
 
   useEffect(() => {
     const socket = acquireSocket();
@@ -46,16 +52,22 @@ export function useAdminChatFeed(historyLimit = 30) {
       });
       setMessages((prev) => prev.filter((m) => m.id !== id));
     };
+    const handleCleared = () => {
+      setMessages([]);
+      setClearedAt(Date.now());
+    };
 
     socket.on("chat:message", handleNew);
     socket.on("chat:message_deleted", handleDeleted);
+    socket.on("chat:cleared", handleCleared);
 
     return () => {
       socket.off("chat:message", handleNew);
       socket.off("chat:message_deleted", handleDeleted);
+      socket.off("chat:cleared", handleCleared);
       releaseSocket();
     };
   }, [historyLimit]);
 
-  return { messages, deletedIds };
+  return { messages, deletedIds, clearedAt };
 }

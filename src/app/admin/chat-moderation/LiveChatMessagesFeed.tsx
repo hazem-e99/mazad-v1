@@ -25,12 +25,17 @@ export function LiveChatMessagesFeed({
   blockedByUser: Record<string, boolean>;
 }) {
   const { t, locale } = useTranslations();
-  const { messages: liveMessages, deletedIds } = useAdminChatFeed();
+  const { messages: liveMessages, deletedIds, clearedAt } = useAdminChatFeed();
 
   const merged = useMemo(() => {
     const byId = new Map<string, { id: string; text: string; userId: string; userName: string; createdAt: string }>();
-    for (const m of initial) {
-      byId.set(m._id, { id: m._id, text: m.text, userId: m.user._id, userName: m.user.name, createdAt: m.createdAt });
+    // An admin wiped the whole room after this page's initial SSR fetch —
+    // that server-rendered list is entirely stale now, so it's dropped
+    // rather than merged; only whatever has arrived live since counts.
+    if (clearedAt === null) {
+      for (const m of initial) {
+        byId.set(m._id, { id: m._id, text: m.text, userId: m.user._id, userName: m.user.name, createdAt: m.createdAt });
+      }
     }
     for (const m of liveMessages) {
       byId.set(m.id, m);
@@ -40,7 +45,7 @@ export function LiveChatMessagesFeed({
     return Array.from(byId.values()).sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
-  }, [initial, liveMessages, deletedIds]);
+  }, [initial, liveMessages, deletedIds, clearedAt]);
 
   if (merged.length === 0) {
     return (

@@ -873,6 +873,9 @@ export interface MessageCatalog {
     userUnblockedFromChat: string;
     blockFromChatAction: string;
     unblockFromChatAction: string;
+    clearChatButton: string;
+    confirmClearChat: string;
+    chatCleared: string;
 
     blockedWordsTitle: string;
     blockedWordsSubtitle: string;
@@ -1855,6 +1858,9 @@ const ar: MessageCatalog = {
     userUnblockedFromChat: "تم رفع الحظر عن المستخدم",
     blockFromChatAction: "حظر من الدردشة",
     unblockFromChatAction: "رفع الحظر",
+    clearChatButton: "مسح الدردشة بالكامل",
+    confirmClearChat: "هل أنت متأكد من مسح كل رسائل الدردشة؟ سيتم حذفها نهائيًا لدى جميع المستخدمين ولا يمكن التراجع عن ذلك.",
+    chatCleared: "تم مسح الدردشة بالكامل",
 
     blockedWordsTitle: "الكلمات المحظورة",
     blockedWordsSubtitle: "إدارة قائمة الكلمات المحظورة في الدردشة",

@@ -58,3 +58,12 @@ export function emitChatMessageDeleted(messageId: string) {
   if (!io) return;
   io.emit("chat:message_deleted", { id: messageId });
 }
+
+/** Tells every connected chat client the whole room was wiped by an admin
+ * — see emitChatMessageDeleted for the same "why HTTP can reach the
+ * socket" reasoning. */
+export function emitChatCleared() {
+  const io = getIO();
+  if (!io) return;
+  io.emit("chat:cleared");
+}

@@ -44,6 +44,9 @@ export default function ChatPage() {
     socket.on("chat:message_deleted", ({ id }: { id: string }) => {
       setMessages((prev) => prev.filter((m) => (m.id ?? m._id) !== id));
     });
+    // An admin cleared the whole room — same live-without-refresh
+    // treatment as a single deletion.
+    socket.on("chat:cleared", () => setMessages([]));
 
     return () => {
       socket.disconnect();

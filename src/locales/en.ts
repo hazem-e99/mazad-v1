@@ -862,6 +862,9 @@ const en: MessageCatalog = {
     userUnblockedFromChat: "User unblocked from chat",
     blockFromChatAction: "Block from chat",
     unblockFromChatAction: "Unblock",
+    clearChatButton: "Clear entire chat",
+    confirmClearChat: "Clear every chat message? This deletes them permanently for all users and cannot be undone.",
+    chatCleared: "Chat cleared",
 
     blockedWordsTitle: "Blocked Words",
     blockedWordsSubtitle: "Manage the chat's blocked-word list",
