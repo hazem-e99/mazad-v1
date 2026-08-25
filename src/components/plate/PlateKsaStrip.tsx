@@ -29,7 +29,7 @@ export function PlateKsaStrip({
 }) {
   return (
     <div
-      className="relative z-10 flex h-full flex-col items-center justify-center gap-[0.3cqi] border-s-[0.4cqi] border-black px-[0.4cqi] py-[0.5cqi] text-center"
+      className="relative z-10 flex h-full flex-col items-center justify-center gap-[0.3cqi] border-s-[max(1.5px,0.4cqi)] border-[#000] px-[0.4cqi] py-[0.5cqi] text-center"
       style={{ background: accent.strip, color: accent.stripInk }}
     >
       <span className="flex h-[clamp(0.5rem,5.4cqi,2.6rem)] w-[clamp(0.5rem,5.4cqi,2.6rem)] items-center justify-center">

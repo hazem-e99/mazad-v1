@@ -22,19 +22,33 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
   const heroTitle = localizedText(locale, settings.hero.titleAr, settings.hero.titleEn);
 
   return (
-    <section className="mz-stage flex min-h-[clamp(36rem,84vh,52rem)] flex-col" aria-labelledby="hero-title">
+    <section
+      className="mz-stage flex aspect-[853/1844] flex-col sm:aspect-auto sm:min-h-[clamp(36rem,84vh,52rem)]"
+      aria-labelledby="hero-title"
+    >
       <HeroBackground key={settings.hero.backgroundImage} src={settings.hero.backgroundImage} />
       <span className="mz-stage-scrim" aria-hidden="true" />
 
-      {/* The lower padding is the heavier of the two: the featured panel
-          rides up over this edge, so the tagline needs clearance beneath it
-          that the top does not. */}
-      <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-center gap-8 pb-32 pt-24 text-center sm:gap-10 sm:pb-40 sm:pt-28">
+      {/* Mobile is bottom-anchored (justify-end + a fixed pb) rather than
+          vertically centered: the hero's height is a fixed aspect ratio of
+          the viewport width (see the section above), so centering would
+          drift the tagline/search block up or down as that width changes
+          across phones. A fixed offset from the bottom keeps it landing at
+          the same spot on the photo (over the lower third, above the gold
+          band) regardless of device height. Desktop switches back to
+          centering — its stage uses a min-height instead of a fixed aspect
+          ratio, so there's no equivalent drift to guard against. */}
+      <div className="mz-container relative z-10 flex flex-1 flex-col items-center justify-evenly gap-8 pb-16 text-center sm:justify-center sm:gap-10 sm:pb-40 sm:pt-28">
         <div className="flex flex-col items-center gap-4">
-          <MazadLogo src={settings.hero.logoUrl || settings.brand.logoUrl} className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
+          {/* The mark competes with the photo itself on mobile — hidden
+              there, shown again once the desktop stage's calmer crop
+              gives it room. */}
+          <div className="hidden sm:inline-flex">
+            <MazadLogo src={settings.hero.logoUrl || settings.brand.logoUrl} className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
+          </div>
           <h1
             id="hero-title"
-            className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-(--color-text)"
+            className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-white sm:text-(--color-text)"
           >
             {heroTitle}
           </h1>
@@ -46,19 +60,37 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
   );
 }
 
+const MOBILE_HERO_IMAGE = "/images/bg-hero-mobile.png";
+
 function HeroBackground({ src }: { src: string }) {
   const [backgroundImage, setBackgroundImage] = useState(src);
+  const [mobileImage, setMobileImage] = useState(MOBILE_HERO_IMAGE);
 
   return (
-    <Image
-      src={backgroundImage}
-      alt=""
-      fill
-      preload
-      sizes="100vw"
-      unoptimized
-      onError={() => setBackgroundImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage)}
-      className="mz-stage-media"
-    />
+    <>
+      {/* Mobile: the stage's own aspect-ratio matches this photo's
+          (853:1844) exactly, so `cover` fills the frame with no crop and
+          no letterboxing gaps — the whole image, edge to edge. */}
+      <Image
+        src={mobileImage}
+        alt=""
+        fill
+        preload
+        sizes="100vw"
+        unoptimized
+        onError={() => setMobileImage(backgroundImage)}
+        className="mz-stage-media sm:hidden"
+      />
+      <Image
+        src={backgroundImage}
+        alt=""
+        fill
+        preload
+        sizes="100vw"
+        unoptimized
+        onError={() => setBackgroundImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage)}
+        className="mz-stage-media hidden sm:block"
+      />
+    </>
   );
 }

@@ -61,7 +61,7 @@ export function WidePlate({
 
   const logoCell = logo && (
     <div
-      className="relative z-10 flex items-center justify-center border-e-[0.4cqi] border-black px-[1.2cqi] py-[1cqi]"
+      className="relative z-10 flex items-center justify-center border-e-[max(1.5px,0.4cqi)] border-[#000] px-[1.2cqi] py-[1cqi]"
       style={{ gridColumn: 2, gridRow: englishOnly ? 1 : "1 / span 2" }}
     >
       <PlateLogoIcon logo={logo} locale={locale} className="max-h-[74%] max-w-[80%] object-contain" />
@@ -71,7 +71,7 @@ export function WidePlate({
   if (englishOnly) {
     return (
       <div className="relative grid h-full w-full" style={{ gridTemplateColumns: columns, aspectRatio: spec.aspect }}>
-        <Cell col={numbersCol} row={1} className="border-e-[0.4cqi] border-black">
+        <Cell col={numbersCol} row={1} className="border-e-[max(1.5px,0.4cqi)] border-[#000]">
           <PlateDigits value={numbers} script="en" fontSize={arSize(7.9)} tracking="0.03em" />
         </Cell>
         {logoCell}
@@ -97,14 +97,14 @@ export function WidePlate({
       className="relative grid h-full w-full"
       style={{ gridTemplateColumns: columns, gridTemplateRows: "1fr 1fr", aspectRatio: spec.aspect }}
     >
-      <Cell col={numbersCol} row={1} className="border-e-[0.4cqi] border-b-[0.9cqi] border-black">
+      <Cell col={numbersCol} row={1} className="border-e-[max(1.5px,0.4cqi)] border-b-[max(1.5px,0.9cqi)] border-[#000]">
         <PlateDigits value={numbers} script="ar" fontSize={arSize(7.9)} tracking="0.03em" />
       </Cell>
-      <Cell col={lettersCol} row={1} className="border-b-[0.9cqi] border-black">
+      <Cell col={lettersCol} row={1} className="border-b-[max(1.5px,0.9cqi)] border-[#000]">
         <PlateCharacters value={lettersAr} script="ar" fontSize={arLetterSize} gap="1.7cqi" />
       </Cell>
 
-      <Cell col={numbersCol} row={2} className="border-e-[0.4cqi] border-black">
+      <Cell col={numbersCol} row={2} className="border-e-[max(1.5px,0.4cqi)] border-[#000]">
         <PlateDigits value={numbers} script="en" fontSize={enSize} tracking="0.06em" />
       </Cell>
       <Cell col={lettersCol} row={2}>

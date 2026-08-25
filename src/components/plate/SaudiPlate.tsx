@@ -28,10 +28,18 @@ interface SaudiPlateProps {
    *  lg = auction details · xl = featured/hero · spotlight = home stage. */
   size?: PlateSize;
   className?: string;
-  /** Presentation ring for VIP listings. Deliberately outside the plate
-   * face: VIP is a marketing status, not part of the official artwork. */
+  /** Whether this listing is VIP. Accepted for callers that already know
+   * their listing's status, but has no effect on the plate's own
+   * rendering: the face is always plain black, in every case (VIP, sold,
+   * selected, ...) — it depicts an official document and must never change
+   * color to signal status. Show a badge next to the plate instead (every
+   * call site already does — VipBadge, the my-listings VIP pill,
+   * AuctionStatusBadge, etc.). */
   vip?: boolean;
-  /** Selected state for pickers (admin auction builder, add-plate flow). */
+  /** See `vip` above — same "no visual effect on the plate face" rule.
+   * Kept for callers that want to track a picker's selection state
+   * elsewhere (e.g. highlighting the surrounding card), not to ring the
+   * plate itself. */
   selected?: boolean;
   /** Sport plates are English-only (§ Sports Plate rule): defaults to
    * `type === "sport"` so every existing call site gets this for free, but
@@ -93,8 +101,6 @@ export function SaudiPlate({
   classification,
   size = "md",
   className,
-  vip = false,
-  selected = false,
   locale = "ar",
   englishOnly,
 }: SaudiPlateProps) {
@@ -122,10 +128,18 @@ export function SaudiPlate({
           "saudi-plate relative w-full select-none overflow-hidden bg-[#f7f7f5] shadow-(--shadow-plate)",
           // A real plate has a heavy stamped edge and only a slight round
           // — nothing like the card radii used elsewhere in the product.
-          "rounded-[1.4cqi] border-[0.55cqi] border-black",
-          "transition-transform duration-(--duration-base) ease-(--ease-out-expo)",
-          vip && "ring-[0.05em] ring-(--color-gold)/70",
-          selected && "ring-[0.08em] ring-(--color-gold)"
+          // Always pure black, in every case (VIP/selected/sold included)
+          // — the face depicts an official document and never changes
+          // color to signal status; VIP/sold/etc. are communicated by a
+          // badge next to the plate instead (every call site already
+          // renders one — VipBadge, the my-listings VIP pill,
+          // AuctionStatusBadge — so nothing lost that information).
+          // The border-width floor (max(...)) keeps the frame solid black
+          // at small card sizes — below ~1.5px a cqi-scaled border
+          // anti-aliases into a pale gray hairline instead of reading as
+          // black.
+          "rounded-[1.4cqi] border-[max(2.5px,0.7cqi)] border-[#000]",
+          "transition-transform duration-(--duration-base) ease-(--ease-out-expo)"
         )}
       >
         <Layout

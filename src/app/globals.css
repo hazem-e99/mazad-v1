@@ -219,8 +219,19 @@
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-* {
-  border-color: var(--color-border);
+/* Tailwind's own preflight default border-color lives in its `base` layer
+   so a utility class like `border-[#000]` (in the `utilities` layer)
+   always wins over it — layer order beats specificity in CSS. This rule
+   overrides that default (border-color defaults to the theme's neutral
+   border instead of `currentColor`), and must stay inside `@layer base`
+   for the same reason: unlayered, it would sit *above every layer*,
+   permanently overriding any component's own border-color utility (e.g.
+   the plate face, which needs a hard `#000` — see SaudiPlate.tsx) no
+   matter what that component specifies. */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
 }
 
 body {

@@ -57,7 +57,7 @@ export function SquarePlate({
           aspectRatio: spec.aspect,
         }}
       >
-        <Cell col={1} row={1} className="border-e-[0.5cqi] border-black">
+        <Cell col={1} row={1} className="border-e-[max(1.5px,0.5cqi)] border-[#000]">
           <PlateDigits value={numbers} script="en" fontSize={arNumbers} tracking="0.03em" />
         </Cell>
         <Cell col={2} row={1}>
@@ -80,15 +80,15 @@ export function SquarePlate({
       }}
     >
       {/* ── Row 1: Arabic ─────────────────────────────────────────── */}
-      <Cell col={1} row={1} className="border-e-[0.5cqi] border-b-[0.5cqi] border-black">
+      <Cell col={1} row={1} className="border-e-[max(1.5px,0.5cqi)] border-b-[max(1.5px,0.5cqi)] border-[#000]">
         <PlateDigits value={numbers} script="ar" fontSize={arNumbers} tracking="0.03em" />
       </Cell>
-      <Cell col={2} row={1} className="border-b-[0.5cqi] border-black">
+      <Cell col={2} row={1} className="border-b-[max(1.5px,0.5cqi)] border-[#000]">
         <PlateCharacters value={lettersAr} script="ar" fontSize={arLetters} gap="1.6cqi" />
       </Cell>
 
       {/* ── Row 2: Latin ──────────────────────────────────────────── */}
-      <Cell col={1} row={2} className="border-e-[0.5cqi] border-black">
+      <Cell col={1} row={2} className="border-e-[max(1.5px,0.5cqi)] border-[#000]">
         <PlateDigits value={numbers} script="en" fontSize={enNumbers} tracking="0.06em" />
       </Cell>
       <Cell col={2} row={2}>
