@@ -279,6 +279,11 @@ export const MIN_BID_INCREMENT = 50;
 export const AUCTION_EXTENSION_WINDOW_SECONDS = 30;
 export const AUCTION_EXTENSION_SECONDS = 60;
 
+/** The site's sale-commission rate shown in the advertiser's acceptance
+ * checkbox at listing submission — the single source of truth; never
+ * accepted from the client, only the boolean acknowledgement is. */
+export const COMMISSION_PERCENTAGE = 2.5;
+
 // Timestamps are stored in UTC, but the stats page buckets them into
 // calendar days — and "today" has to mean what an admin in Saudi Arabia
 // sees on the wall calendar, not what UTC says. Bids placed between

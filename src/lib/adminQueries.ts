@@ -5,6 +5,7 @@ import { Plate } from "@/models/Plate";
 import { Auction } from "@/models/Auction";
 import { Bid } from "@/models/Bid";
 import { Purchase } from "@/models/Purchase";
+import { PageVisit } from "@/models/PageVisit";
 import { User } from "@/models/User";
 import { AuditLog } from "@/models/AuditLog";
 import { toAuditLogDTOList, type LeanAuditLog } from "@/lib/dto";
@@ -64,7 +65,9 @@ export interface StatsDailyPoint {
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
-const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
+/** Local calendar day as "YYYY-MM-DD" in STATS_TIMEZONE — shared with
+ * visitService.ts so "today" means the same day everywhere it's used. */
+export const dayKeyFormatter = new Intl.DateTimeFormat("en-CA", {
   timeZone: STATS_TIMEZONE,
   year: "numeric",
   month: "2-digit",
@@ -123,6 +126,26 @@ export async function getStatsTimeSeries(days = 7): Promise<StatsDailyPoint[]> {
     auctions: auctions.get(date) ?? 0,
     purchases: purchases.get(date) ?? 0,
   }));
+}
+
+/**
+ * "Visitor" = one unique (anonymous cookie, calendar day) row — the
+ * PageVisit unique index already guarantees `visitorsToday` is an exact
+ * count, not an estimate. `visitors7d` naturally counts a returning
+ * visitor once per day they came back, which is the standard meaning of
+ * a "visits in the last 7 days" figure, not a bug.
+ */
+export async function getVisitorStats() {
+  await connectDB();
+  const today = dayKeyFormatter.format(new Date());
+  const sevenDaysAgo = dayKeyFormatter.format(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000));
+
+  const [visitorsToday, visitors7d] = await Promise.all([
+    PageVisit.countDocuments({ date: today }),
+    PageVisit.countDocuments({ date: { $gte: sevenDaysAgo } }),
+  ]);
+
+  return { visitorsToday, visitors7d };
 }
 
 export async function getRecentAuditLogs(limit = 20) {

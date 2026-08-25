@@ -8,7 +8,7 @@ import { PreSubmitTipsGate } from "@/components/plate/PreSubmitTipsGate";
 import { SaudiPlate } from "@/components/plate/SaudiPlate";
 import { Button } from "@/components/ui/Button";
 import { Callout } from "@/components/ui/Callout";
-import { Input, Select, Textarea } from "@/components/ui/Input";
+import { Checkbox, Input, Select, Textarea } from "@/components/ui/Input";
 import { Stepper } from "@/components/ui/Stepper";
 import { apiFetch } from "@/lib/api-client";
 import { useToastStore } from "@/hooks/useToast";
@@ -19,7 +19,7 @@ import { usePlateCategories } from "@/hooks/usePlateCategories";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { deriveLettersEn, isValidPlateLettersAr } from "@/lib/plateLetters";
 import { cn } from "@/lib/cn";
-import { USAGE_TYPES, usageTypeLabel, plateShapeLabel, SUBMISSION_TYPES } from "@/lib/constants";
+import { USAGE_TYPES, usageTypeLabel, plateShapeLabel, SUBMISSION_TYPES, COMMISSION_PERCENTAGE } from "@/lib/constants";
 import type { UsageType, PlateShape, SubmissionType } from "@/lib/constants";
 import { USAGE_TYPE_SHAPES, deriveLegacyPlateType, getAllowedLogos } from "@/lib/plateFormConfig";
 
@@ -174,6 +174,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
   const [registrationValid, setRegistrationValid] = useState<"valid" | "expired" | "">("");
   const [inspectionValid, setInspectionValid] = useState<"yes" | "no" | "">("");
   const [insuranceAvailable, setInsuranceAvailable] = useState<"yes" | "no" | "">("");
+  const [commissionAccepted, setCommissionAccepted] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -288,6 +289,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       tiktok: tiktok || undefined,
       snapchat: snapchat || undefined,
       submissionType: submissionType ?? undefined,
+      commissionAccepted: isAdmin ? undefined : commissionAccepted,
     };
   }
 
@@ -300,7 +302,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
     ["registrationValid", "inspectionValid", "insuranceAvailable"],
     ["submissionType"],
     ["price", "existingBidAmount"],
-    [],
+    ["commissionAccepted"],
   ];
 
   /**
@@ -342,6 +344,9 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       if (!insuranceAvailable) stepErrors.insuranceAvailable = t("validation.selectRequired");
     }
     if (index === 4 && !submissionType) stepErrors.submissionType = t("pages.chooseSubmissionTypeFirst");
+    if (index === 6 && !isAdmin && !commissionAccepted) {
+      stepErrors.commissionAccepted = t("validation.selectRequired");
+    }
 
     if (Object.keys(stepErrors).length === 0) return true;
     report(stepErrors, { toastKey: "fixBeforeContinue", silent: options.silent });
@@ -972,6 +977,24 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                 </div>
               ))}
             </dl>
+          )}
+
+          {step === 6 && !isAdmin && (
+            <div className="mt-4">
+              <Checkbox
+                label={t("pages.commissionAcceptLabel", { percent: COMMISSION_PERCENTAGE })}
+                checked={commissionAccepted}
+                onChange={(e) => {
+                  setCommissionAccepted(e.target.checked);
+                  clearField("commissionAccepted");
+                }}
+              />
+              {errorFor("commissionAccepted") && (
+                <p role="alert" className="mt-1.5 text-xs font-medium text-(--color-danger)">
+                  {errorFor("commissionAccepted")}
+                </p>
+              )}
+            </div>
           )}
 
           {formError && (

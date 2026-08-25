@@ -8,7 +8,7 @@ import { cn } from "@/lib/cn";
 import { Button } from "@/components/ui/Button";
 import { useTranslations } from "@/components/i18n/LocaleProvider";
 import { apiFetch } from "@/lib/api-client";
-import { useNotificationSocket, type UserNotificationEvent } from "@/hooks/useNotificationSocket";
+import { useNotificationSocket } from "@/hooks/useNotificationSocket";
 import { formatDateTime } from "@/lib/format";
 
 interface NotificationItem {
@@ -48,7 +48,7 @@ export function NotificationBell({ overHero }: { overHero: boolean }) {
     return () => window.clearTimeout(reset);
   }, [pathname]);
 
-  const handleEvent = useCallback((_event: UserNotificationEvent) => {
+  const handleEvent = useCallback(() => {
     setUnread((n) => n + 1);
   }, []);
 

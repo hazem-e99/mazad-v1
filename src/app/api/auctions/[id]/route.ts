@@ -9,6 +9,7 @@ import { requireSession, requirePermission, hasPermission } from "@/lib/auth";
 import { AUCTION_TRANSITIONS, type AuctionStatus } from "@/lib/constants";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { deleteImage } from "@/lib/storage";
+import { notifyUser } from "@/services/notificationService";
 
 // These results must only ever be written by finalizeAuction(), which
 // atomically computes winner/finalPrice alongside the status — never by a
@@ -65,6 +66,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         throw Errors.badRequest("لا يمكن تعيين نتيجة المزاد يدويًا — استخدم إجراء إنهاء المزاد");
       }
 
+      const wasPendingReview = auction.status === "draft";
       auction.status = body.status;
       await auction.save();
 
@@ -75,6 +77,25 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         entityId: auction._id,
         metadata: { status: body.status },
       });
+
+      // Only a user-submitted auction's admin review (draft -> scheduled
+      // = approved, draft -> cancelled = rejected) is notification-worthy
+      // here — every other transition is a staff-only operational change
+      // the creator doesn't need paging for.
+      if (wasPendingReview && (body.status === "scheduled" || body.status === "cancelled")) {
+        void notifyUser({
+          userId: String(auction.createdBy),
+          type: body.status === "scheduled" ? "auction.request_approved" : "auction.request_rejected",
+          title: body.status === "scheduled" ? "تم اعتماد طلب المزاد" : "تم رفض طلب المزاد",
+          body:
+            body.status === "scheduled"
+              ? "تمت الموافقة على طلب إنشاء المزاد الخاص بك"
+              : "تم رفض طلب إنشاء المزاد الخاص بك",
+          entityType: "Auction",
+          entityId: String(auction._id),
+          link: `/auctions/${auction._id}`,
+        });
+      }
 
       return jsonOk(auction);
     }

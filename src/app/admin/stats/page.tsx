@@ -8,9 +8,10 @@ import {
   Trophy,
   XCircle,
   ShoppingCart,
+  Eye,
   Activity,
 } from "lucide-react";
-import { getDashboardStats, getStatsTimeSeries } from "@/lib/adminQueries";
+import { getDashboardStats, getStatsTimeSeries, getVisitorStats } from "@/lib/adminQueries";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { formatWeekday } from "@/lib/format";
 import { StatCard } from "@/components/ui/StatCard";
@@ -21,8 +22,9 @@ const TREND_DAYS = 7;
 export const revalidate = 0;
 
 export default async function AdminStatsPage() {
-  const [stats, daily, { t, locale }] = await Promise.all([
+  const [stats, visitorStats, daily, { t, locale }] = await Promise.all([
     getDashboardStats(),
+    getVisitorStats(),
     getStatsTimeSeries(TREND_DAYS),
     getServerTranslator(),
   ]);
@@ -67,12 +69,13 @@ export default async function AdminStatsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label={t("admin.statTotalPlates")} value={stats.totalPlates} icon={IdCard} />
         <StatCard label={t("admin.statVipPlates")} value={stats.vipPlates} icon={Crown} tone="gold" />
         <StatCard label={t("admin.statUsers")} value={stats.totalUsers} icon={Users} />
         <StatCard label={t("admin.statActiveAuctions")} value={stats.activeAuctions} icon={Gavel} tone="live" />
         <StatCard label={t("admin.statDirectPurchases")} value={stats.totalPurchases} icon={ShoppingCart} tone="gold" />
+        <StatCard label={t("admin.statVisitorsToday")} value={visitorStats.visitorsToday} icon={Eye} />
       </div>
 
       <StatsCharts

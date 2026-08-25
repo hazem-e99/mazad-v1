@@ -114,6 +114,13 @@ export async function POST(req: NextRequest) {
       throw Errors.validation({ ownershipDocument: "يجب رفع صورة إستمارة السيارة" });
     }
 
+    // The commission percentage itself is never taken from the client —
+    // only this acknowledgement flag is, and only a public (non-staff)
+    // submission needs it at all.
+    if (!isStaff && !body.commissionAccepted) {
+      throw Errors.validation({ commissionAccepted: "يجب الموافقة على شروط العمولة" });
+    }
+
     // Sport plates are English-only; every other type needs a real
     // lettersAr — see checkSportLetters (§ Sports Plate rule).
     const lettersProblem = checkSportLetters(body);

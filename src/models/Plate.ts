@@ -55,6 +55,10 @@ const plateSchema = new Schema(
     registrationValid: { type: Boolean, default: null },
     inspectionValid: { type: Boolean, default: null },
     insuranceAvailable: { type: Boolean, default: null },
+    // The advertiser's acceptance of the site's sale-commission terms —
+    // required for a public submission, enforced server-side in
+    // POST /api/listings (never trusted from the client alone).
+    commissionAccepted: { type: Boolean, default: false },
     // The actual uploaded photo of the physical plate — the platform never
     // generates plate artwork from letters/numbers/logo. SaudiPlate
     // remains a fallback only for records with no real photo yet.

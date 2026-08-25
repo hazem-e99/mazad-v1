@@ -6,6 +6,7 @@ import { requirePermission } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
 import { jsonOk, handleApiError, Errors } from "@/lib/api";
 import { MODERATION_TRANSITIONS, type ModerationStatus } from "@/lib/constants";
+import { notifyUser } from "@/services/notificationService";
 
 interface Params {
   params: Promise<{ id: string }>;
@@ -40,6 +41,22 @@ export async function PATCH(req: NextRequest, { params }: Params) {
       entityId: plate._id,
       metadata: body.status === "rejected" ? { rejectionReason: body.rejectionReason } : {},
     });
+
+    const ownerId = String(plate.ownerUser ?? plate.createdBy ?? "");
+    if (ownerId) {
+      void notifyUser({
+        userId: ownerId,
+        type: body.status === "approved" ? "listing.approved" : "listing.rejected",
+        title: body.status === "approved" ? "تم اعتماد لوحتك" : "تم رفض لوحتك",
+        body:
+          body.status === "approved"
+            ? "تمت مراجعة لوحتك واعتمادها، وهي الآن ظاهرة للجميع"
+            : `تم رفض لوحتك${body.rejectionReason ? `: ${body.rejectionReason}` : ""}`,
+        entityType: "Plate",
+        entityId: String(plate._id),
+        link: `/listings/${plate._id}`,
+      });
+    }
 
     return jsonOk({ success: true, moderationStatus: plate.moderationStatus });
   } catch (err) {

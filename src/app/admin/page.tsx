@@ -9,12 +9,13 @@ import {
   XCircle,
   TrendingUp,
   ShoppingCart,
+  Eye,
   PlusCircle,
   Pencil,
   Flag,
   Activity,
 } from "lucide-react";
-import { getDashboardStats, getRecentAuditLogs } from "@/lib/adminQueries";
+import { getDashboardStats, getRecentAuditLogs, getVisitorStats } from "@/lib/adminQueries";
 import { getServerTranslator } from "@/lib/i18n-server";
 import { StatCard } from "@/components/ui/StatCard";
 import { Card, CardBody, CardHeader } from "@/components/ui/Card";
@@ -38,8 +39,9 @@ function iconForAction(action: string) {
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, logs, { t, locale }] = await Promise.all([
+  const [stats, visitorStats, logs, { t, locale }] = await Promise.all([
     getDashboardStats(),
+    getVisitorStats(),
     getRecentAuditLogs(10),
     getServerTranslator(),
   ]);
@@ -68,12 +70,13 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
         <StatCard label={t("admin.statTotalPlates")} value={stats.totalPlates} icon={IdCard} />
         <StatCard label={t("admin.statVipPlates")} value={stats.vipPlates} icon={Crown} tone="gold" />
         <StatCard label={t("admin.statUsers")} value={stats.totalUsers} icon={Users} />
         <StatCard label={t("admin.statActiveAuctions")} value={stats.activeAuctions} icon={Gavel} tone="live" />
         <StatCard label={t("admin.statDirectPurchases")} value={stats.totalPurchases} icon={ShoppingCart} tone="gold" />
+        <StatCard label={t("admin.statVisitorsToday")} value={visitorStats.visitorsToday} icon={Eye} />
       </div>
 
       <div className="grid gap-6 xl:grid-cols-[1.35fr_0.65fr]">

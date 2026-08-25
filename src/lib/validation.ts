@@ -256,6 +256,11 @@ export function buildSchemas(t: Translate) {
     tiktok: socialHandle,
     snapchat: socialHandle,
     submissionType: z.enum(SUBMISSION_TYPES, { error: () => v("submissionTypeRequired") }),
+    // Required for a public (non-staff) submission — same pattern as
+    // ownershipDocument above: enforced in POST /api/listings, which knows
+    // whether the caller is staff, since the staff-authored path never
+    // shows this checkbox at all.
+    commissionAccepted: z.boolean().optional(),
   });
 
   const listingSubmitSchema = listingFieldsSchema
