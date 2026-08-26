@@ -13,8 +13,8 @@ import { formatSar, formatDateTime } from "@/lib/format";
 import { AuctionStatusActions } from "./AuctionStatusActions";
 import { AuctionBackgroundUploader } from "./AuctionBackgroundUploader";
 import { AuctionBackgroundModerationActions } from "./AuctionBackgroundModerationActions";
-import type { AuctionStatus } from "@/lib/constants";
-import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
+import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid, type LeanPlate } from "@/lib/dto";
+import { isPopulated } from "@/lib/serialize";
 import {
   LivePrice,
   LiveBidCount,
@@ -42,7 +42,7 @@ export default async function AdminAuctionDetailPage({ params }: Props) {
     .populate("highestBidder", "name phone")
     .populate("winner", "name phone")
     .lean<LeanAuction>();
-  if (!auctionDoc) notFound();
+  if (!auctionDoc || !isPopulated<LeanPlate>(auctionDoc.plate as LeanPlate)) notFound();
 
   const bidDocs = await Bid.find({ auction: id })
     .sort({ createdAt: -1 })

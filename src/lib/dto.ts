@@ -311,8 +311,9 @@ export interface LeanAuction {
  * producing a broken DTO if a caller forgets `.populate("plate")`.
  */
 export function toAuctionDTO(auction: LeanAuction): AuctionDTO {
-  if (!isPopulated<LeanPlate>(auction.plate as LeanPlate)) {
-    throw new Error("toAuctionDTO: auction.plate must be populated before mapping to a DTO");
+  if (!auction || !isPopulated<LeanPlate>(auction.plate as LeanPlate)) {
+    const id = auction?._id ? idToString(auction._id) : "unknown";
+    throw new Error(`toAuctionDTO: auction ${id} plate must be populated before mapping to a DTO`);
   }
 
   return {
@@ -346,7 +347,15 @@ export function toAuctionDTO(auction: LeanAuction): AuctionDTO {
 }
 
 export function toAuctionDTOList(auctions: LeanAuction[]): AuctionDTO[] {
-  return auctions.map(toAuctionDTO);
+  const valid = (auctions ?? []).filter((a) => {
+    if (!a || !isPopulated<LeanPlate>(a.plate as LeanPlate)) {
+      const id = a?._id ? idToString(a._id) : "unknown";
+      console.warn(`[toAuctionDTOList] Skipping orphaned auction ${id}: referenced plate is missing or unpopulated`);
+      return false;
+    }
+    return true;
+  });
+  return valid.map(toAuctionDTO);
 }
 
 /**
@@ -387,6 +396,11 @@ export function toPlateSummaryDTOList(plates: LeanPlate[]): PlateSummary[] {
  * does (see realtimeEvents.ts `AdminEventExtras`).
  */
 export function toAuctionSummaryDTO(auction: LeanAuction): AuctionSummary {
+  if (!auction || !isPopulated<LeanPlate>(auction.plate as LeanPlate)) {
+    const id = auction?._id ? idToString(auction._id) : "unknown";
+    throw new Error(`toAuctionSummaryDTO: auction ${id} plate must be populated before mapping to a DTO`);
+  }
+
   // Delegate first so the "plate must be populated" guard and every scalar
   // mapping stay defined in exactly one place; the wide plate/contact
   // fields are then replaced before anything leaves this function.
@@ -403,7 +417,15 @@ export function toAuctionSummaryDTO(auction: LeanAuction): AuctionSummary {
 }
 
 export function toAuctionSummaryDTOList(auctions: LeanAuction[]): AuctionSummary[] {
-  return auctions.map(toAuctionSummaryDTO);
+  const valid = (auctions ?? []).filter((a) => {
+    if (!a || !isPopulated<LeanPlate>(a.plate as LeanPlate)) {
+      const id = a?._id ? idToString(a._id) : "unknown";
+      console.warn(`[toAuctionSummaryDTOList] Skipping orphaned auction ${id}: referenced plate is missing or unpopulated`);
+      return false;
+    }
+    return true;
+  });
+  return valid.map(toAuctionSummaryDTO);
 }
 
 // ---- Bid --------------------------------------------------------------

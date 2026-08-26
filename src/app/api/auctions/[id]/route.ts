@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest, { params }: Params) {
       .populate({ path: "plate", populate: { path: "logo" } })
       .populate("highestBidder", "name")
       .populate("winner", "name");
-    if (!auction) throw Errors.notFound("المزاد");
+    if (!auction || !auction.plate) throw Errors.notFound("المزاد");
 
     const recentBids = await Bid.find({ auction: id, accepted: true })
       .sort({ createdAt: -1 })
