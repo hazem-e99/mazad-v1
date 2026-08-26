@@ -3,6 +3,7 @@ import { connectDB } from "@/lib/db";
 import { Plate } from "@/models/Plate";
 import { PlateLogo } from "@/models/PlateLogo";
 import { Auction } from "@/models/Auction";
+import { Advertisement } from "@/models/Advertisement";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
@@ -60,12 +61,14 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const session = await requirePermission("plate:manage");
     await connectDB();
 
-    const activeAuction = await Auction.findOne({
-      plate: id,
-      status: { $in: ["draft", "scheduled", "live"] },
-    });
-    if (activeAuction) {
-      throw Errors.badRequest("لا يمكن حذف اللوحة لوجود مزاد نشط أو مجدول مرتبط بها");
+    const linkedAuction = await Auction.findOne({ plate: id });
+    if (linkedAuction) {
+      throw Errors.badRequest("لا يمكن حذف هذه اللوحة نهائيًا لأنها مرتبطة بمزاد. يمكنك إخفاؤها بدلًا من حذفها.");
+    }
+
+    const linkedAd = await Advertisement.findOne({ plate: id });
+    if (linkedAd) {
+      throw Errors.badRequest("لا يمكن حذف هذه اللوحة نهائيًا لأنها مرتبطة بإعلان.");
     }
 
     const plate = await Plate.findByIdAndDelete(id);

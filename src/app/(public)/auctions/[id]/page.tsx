@@ -15,7 +15,8 @@ import { AuctionStatusBadge } from "@/components/auction/AuctionStatusBadge";
 import { VipBadge, ExclusiveBadge } from "@/components/ui/VipBadge";
 import { plateTypeLabel } from "@/lib/constants";
 import { formatSar, formatDateTime } from "@/lib/format";
-import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid } from "@/lib/dto";
+import { toAuctionDTO, toBidDTOList, type LeanAuction, type LeanBid, type LeanPlate } from "@/lib/dto";
+import { isPopulated } from "@/lib/serialize";
 import { WhatsAppContactButton } from "@/components/plate/WhatsAppContactButton";
 import { OwnerAuctionBackgroundUploader } from "@/components/auction/OwnerAuctionBackgroundUploader";
 import { OwnerFinalizeAction } from "@/components/auction/OwnerFinalizeAction";
@@ -35,7 +36,7 @@ export default async function AuctionDetailPage({ params }: Props) {
     .populate("highestBidder", "name")
     .populate("winner", "name phone")
     .lean<LeanAuction>();
-  if (!auctionDoc) notFound();
+  if (!auctionDoc || !isPopulated<LeanPlate>(auctionDoc.plate as LeanPlate)) notFound();
 
   const [recentBidsDocs, session, { t, locale }] = await Promise.all([
     Bid.find({ auction: id, accepted: true }).sort({ createdAt: -1 }).limit(20).populate("user", "name").lean<LeanBid[]>(),
