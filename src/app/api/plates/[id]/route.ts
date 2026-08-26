@@ -27,8 +27,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   try {
     const { id } = await params;
     const session = await requirePermission("plate:manage");
-    const { plateSchema } = await getLocalizedSchemas();
-    const body = plateSchema.partial().parse(await req.json());
+    const { plateUpdateSchema } = await getLocalizedSchemas();
+    const body = plateUpdateSchema.parse(await req.json());
     await connectDB();
 
     if (body.logo) {
