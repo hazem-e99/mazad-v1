@@ -240,8 +240,87 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
         <CardBody className="flex flex-col gap-4">
           <SectionTitle title="الهيرو" action={null} />
           <div className="grid gap-4 lg:grid-cols-2">
-            <Input label="عنوان الهيرو بالعربي" value={settings.hero.titleAr} onChange={(e) => setSettings({ ...settings, hero: { ...settings.hero, titleAr: e.target.value } })} />
-            <Input label="Hero title in English" value={settings.hero.titleEn} dir="ltr" onChange={(e) => setSettings({ ...settings, hero: { ...settings.hero, titleEn: e.target.value } })} />
+            <Input label="عنوان الهيرو بالعربي (اختياري)" value={settings.hero.titleAr} onChange={(e) => setSettings({ ...settings, hero: { ...settings.hero, titleAr: e.target.value } })} />
+            <Input label="Hero title in English (optional)" value={settings.hero.titleEn} dir="ltr" onChange={(e) => setSettings({ ...settings, hero: { ...settings.hero, titleEn: e.target.value } })} />
+          </div>
+        </CardBody>
+      </Card>
+
+      <Card>
+        <CardBody className="flex flex-col gap-4">
+          <SectionTitle title="بيانات التواصل" action={null} />
+          <div className="grid gap-4 lg:grid-cols-2">
+            <Input
+              label="رقم الهاتف / الدعم"
+              value={settings.contact?.phone ?? ""}
+              dir="ltr"
+              placeholder="9200 12345"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), phone: e.target.value },
+                })
+              }
+            />
+            <Input
+              label="البريد الإلكتروني"
+              type="email"
+              value={settings.contact?.email ?? ""}
+              dir="ltr"
+              placeholder="info@lawhati.sa"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), email: e.target.value },
+                })
+              }
+            />
+            <Input
+              label="العنوان بالعربي"
+              value={settings.contact?.addressAr ?? ""}
+              placeholder="الرياض - المملكة العربية السعودية"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), addressAr: e.target.value },
+                })
+              }
+            />
+            <Input
+              label="Address in English"
+              value={settings.contact?.addressEn ?? ""}
+              dir="ltr"
+              placeholder="Riyadh - Kingdom of Saudi Arabia"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), addressEn: e.target.value },
+                })
+              }
+            />
+            <Input
+              label="أوقات العمل بالعربي"
+              value={settings.contact?.workingHoursAr ?? ""}
+              placeholder="الأحد - الخميس 9 صباحاً - 10 مساءً"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), workingHoursAr: e.target.value },
+                })
+              }
+            />
+            <Input
+              label="Working hours in English"
+              value={settings.contact?.workingHoursEn ?? ""}
+              dir="ltr"
+              placeholder="Sun - Thu, 9am - 10pm"
+              onChange={(e) =>
+                setSettings({
+                  ...settings,
+                  contact: { ...(settings.contact ?? DEFAULT_SITE_SETTINGS.contact), workingHoursEn: e.target.value },
+                })
+              }
+            />
           </div>
         </CardBody>
       </Card>

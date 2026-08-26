@@ -423,6 +423,28 @@ export function buildSchemas(t: Translate) {
       .max(500, v("messageTooLong")),
   });
 
+  const changePasswordSchema = z
+    .object({
+      currentPassword: z
+        .string({ error: () => v("passwordRequired") })
+        .min(1, v("passwordRequired")),
+      newPassword: z
+        .string({ error: () => v("passwordRequired") })
+        .min(8, v("passwordTooShort"))
+        .max(100, v("passwordTooLong")),
+      confirmPassword: z
+        .string({ error: () => v("passwordRequired") })
+        .min(1, v("passwordRequired")),
+    })
+    .refine((data) => data.newPassword === data.confirmPassword, {
+      message: v("passwordsDoNotMatch"),
+      path: ["confirmPassword"],
+    })
+    .refine((data) => data.currentPassword !== data.newPassword, {
+      message: v("passwordSameAsCurrent"),
+      path: ["newPassword"],
+    });
+
   return {
     objectIdSchema,
     phoneSchema,
@@ -430,6 +452,7 @@ export function buildSchemas(t: Translate) {
     emailSchema: email,
     registerSchema,
     loginSchema,
+    changePasswordSchema,
     plateSchema,
     plateUpdateSchema,
     plateCategoryCreateSchema,
@@ -467,6 +490,7 @@ export const {
   emailSchema,
   registerSchema,
   loginSchema,
+  changePasswordSchema,
   plateSchema,
   plateUpdateSchema,
   plateCategoryCreateSchema,

@@ -45,17 +45,6 @@ const QUICK_LINKS: { href: string; labelKey: string }[] = [
   { href: "/chat", labelKey: "nav.chat" },
 ];
 
-/** Contact channels. Site settings model links, not contact details, so
- * these stay in the message catalog where they are written once and
- * translate with everything else. The tagline, socials, copyright and
- * footer logo do come from site settings — see the props below. */
-const CONTACT: { icon: LucideIcon; key: string; href?: (value: string) => string }[] = [
-  { icon: Headphones, key: "footer.phone", href: (v) => `tel:${v.replace(/\s+/g, "")}` },
-  { icon: Mail, key: "footer.email", href: (v) => `mailto:${v}` },
-  { icon: MapPin, key: "footer.address" },
-  { icon: Clock, key: "footer.hours" },
-];
-
 export function Footer({ settings }: { settings: SiteSettingsDTO }) {
   const { t, locale } = useTranslations();
   const Chevron = locale === "ar" ? ChevronLeft : ChevronRight;
@@ -70,6 +59,18 @@ export function Footer({ settings }: { settings: SiteSettingsDTO }) {
   // blank line.
   const tagline = localizedText(locale, settings.footer.taglineAr, settings.footer.taglineEn) || t("footer.tagline");
   const copyright = localizedText(locale, settings.footer.copyrightAr, settings.footer.copyrightEn) || t("footer.rights");
+
+  const phone = settings.contact?.phone || t("footer.phone");
+  const email = settings.contact?.email || t("footer.email");
+  const address = localizedText(locale, settings.contact?.addressAr, settings.contact?.addressEn) || t("footer.address");
+  const hours = localizedText(locale, settings.contact?.workingHoursAr, settings.contact?.workingHoursEn) || t("footer.hours");
+
+  const contactItems: { icon: LucideIcon; value: string; href?: (value: string) => string }[] = [
+    { icon: Headphones, value: phone, href: (v) => `tel:${v.replace(/\s+/g, "")}` },
+    { icon: Mail, value: email, href: (v) => `mailto:${v}` },
+    { icon: MapPin, value: address },
+    { icon: Clock, value: hours },
+  ];
 
   return (
     <footer className="relative isolate mt-16 overflow-hidden border-t border-(--color-gold)/35 text-(--color-on-charcoal)">
@@ -125,8 +126,8 @@ export function Footer({ settings }: { settings: SiteSettingsDTO }) {
             </p>
 
             <ul className="mt-6 flex flex-col gap-3.5">
-              {CONTACT.map((row) => {
-                const value = t(row.key);
+              {contactItems.map((row, idx) => {
+                const value = row.value;
                 const body = (
                   <>
                     <span
@@ -142,7 +143,7 @@ export function Footer({ settings }: { settings: SiteSettingsDTO }) {
                 );
 
                 return (
-                  <li key={row.key}>
+                  <li key={idx}>
                     {row.href ? (
                       <a
                         href={row.href(value)}

@@ -18,13 +18,13 @@ import { DEFAULT_SITE_SETTINGS, localizedText, type SiteSettingsDTO } from "@/li
  * featured panel below can overlap it without a visible seam.
  */
 export function Hero({ settings }: { settings: SiteSettingsDTO }) {
-  const { locale } = useTranslations();
-  const heroTitle = localizedText(locale, settings.hero.titleAr, settings.hero.titleEn);
+  const { locale, t } = useTranslations();
+  const heroTitle = localizedText(locale, settings.hero.titleAr, settings.hero.titleEn).trim();
 
   return (
     <section
       className="mz-stage flex aspect-[853/1844] flex-col sm:aspect-auto sm:min-h-[clamp(36rem,84vh,52rem)]"
-      aria-labelledby="hero-title"
+      {...(heroTitle ? { "aria-labelledby": "hero-title" } : { "aria-label": t("home.heroEyebrow") })}
     >
       <HeroBackground key={settings.hero.backgroundImage} src={settings.hero.backgroundImage} />
       <span className="mz-stage-scrim" aria-hidden="true" />
@@ -46,12 +46,14 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
           <div className="hidden sm:inline-flex">
             <MazadLogo src={settings.hero.logoUrl || settings.brand.logoUrl} className="h-24 w-[8.75rem] sm:h-32 sm:w-[11.5rem]" />
           </div>
-          <h1
-            id="hero-title"
-            className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-white sm:text-(--color-text)"
-          >
-            {heroTitle}
-          </h1>
+          {heroTitle && (
+            <h1
+              id="hero-title"
+              className="text-[clamp(2rem,4.4vw,3.25rem)] font-bold leading-tight tracking-tight text-white sm:text-(--color-text)"
+            >
+              {heroTitle}
+            </h1>
+          )}
         </div>
 
         <HeroSearch />

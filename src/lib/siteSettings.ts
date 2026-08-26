@@ -45,6 +45,15 @@ export interface SiteManagedPage {
   sortOrder: number;
 }
 
+export interface SiteContactInfo {
+  phone: string;
+  email: string;
+  addressAr: string;
+  addressEn: string;
+  workingHoursAr: string;
+  workingHoursEn: string;
+}
+
 export interface SiteSettingsDTO {
   _id?: string;
   brand: {
@@ -72,6 +81,7 @@ export interface SiteSettingsDTO {
     robotsIndex: boolean;
     robotsFollow: boolean;
   };
+  contact: SiteContactInfo;
   navItems: SiteNavItem[];
   footer: {
     taglineAr: string;
@@ -113,6 +123,14 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsDTO = {
     ogImage: DEFAULT_HERO,
     robotsIndex: true,
     robotsFollow: true,
+  },
+  contact: {
+    phone: "9200 12345",
+    email: "info@lawhati.sa",
+    addressAr: "الرياض - المملكة العربية السعودية",
+    addressEn: "Riyadh - Kingdom of Saudi Arabia",
+    workingHoursAr: "الأحد - الخميس 9 صباحاً - 10 مساءً",
+    workingHoursEn: "Sun - Thu, 9am - 10pm",
   },
   navItems: [
     { id: "home", labelAr: "الرئيسية", labelEn: "Home", href: "/", audience: "always", enabled: true, sortOrder: 0 },
@@ -238,6 +256,15 @@ const managedPageSchema = z.object({
   sortOrder: sortOrderSchema.default(0),
 });
 
+const contactSchema = z.object({
+  phone: textSchema.default(""),
+  email: textSchema.default(""),
+  addressAr: textSchema.default(""),
+  addressEn: textSchema.default(""),
+  workingHoursAr: textSchema.default(""),
+  workingHoursEn: textSchema.default(""),
+});
+
 export const siteSettingsSchema = z.object({
   brand: z.object({
     logoUrl: imageUrlSchema,
@@ -247,8 +274,8 @@ export const siteSettingsSchema = z.object({
   hero: z.object({
     backgroundImage: imageUrlSchema,
     logoUrl: imageUrlSchema,
-    titleAr: textSchema.min(1),
-    titleEn: textSchema.min(1),
+    titleAr: textSchema.default(""),
+    titleEn: textSchema.default(""),
   }),
   seo: z.object({
     siteNameAr: textSchema.min(1),
@@ -264,6 +291,7 @@ export const siteSettingsSchema = z.object({
     robotsIndex: z.boolean().default(true),
     robotsFollow: z.boolean().default(true),
   }),
+  contact: contactSchema.default(DEFAULT_SITE_SETTINGS.contact),
   navItems: z.array(siteNavItemSchema).min(1).max(24),
   footer: z.object({
     taglineAr: textSchema,
@@ -295,6 +323,7 @@ export function normalizeSiteSettings(input: Partial<SiteSettingsDTO> | null | u
     brand: { ...DEFAULT_SITE_SETTINGS.brand, ...(input?.brand ?? {}) },
     hero: { ...DEFAULT_SITE_SETTINGS.hero, ...(input?.hero ?? {}) },
     seo: { ...DEFAULT_SITE_SETTINGS.seo, ...(input?.seo ?? {}) },
+    contact: { ...DEFAULT_SITE_SETTINGS.contact, ...(input?.contact ?? {}) },
     footer: { ...DEFAULT_SITE_SETTINGS.footer, ...(input?.footer ?? {}) },
     navItems: input?.navItems?.length ? input.navItems : DEFAULT_SITE_SETTINGS.navItems,
     pages: input?.pages ?? DEFAULT_SITE_SETTINGS.pages,

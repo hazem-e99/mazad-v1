@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { connectDB } from "@/lib/db";
 import { Plate } from "@/models/Plate";
 import { PlateLogo } from "@/models/PlateLogo";
+import { Auction } from "@/models/Auction";
 import { AuditLog } from "@/models/AuditLog";
 import { requirePermission } from "@/lib/auth";
 import { getLocalizedSchemas } from "@/lib/validation-server";
@@ -59,15 +60,28 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     const session = await requirePermission("plate:manage");
     await connectDB();
 
-    const plate = await Plate.findByIdAndUpdate(id, { $set: { isVisible: false } }, { returnDocument: "after" });
+    const activeAuction = await Auction.findOne({
+      plate: id,
+      status: { $in: ["draft", "scheduled", "live"] },
+    });
+    if (activeAuction) {
+      throw Errors.badRequest("لا يمكن حذف اللوحة لوجود مزاد نشط أو مجدول مرتبط بها");
+    }
+
+    const plate = await Plate.findByIdAndDelete(id);
     if (!plate) throw Errors.notFound("اللوحة");
 
     await AuditLog.create({
       actor: session.sub,
-      action: "plate.hidden",
+      action: "plate.deleted",
       entityType: "Plate",
       entityId: plate._id,
-      metadata: {},
+      metadata: {
+        lettersAr: plate.lettersAr,
+        lettersEn: plate.lettersEn,
+        numbers: plate.numbers,
+        type: plate.type,
+      },
     });
 
     return jsonOk({ success: true });

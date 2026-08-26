@@ -305,6 +305,16 @@ export interface MessageCatalog {
     statPlates: string;
     statActiveBids: string;
     statWon: string;
+    changePasswordTitle: string;
+    changePasswordSubtitle: string;
+    currentPassword: string;
+    newPassword: string;
+    confirmPassword: string;
+    savePasswordButton: string;
+    changePasswordSuccess: string;
+    changePasswordError: string;
+    passwordsDoNotMatch: string;
+    passwordSameAsCurrent: string;
   };
   /** Field- and form-level validation copy. Zod schemas reference these
    * keys rather than literal strings, so the same rule renders in the
@@ -380,6 +390,8 @@ export interface MessageCatalog {
     blockedWordRequired: string;
     blockedWordTooLong: string;
     blockedWordSingleToken: string;
+    passwordsDoNotMatch: string;
+    passwordSameAsCurrent: string;
   };
   errors: {
     notFoundTitle: string;
@@ -712,6 +724,12 @@ export interface MessageCatalog {
     hideAction: string;
     vipAction: string;
     unvipAction: string;
+    plateHiddenToast: string;
+    plateShownToast: string;
+    plateDeletedToast: string;
+    deletePlateAction: string;
+    confirmDeletePlateTitle: string;
+    confirmDeletePlateBody: string;
 
     auctionsTitle: string;
     auctionsSubtitle: string;
@@ -1303,6 +1321,16 @@ const ar: MessageCatalog = {
     statPlates: "لوحاتي",
     statActiveBids: "مزادات نشطة",
     statWon: "مزادات فزت بها",
+    changePasswordTitle: "تغيير كلمة المرور",
+    changePasswordSubtitle: "تحديث كلمة المرور الخاصة بحسابك لحماية إضافية",
+    currentPassword: "كلمة المرور الحالية",
+    newPassword: "كلمة المرور الجديدة",
+    confirmPassword: "تأكيد كلمة المرور الجديدة",
+    savePasswordButton: "تحديث كلمة المرور",
+    changePasswordSuccess: "تم تغيير كلمة المرور بنجاح",
+    changePasswordError: "تعذر تغيير كلمة المرور، يرجى المحاولة لاحقاً",
+    passwordsDoNotMatch: "كلمتا المرور غير متطابقتين",
+    passwordSameAsCurrent: "كلمة المرور الجديدة يجب ألا تطابق كلمة المرور الحالية",
   },
   validation: {
     fixBeforeContinue: "يرجى استكمال البيانات المطلوبة قبل المتابعة.",
@@ -1375,6 +1403,8 @@ const ar: MessageCatalog = {
     blockedWordRequired: "يرجى إدخال الكلمة.",
     blockedWordTooLong: "الكلمة يجب ألا تزيد عن 100 حرف.",
     blockedWordSingleToken: "أدخل كلمة واحدة فقط بدون مسافات — أضف كل كلمة كسطر منفصل.",
+    passwordsDoNotMatch: "كلمتا المرور غير متطابقتين.",
+    passwordSameAsCurrent: "كلمة المرور الجديدة يجب ألا تطابق كلمة المرور الحالية.",
   },
   errors: {
     notFoundTitle: "الصفحة غير موجودة",
@@ -1697,6 +1727,12 @@ const ar: MessageCatalog = {
     hideAction: "إخفاء",
     vipAction: "تمييز VIP",
     unvipAction: "إزالة VIP",
+    plateHiddenToast: "تم إخفاء اللوحة",
+    plateShownToast: "تم إظهار اللوحة",
+    plateDeletedToast: "تم حذف اللوحة بنجاح",
+    deletePlateAction: "حذف اللوحة",
+    confirmDeletePlateTitle: "تأكيد حذف اللوحة",
+    confirmDeletePlateBody: "هل أنت متأكد من حذف هذه اللوحة؟ لا يمكن التراجع عن هذا الإجراء وسيتم مسح اللوحة نهائياً.",
 
     auctionsTitle: "المزادات",
     auctionsSubtitle: "إدارة جميع المزادات",

@@ -16,9 +16,9 @@ describe("effectivePermissions", () => {
     expect(perms).toContain("audit:view");
   });
 
-  it("gives a regular user only the baseline auction:buy permission by default", () => {
+  it("gives a regular user only the baseline auction:buy and auction:bid permissions by default", () => {
     const perms = effectivePermissions("user", []);
-    expect(perms).toEqual(["auction:buy"]);
+    expect(perms).toEqual(["auction:buy", "auction:bid"]);
   });
 
   it("gives a supervisor only explicitly granted permissions plus none by default", () => {

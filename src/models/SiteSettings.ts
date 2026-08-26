@@ -79,8 +79,8 @@ const siteSettingsSchema = new Schema(
     hero: {
       backgroundImage: { type: String, required: true },
       logoUrl: { type: String, required: true },
-      titleAr: { type: String, required: true, trim: true, maxlength: 200 },
-      titleEn: { type: String, required: true, trim: true, maxlength: 200 },
+      titleAr: { type: String, default: "", trim: true, maxlength: 200 },
+      titleEn: { type: String, default: "", trim: true, maxlength: 200 },
     },
     seo: {
       siteNameAr: { type: String, required: true, trim: true, maxlength: 200 },
@@ -95,6 +95,14 @@ const siteSettingsSchema = new Schema(
       ogImage: { type: String, required: true },
       robotsIndex: { type: Boolean, default: true },
       robotsFollow: { type: Boolean, default: true },
+    },
+    contact: {
+      phone: { type: String, default: "", trim: true, maxlength: 50 },
+      email: { type: String, default: "", trim: true, lowercase: true, maxlength: 100 },
+      addressAr: { type: String, default: "", trim: true, maxlength: 200 },
+      addressEn: { type: String, default: "", trim: true, maxlength: 200 },
+      workingHoursAr: { type: String, default: "", trim: true, maxlength: 200 },
+      workingHoursEn: { type: String, default: "", trim: true, maxlength: 200 },
     },
     navItems: { type: [navItemSchema], default: [] },
     footer: {

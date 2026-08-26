@@ -5,6 +5,7 @@ import { getServerTranslator } from "@/lib/i18n-server";
 import { getAccountUser } from "@/lib/accountQueries";
 import { Badge } from "@/components/ui/Badge";
 import { LogoutButton } from "@/components/account/LogoutButton";
+import { ChangePasswordForm } from "@/components/account/ChangePasswordForm";
 
 export const revalidate = 0;
 
@@ -55,6 +56,8 @@ export default async function AccountSecurityPage() {
           </div>
         </dl>
       </section>
+
+      <ChangePasswordForm />
 
       <LogoutButton />
     </div>
