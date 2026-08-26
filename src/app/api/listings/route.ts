@@ -105,15 +105,6 @@ export async function POST(req: NextRequest) {
     const { listingSubmitSchema, checkSportLetters } = await getLocalizedSchemas();
     const body = listingSubmitSchema.parse(await req.json());
 
-    // Ownership proof is required for a public submission (§ Proof of
-    // Plate Ownership) — not expressible in the shared schema since it
-    // depends on who the caller is, which the schema can't see. A
-    // staff-authored listing skips this, same as it already skips
-    // moderation.
-    if (!isStaff && !body.ownershipDocument) {
-      throw Errors.validation({ ownershipDocument: "يجب رفع صورة إستمارة السيارة" });
-    }
-
     // The commission percentage itself is never taken from the client —
     // only this acknowledgement flag is, and only a public (non-staff)
     // submission needs it at all.

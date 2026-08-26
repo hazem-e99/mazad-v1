@@ -244,7 +244,7 @@ export function buildSchemas(t: Translate) {
     registrationValid: z.boolean({ error: () => v("selectRequired") }),
     inspectionValid: z.boolean({ error: () => v("selectRequired") }),
     insuranceAvailable: z.boolean({ error: () => v("selectRequired") }),
-    image: z.string().min(1, v("plateImageRequired")),
+    image: z.string().min(1).optional(),
     // Required for a public (non-staff) submission — enforced in
     // POST /api/listings, which knows whether the caller is staff; a bare
     // z.string().min(1).optional() here keeps this schema usable for the

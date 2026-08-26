@@ -281,8 +281,9 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       insuranceAvailable: insuranceAvailable === "" ? undefined : insuranceAvailable === "yes",
       // A placeholder for the not-yet-uploaded file: the real URL is
       // substituted after the upload succeeds. Only its presence is being
-      // validated at this point.
-      image: imageFile ? "pending-upload" : "",
+      // validated at this point — the plate photo itself is optional, so
+      // no file means no value at all rather than an empty string.
+      image: imageFile ? "pending-upload" : undefined,
       contactPhone,
       contactEmail: contactEmail || undefined,
       instagram: instagram || undefined,
@@ -334,10 +335,6 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       if (!isSport && lettersAr.trim() === "") stepErrors.lettersAr = t("validation.lettersArRequired");
     }
 
-    // Card-picker / file steps aren't plain inputs, so the schema's generic
-    // enum/string errors get their own wording here instead.
-    if (index === 2 && !imageFile) stepErrors.image = t("validation.plateImageRequired");
-    if (index === 2 && !isAdmin && !docFile) stepErrors.ownershipDocument = t("pages.ownershipDocumentRequired");
     if (index === 3) {
       if (!registrationValid) stepErrors.registrationValid = t("validation.selectRequired");
       if (!inspectionValid) stepErrors.inspectionValid = t("validation.selectRequired");
@@ -392,20 +389,18 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
       }
     }
 
-    const fileError = validateUploadFile(imageFile, t, "image");
-    if (fileError) {
-      report({ image: fileError });
-      setStep(2);
-      return;
-    }
-    // The admin flow has no ownership-document step at all — a
-    // staff-authored listing doesn't need one, see PlateListingFormProps.
-    if (!isAdmin) {
-      if (!docFile) {
-        report({ ownershipDocument: t("pages.ownershipDocumentRequired") });
+    // Both the plate photo and the ownership document are optional — some
+    // plates simply have no photo on hand — but whichever ones are
+    // attached still get validated for type/size before upload.
+    if (imageFile) {
+      const fileError = validateUploadFile(imageFile, t, "image");
+      if (fileError) {
+        report({ image: fileError });
         setStep(2);
         return;
       }
+    }
+    if (docFile) {
       const docError = validateUploadFile(docFile, t, "image");
       if (docError) {
         report({ ownershipDocument: docError });
@@ -416,13 +411,17 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
 
     setLoading(true);
     try {
-      const imageForm = new FormData();
-      imageForm.append("file", imageFile!);
-      imageForm.append("subdir", "plates");
-      const imageData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: imageForm });
+      let image: string | undefined;
+      if (imageFile) {
+        const imageForm = new FormData();
+        imageForm.append("file", imageFile);
+        imageForm.append("subdir", "plates");
+        const imageData = await apiFetch<{ url: string }>("/api/uploads", { method: "POST", body: imageForm });
+        image = imageData.url;
+      }
 
       let ownershipDocument: string | undefined;
-      if (!isAdmin && docFile) {
+      if (docFile) {
         const docForm = new FormData();
         docForm.append("file", docFile);
         const docData = await apiFetch<{ ref: string }>("/api/uploads/ownership-document", { method: "POST", body: docForm });
@@ -431,7 +430,7 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
 
       await apiFetch("/api/listings", {
         method: "POST",
-        body: JSON.stringify({ ...buildPayload(), image: imageData.url, ownershipDocument }),
+        body: JSON.stringify({ ...buildPayload(), image, ownershipDocument }),
         silentErrors: true,
       });
 
@@ -775,7 +774,6 @@ export function PlateListingForm({ variant = "public" }: PlateListingFormProps) 
                       clearField("image");
                     }}
                     className="sr-only"
-                    required
                   />
                 </label>
                 {errorFor("image") && (
