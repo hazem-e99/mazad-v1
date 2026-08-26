@@ -78,6 +78,7 @@ const siteSettingsSchema = new Schema(
     },
     hero: {
       backgroundImage: { type: String, required: true },
+      mobileBackgroundImage: { type: String, default: "" },
       logoUrl: { type: String, required: true },
       titleAr: { type: String, default: "", trim: true, maxlength: 200 },
       titleEn: { type: String, default: "", trim: true, maxlength: 200 },

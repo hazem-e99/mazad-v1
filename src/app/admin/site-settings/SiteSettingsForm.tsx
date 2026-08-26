@@ -20,12 +20,13 @@ import {
 } from "@/lib/siteSettings";
 import { useToastStore } from "@/hooks/useToast";
 
-type ImageField = "siteLogo" | "heroBackground" | "heroLogo" | "footerLogo" | "ogImage";
+type ImageField = "siteLogo" | "heroBackground" | "heroMobileBackground" | "heroLogo" | "footerLogo" | "ogImage";
 type ImageFiles = Record<ImageField, File | null>;
 
 const emptyFiles: ImageFiles = {
   siteLogo: null,
   heroBackground: null,
+  heroMobileBackground: null,
   heroLogo: null,
   footerLogo: null,
   ogImage: null,
@@ -58,7 +59,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
     const problem = validateUploadFile(file, (key, params) => {
       if (key === "validation.fileTypeInvalid") return "نوع الصورة غير مدعوم. استخدم PNG أو JPG أو WebP.";
       if (key === "validation.fileTooLarge") return `حجم الصورة أكبر من ${params?.max ?? 8}MB.`;
-      return "الصورة غير صالحة.";
+      return "الملف غير صالح";
     });
     if (problem) {
       push(problem, "error");
@@ -81,6 +82,9 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
     }
     if (field === "heroBackground") {
       setSettings((current) => ({ ...current, hero: { ...current.hero, backgroundImage: DEFAULT_SITE_SETTINGS.hero.backgroundImage } }));
+    }
+    if (field === "heroMobileBackground") {
+      setSettings((current) => ({ ...current, hero: { ...current.hero, mobileBackgroundImage: "" } }));
     }
     if (field === "heroLogo") {
       setSettings((current) => ({ ...current, hero: { ...current.hero, logoUrl: DEFAULT_SITE_SETTINGS.hero.logoUrl } }));
@@ -150,9 +154,10 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
     setSaving(true);
 
     try {
-      const [siteLogo, heroBackground, heroLogo, footerLogo, ogImage] = await Promise.all([
+      const [siteLogo, heroBackground, heroMobileBackground, heroLogo, footerLogo, ogImage] = await Promise.all([
         upload("siteLogo"),
         upload("heroBackground"),
+        upload("heroMobileBackground"),
         upload("heroLogo"),
         upload("footerLogo"),
         upload("ogImage"),
@@ -169,6 +174,7 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
         hero: {
           ...settings.hero,
           backgroundImage: heroBackground ?? settings.hero.backgroundImage,
+          mobileBackgroundImage: heroMobileBackground ?? (settings.hero.mobileBackgroundImage || ""),
           logoUrl: heroLogo ?? settings.hero.logoUrl,
         },
         seo: {
@@ -208,12 +214,23 @@ export function SiteSettingsForm({ initial }: { initial: SiteSettingsDTO }) {
           />
           <ImageDropzone
             id="hero-bg"
-            label="صورة الهيرو"
+            label="صورة الهيرو للديسكتوب (Desktop)"
             existingUrl={settings.hero.backgroundImage}
             file={files.heroBackground}
             onPick={(file) => pickImage("heroBackground", file)}
             onRemove={() => resetImage("heroBackground")}
             disabled={saving}
+            hint="المقاس المقترح: 1920x1080 أو نسبة 16:9"
+          />
+          <ImageDropzone
+            id="hero-mobile-bg"
+            label="صورة الهيرو للجوال (Mobile)"
+            existingUrl={settings.hero.mobileBackgroundImage || ""}
+            file={files.heroMobileBackground}
+            onPick={(file) => pickImage("heroMobileBackground", file)}
+            onRemove={() => resetImage("heroMobileBackground")}
+            disabled={saving}
+            hint="المقاس المقترح: 853x1844 أو نسبة طولية 9:19 (اختياري)"
           />
           <ImageDropzone
             id="hero-logo"

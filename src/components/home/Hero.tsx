@@ -26,7 +26,11 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
       className="mz-stage flex aspect-[853/1844] flex-col sm:aspect-auto sm:min-h-[clamp(36rem,84vh,52rem)]"
       {...(heroTitle ? { "aria-labelledby": "hero-title" } : { "aria-label": t("home.heroEyebrow") })}
     >
-      <HeroBackground key={settings.hero.backgroundImage} src={settings.hero.backgroundImage} />
+      <HeroBackground
+        key={`${settings.hero.backgroundImage}-${settings.hero.mobileBackgroundImage || ""}`}
+        desktopSrc={settings.hero.backgroundImage}
+        mobileSrc={settings.hero.mobileBackgroundImage}
+      />
       <span className="mz-stage-scrim" aria-hidden="true" />
 
       {/* Mobile is bottom-anchored (justify-end + a fixed pb) rather than
@@ -62,13 +66,63 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
   );
 }
 
-function HeroBackground({ src }: { src: string }) {
-  const initial = src || DEFAULT_SITE_SETTINGS.hero.backgroundImage;
-  const [imageSrc, setImageSrc] = useState(initial);
+function HeroBackground({
+  desktopSrc,
+  mobileSrc,
+}: {
+  desktopSrc: string;
+  mobileSrc?: string;
+}) {
+  const initialDesktop = desktopSrc || DEFAULT_SITE_SETTINGS.hero.backgroundImage;
+  const initialMobile = (mobileSrc && mobileSrc.trim()) ? mobileSrc : initialDesktop;
+
+  const [desktopImage, setDesktopImage] = useState(initialDesktop);
+  const [mobileImage, setMobileImage] = useState(initialMobile);
+
+  const hasDistinctMobile = Boolean(mobileSrc && mobileSrc.trim() && mobileSrc !== desktopSrc);
+
+  if (hasDistinctMobile) {
+    return (
+      <>
+        <Image
+          src={mobileImage}
+          alt=""
+          fill
+          preload
+          priority
+          sizes="100vw"
+          unoptimized
+          onError={() => {
+            if (mobileImage !== desktopImage) {
+              setMobileImage(desktopImage);
+            } else if (mobileImage !== DEFAULT_SITE_SETTINGS.hero.backgroundImage) {
+              setMobileImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage);
+            }
+          }}
+          className="mz-stage-media sm:hidden"
+        />
+        <Image
+          src={desktopImage}
+          alt=""
+          fill
+          preload
+          priority
+          sizes="100vw"
+          unoptimized
+          onError={() => {
+            if (desktopImage !== DEFAULT_SITE_SETTINGS.hero.backgroundImage) {
+              setDesktopImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage);
+            }
+          }}
+          className="mz-stage-media hidden sm:block"
+        />
+      </>
+    );
+  }
 
   return (
     <Image
-      src={imageSrc}
+      src={desktopImage}
       alt=""
       fill
       preload
@@ -76,8 +130,8 @@ function HeroBackground({ src }: { src: string }) {
       sizes="100vw"
       unoptimized
       onError={() => {
-        if (imageSrc !== DEFAULT_SITE_SETTINGS.hero.backgroundImage) {
-          setImageSrc(DEFAULT_SITE_SETTINGS.hero.backgroundImage);
+        if (desktopImage !== DEFAULT_SITE_SETTINGS.hero.backgroundImage) {
+          setDesktopImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage);
         }
       }}
       className="mz-stage-media"

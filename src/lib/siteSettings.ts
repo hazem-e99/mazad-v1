@@ -63,6 +63,7 @@ export interface SiteSettingsDTO {
   };
   hero: {
     backgroundImage: string;
+    mobileBackgroundImage?: string;
     logoUrl: string;
     titleAr: string;
     titleEn: string;
@@ -97,6 +98,7 @@ export interface SiteSettingsDTO {
 
 const DEFAULT_LOGO = "/images/logo-mark.webp";
 const DEFAULT_HERO = "/images/bg-hero.webp";
+const DEFAULT_HERO_MOBILE = "/images/bg-hero-mobile.png";
 
 export const DEFAULT_SITE_SETTINGS: SiteSettingsDTO = {
   brand: {
@@ -106,6 +108,7 @@ export const DEFAULT_SITE_SETTINGS: SiteSettingsDTO = {
   },
   hero: {
     backgroundImage: DEFAULT_HERO,
+    mobileBackgroundImage: DEFAULT_HERO_MOBILE,
     logoUrl: DEFAULT_LOGO,
     titleAr: "لوحتك تبدأ من هنا",
     titleEn: "Your plate starts here",
@@ -273,6 +276,7 @@ export const siteSettingsSchema = z.object({
   }),
   hero: z.object({
     backgroundImage: imageUrlSchema,
+    mobileBackgroundImage: imageUrlSchema.or(z.literal("")).optional().default(""),
     logoUrl: imageUrlSchema,
     titleAr: textSchema.default(""),
     titleEn: textSchema.default(""),
@@ -340,6 +344,7 @@ export function normalizeSiteSettings(input: Partial<SiteSettingsDTO> | null | u
     hero: {
       ...parsed.hero,
       backgroundImage: optimizedKnownAsset(parsed.hero.backgroundImage),
+      mobileBackgroundImage: parsed.hero.mobileBackgroundImage ? optimizedKnownAsset(parsed.hero.mobileBackgroundImage) : "",
       logoUrl: optimizedKnownAsset(parsed.hero.logoUrl),
     },
     seo: {
