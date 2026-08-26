@@ -62,37 +62,25 @@ export function Hero({ settings }: { settings: SiteSettingsDTO }) {
   );
 }
 
-const MOBILE_HERO_IMAGE = "/images/bg-hero-mobile.png";
-
 function HeroBackground({ src }: { src: string }) {
-  const [backgroundImage, setBackgroundImage] = useState(src);
-  const [mobileImage, setMobileImage] = useState(MOBILE_HERO_IMAGE);
+  const initial = src || DEFAULT_SITE_SETTINGS.hero.backgroundImage;
+  const [imageSrc, setImageSrc] = useState(initial);
 
   return (
-    <>
-      {/* Mobile: the stage's own aspect-ratio matches this photo's
-          (853:1844) exactly, so `cover` fills the frame with no crop and
-          no letterboxing gaps — the whole image, edge to edge. */}
-      <Image
-        src={mobileImage}
-        alt=""
-        fill
-        preload
-        sizes="100vw"
-        unoptimized
-        onError={() => setMobileImage(backgroundImage)}
-        className="mz-stage-media sm:hidden"
-      />
-      <Image
-        src={backgroundImage}
-        alt=""
-        fill
-        preload
-        sizes="100vw"
-        unoptimized
-        onError={() => setBackgroundImage(DEFAULT_SITE_SETTINGS.hero.backgroundImage)}
-        className="mz-stage-media hidden sm:block"
-      />
-    </>
+    <Image
+      src={imageSrc}
+      alt=""
+      fill
+      preload
+      priority
+      sizes="100vw"
+      unoptimized
+      onError={() => {
+        if (imageSrc !== DEFAULT_SITE_SETTINGS.hero.backgroundImage) {
+          setImageSrc(DEFAULT_SITE_SETTINGS.hero.backgroundImage);
+        }
+      }}
+      className="mz-stage-media"
+    />
   );
 }
