@@ -358,7 +358,7 @@ const en: MessageCatalog = {
     plateRequired: "Please choose a plate.",
     plateTypeRequired: "Please choose a plate type.",
     lettersArRequired: "Please enter the plate letters in Arabic.",
-    lettersArInvalid: "Only these plate letters are allowed: أ ب ح د ر س ص ط ع ق ك ل م ن ه و ي.",
+    lettersArInvalid: "Plate letters must be 1 to 4 Arabic letters (ث خ ذ ش غ are not allowed).",
     lettersEnRequired: "Please enter the plate letters in English.",
     lettersEnInvalid: "Please use English letters only.",
     lettersTooLong: "Letters must be at most 10 characters.",

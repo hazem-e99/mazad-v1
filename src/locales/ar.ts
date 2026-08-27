@@ -1372,7 +1372,7 @@ const ar: MessageCatalog = {
     plateRequired: "يرجى اختيار اللوحة.",
     plateTypeRequired: "يرجى اختيار نوع اللوحة.",
     lettersArRequired: "يرجى إدخال حروف اللوحة بالعربية.",
-    lettersArInvalid: "الحروف المسموح بها على اللوحة فقط: أ ب ح د ر س ص ط ع ق ك ل م ن ه و ي.",
+    lettersArInvalid: "حروف اللوحة يجب أن تكون من 1 إلى 4 حروف عربية (عدا ث خ ذ ش غ).",
     lettersEnRequired: "يرجى إدخال حروف اللوحة بالإنجليزية.",
     lettersEnInvalid: "يرجى إدخال حروف إنجليزية فقط.",
     lettersTooLong: "الحروف يجب ألا تزيد عن 10 خانات.",

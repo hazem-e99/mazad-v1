@@ -82,14 +82,17 @@ function HeroBackground({
   const hasDistinctMobile = Boolean(mobileSrc && mobileSrc.trim() && mobileSrc !== desktopSrc);
 
   if (hasDistinctMobile) {
+    // Two <Image>s, one shown per breakpoint via CSS. `fetchPriority="high"`
+    // hints the one in view, but there's deliberately no `loading="eager"`
+    // (or `preload`): both would force the hidden image to download too. The
+    // default lazy loading lets the browser skip the `display:none` one.
     return (
       <>
         <Image
           src={mobileImage}
           alt=""
           fill
-          preload
-          priority
+          fetchPriority="high"
           sizes="100vw"
           unoptimized
           onError={() => {
@@ -105,8 +108,7 @@ function HeroBackground({
           src={desktopImage}
           alt=""
           fill
-          preload
-          priority
+          fetchPriority="high"
           sizes="100vw"
           unoptimized
           onError={() => {
@@ -125,8 +127,8 @@ function HeroBackground({
       src={desktopImage}
       alt=""
       fill
-      preload
-      priority
+      loading="eager"
+      fetchPriority="high"
       sizes="100vw"
       unoptimized
       onError={() => {

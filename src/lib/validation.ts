@@ -68,13 +68,13 @@ export function buildSchemas(t: Translate) {
 
   const socialHandle = z.string().trim().max(60, v("handleTooLong")).optional();
 
-  // Whitelisted against the 15 letters an official Saudi plate can
-  // actually carry (see plateLetters.ts), not just "any Arabic text" the
-  // old regex accepted. lettersEn is intentionally *not* a schema field
-  // anywhere below: it is derived from lettersAr through the one official
-  // mapping — see deriveLettersEn() and its callers in the route handlers
-  // — so a caller can never send `{ lettersAr: "...", lettersEn: "ANYTHING" }`
-  // and have the mismatch stick.
+  // Whitelisted through isValidPlateLettersAr (see plateLetters.ts) — 1 to
+  // 4 letters, each drawn from the 23 plate-legal Arabic letters (ث خ ذ ش غ
+  // excluded) — not just "any Arabic text" the old regex accepted. lettersEn
+  // is intentionally *not* a schema field anywhere below: it is derived from
+  // lettersAr through the transliteration map — see deriveLettersEn() and
+  // withDerivedLettersEn below — so a caller can never send
+  // `{ lettersAr: "...", lettersEn: "ANYTHING" }` and have the mismatch stick.
   //
   // Sport plates are English-only (no Arabic letters/numbers requirement —
   // see requirement §15): lettersAr becomes optional at the field level,

@@ -23,7 +23,9 @@ import { USAGE_TYPES, usageTypeLabel, plateShapeLabel, SUBMISSION_TYPES, COMMISS
 import type { UsageType, PlateShape, SubmissionType } from "@/lib/constants";
 import { USAGE_TYPE_SHAPES, deriveLegacyPlateType, getAllowedLogos } from "@/lib/plateFormConfig";
 
-const PREVIEW_PLACEHOLDER = { lettersAr: "أ ب ج", lettersEn: "ABC", numbers: "1234" };
+// lettersEn is what deriveLettersEn("أ ب ج") produces (A B J, reversed) —
+// kept in sync so the ghost preview never shows a mismatched pair.
+const PREVIEW_PLACEHOLDER = { lettersAr: "أ ب ج", lettersEn: "JBA", numbers: "1234" };
 const PREVIEW_PLACEHOLDER_SPORT = { lettersEn: "ABC", numbers: "1234" };
 
 interface PlateListingFormProps {

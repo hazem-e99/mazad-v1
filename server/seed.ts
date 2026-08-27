@@ -117,8 +117,8 @@ async function seed() {
     { type: "sport", lettersAr: "ق ك م", lettersEn: "QKM", numbers: "99", logo: logosBySlug.get("swords_palm_black") ?? null, isVip: false, classification: "triple", usageType: "sport" },
     { type: "transfer", lettersAr: "ط ل م", lettersEn: "TLM", numbers: "2024", logo: null, isVip: false, classification: "triple", usageType: "transport" },
     { type: "wide", lettersAr: "ر ز س", lettersEn: "RZS", numbers: "321", logo: logosBySlug.get("vision") ?? null, isVip: false, classification: "triple", shape: "wide" },
-    { type: "small_square", lettersAr: "ح خ د", lettersEn: "HKD", numbers: "45", logo: null, isVip: false, classification: "triple", shape: "small_square" },
-    { type: "small_sport", lettersAr: "ث ج ح", lettersEn: "THJ", numbers: "88", logo: logosBySlug.get("diriyah") ?? null, isVip: false, classification: "triple", shape: "small_sport" },
+    { type: "small_square", lettersAr: "ح ك د", lettersEn: "HKD", numbers: "45", logo: null, isVip: false, classification: "triple", shape: "small_square" },
+    { type: "small_sport", lettersAr: "ت ج ح", lettersEn: "TJH", numbers: "88", logo: logosBySlug.get("diriyah") ?? null, isVip: false, classification: "triple", shape: "small_sport" },
 
     // Marketplace listing submissions — cover pending/approved/rejected.
     {
